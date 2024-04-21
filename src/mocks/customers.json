@@ -1,0 +1,19 @@
+[
+    {
+      "customerId": 1,
+      "name": "John Doe",
+      "createdAt": "2024-04-19",
+      "address": "123 Main St",
+      "kyc": true,
+      "payment": false
+    },
+    {
+      "customerId": 2,
+      "name": "Jane Smith",
+      "createdAt": "2024-04-18",
+      "address": "456 Oak Ave",
+      "kyc": false,
+      "payment": true
+    }
+  ]
+  
