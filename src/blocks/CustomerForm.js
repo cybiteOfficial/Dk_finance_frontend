@@ -152,7 +152,7 @@ const CustomerForm = () => {
   };
 
   return (
-    <div style={{ marginTop: 20 }}>
+    <div >
       <Box width={"90%"} margin={"0 auto"}>
         <Box display={"flex"} gap={"1rem"} justifyContent={"space-between"}>
           <Typography variant="h6" style={{ marginBottom: 20 }}>

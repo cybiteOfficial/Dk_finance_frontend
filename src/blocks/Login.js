@@ -6,6 +6,7 @@ import {
   logout,
   loginUserThunk,
 } from "../redux/reducers/auth/auth-reducer";
+import SnackToast  from "../components/Snackbar"
 
 export const LoginPage = () => {
   const dispatch = useDispatch(); // Initialize dispatch function
@@ -16,11 +17,31 @@ export const LoginPage = () => {
     email: "",
     password: "",
   });
+  const [err, setErr] = useState({
+    loading: false,
+    errMsg: "",
+    isErr: false,
+    severity:""
+  });
 
   useEffect(() => {
     dispatch(logout());
   }, [dispatch]);
 
+  useEffect(() => {
+    console.log("====",err);
+  }, [err]);
+ 
+
+  const setErrState = (loading,errMsg,isErr,severity)=>{
+    console.log("isErr",isErr);
+    setErr({
+      loading,
+      errMsg,
+      isErr,
+      severity
+    });
+  }
   //onchange
   const handleLoginChange = (event) => {
     const { value, name } = event.target;
@@ -31,31 +52,35 @@ export const LoginPage = () => {
 
   const navigateToDashboardPage = async (event) => {
     event.preventDefault();
-    setLoading(true);
+    setErrState(true, "", false,"");
 
     // Dispatch the loginUserThunk action and wait for the Promise to resolve
     try {
       const response = await dispatch(loginUserThunk(loggedInUser));
-      
+     
+    
       if (response.payload) {
-        setLoading(false);
-        navigate("/dashboard");
+        setErrState(false, "Login successfull", true,"success");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
       }
     } catch (error) {
       // Handle any errors here
       console.error("Login failed:", error);
+      setErrState(false, "Login failed", true,"error");
       // Optionally, display error message to the user
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   return (
+    <>
+    <SnackToast openSnack={err.isErr} message={err.errMsg} severity={err.severity}/>
     <Container
       component="main"
       maxWidth="xs"
       style={{
-        height: "100vh",
+        height: "50vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -104,5 +129,7 @@ export const LoginPage = () => {
         </form>
       </div>
     </Container>
+    </>
+    
   );
 };
