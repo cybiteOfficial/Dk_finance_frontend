@@ -28,6 +28,7 @@ const authSlice = createSlice({
     logout(state) {
       state.loggedIn = false;
       state.userInfo = null;
+      state.appId=""
     },
   },
   extraReducers: (builder) => {

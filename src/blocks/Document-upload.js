@@ -5,15 +5,25 @@ import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import {fetchDocumentDataThunk,updateDocumentDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+
+
+//...
 const DocumentUpload = () => {
   const {appId} = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [keyValuePairs, setKeyValuePairs] = useState([]);
   const [data,setData]=useState({
     description:"",
     remarks:""
   })
+  const [err, setErr] = useState({
+    loading: false,
+    errMsg: "",
+    isErr: false,
+  });
 
   const handleGoBack = () => {
     navigate("/applicant/customers");
@@ -43,18 +53,49 @@ const DocumentUpload = () => {
       { key: "", value: "", fileName: "", file: "" },
     ]);
   };
+
+ const setErrState = (loading,errMsg,isErr)=>{
+    setErr({
+      loading,
+      errMsg,
+      isErr,
+    });
+  }
   const handleDeleteKeyValuePair = (index) => {
     const updatedPairs = [...keyValuePairs];
     updatedPairs.splice(index, 1);
     setKeyValuePairs(updatedPairs);
   };
-  const handleSubmit = (e) => {
+
+  const fetchDocumentDataApi = async () => {
+    const payload = {};
+    try {
+      setErrState(true, "", false);
+      const response = await dispatch(fetchDocumentDataThunk(payload));
+      setErrState(false, "", false);
+    } catch (error) {
+      setErrState(false, "", true);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("keyValuePairs", keyValuePairs);
+    const formData = new FormData();
+    keyValuePairs.forEach((item,index) => {
+      // Append data to FormData object
+      formData.append(`key${index}`, item.value); // Append key-value pairs
+      formData.append(`{file${index}}`, item.file); // Append file with its name
+    });
+    
+    const payload = formData;
     // Add your submit logic here
+    try {
+      const response = await dispatch(updateDocumentDataThunk(payload));
+    } catch (error) {}
   };
   return (
-    <div style={{ marginTop: 20 }}>
+    <div >
     <Box width={"90%"} margin={"0 auto"}>
        <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}
