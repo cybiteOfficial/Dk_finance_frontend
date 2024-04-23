@@ -20,8 +20,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      {isLoggedIn && <Header />} {/* Render Header based on loggedIn state */}
-      <Container maxWidth="md" style={{ marginTop: '64px' }}>
+      { <Header />} 
+      <div >
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -34,7 +34,7 @@ function App() {
         <Route path="/applicant/customer/application" element={<CustomerCaf />} />
 
       </Routes>
-      </Container>
+      </div>
     </BrowserRouter>
   );
 }

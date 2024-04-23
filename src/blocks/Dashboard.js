@@ -39,7 +39,7 @@ useEffect(()=>{
    const displayedUsers = userInfo?.slice(startIndex, endIndex);
   return (
     <div>
-       <Box width={"90%"} margin={"0 auto"}>
+       <Box width={"100%"} margin={"0 auto"}>
        <Typography variant="h6" style={{ marginBottom: 20 }}>
           Applications
         </Typography>

@@ -1,26 +1,23 @@
 import React from "react";
-import {  Typography, Box, Button, Paper,Grid } from "@mui/material";
+import { Typography, Box, Button, Paper, Grid } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { useDispatch, useSelector } from "react-redux";
-import {  ArrowBack } from "@mui/icons-material";
-import { useNavigate} from "react-router-dom";
+import { ArrowBack } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import theme from "../theme";
 
 // Import JSON data using require()
 const jsonData = require("../mocks/customers.json");
 
-
 export const Customers = () => {
-  const {appId} = useSelector((state) => state.authReducer);
+  const { appId } = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
-
-
 
   // Sample data
   const data = jsonData;
-  const handleNavigate = (url)=>{
+  const handleNavigate = (url) => {
     navigate(url);
-  }
+  };
   const handleGoBack = () => {
     navigate("/dashboard");
   };
@@ -37,22 +34,30 @@ export const Customers = () => {
         <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}
         </Typography>
-        <Button
-          onClick={handleGoBack}
+        <Box display={"flex"}>
+          <Button
+            onClick={handleGoBack}
+            startIcon={<ArrowBack />}
+            variant="contained"
+            style={{ marginBottom: 20 }}
+          >
+            GO BACK
+          </Button>
+          <Button
+            variant="outlined"
+            style={{ marginBottom: 20, marginLeft: "auto" }}
+          >
+            Forwarded to DM
+          </Button>
+        </Box>
 
-          startIcon={<ArrowBack />}
-          variant="contained"
-          style={{ marginBottom: 20 }}
-        >
-          GO BACK
-        </Button>
         <Box>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               marginBottom: 20,
-              gap:"1rem"
+              gap: "1rem",
             }}
           >
             <Button
@@ -62,25 +67,25 @@ export const Customers = () => {
               Loan Details
             </Button>
             <Button
-             onClick={() => handleNavigate("/applicant/document/uploads")}
+              onClick={() => handleNavigate("/applicant/document/uploads")}
               style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Document Upload
             </Button>
             <Button
-             onClick={() => handleNavigate("/applicant/photographs/uploads")}
+              onClick={() => handleNavigate("/applicant/photographs/uploads")}
               style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Photograph Upload
             </Button>
             <Button
-             onClick={() => handleNavigate("/applicant/collateral")}
+              onClick={() => handleNavigate("/applicant/collateral")}
               style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Collateral Details
             </Button>
             <Button
-             onClick={() => handleNavigate("/applicant/customer/application")}
+              onClick={() => handleNavigate("/applicant/customer/application")}
               style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Customer Application Form
