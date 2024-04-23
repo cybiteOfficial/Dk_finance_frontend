@@ -37,7 +37,7 @@ const PhotoUpload = () => {
     }
   };
   return (
-    <div style={{ marginTop: 20 }}>
+    <div >
     <Box width={"90%"} margin={"0 auto"}>
         <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}

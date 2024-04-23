@@ -1,12 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowBack } from "@mui/icons-material";
 import { Button, TextField, Typography, Divider, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import {fetchLoanDataThunk, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+
 const LoanDetails = () => {
   const {appId} = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  useEffect(() => {
+    async function fetchData() {
+      // fetchLoanDataApi();
+    }
+    fetchData();
+  }, []);
+
+  const [err, setErr] = useState({
+    loading: false,
+    errMsg: "",
+    isErr: false,
+  });
+  
   const [formValues, setFormValues] = useState({
     productType: "",
     transactionType: "",
@@ -96,27 +112,39 @@ const LoanDetails = () => {
     // },
   });
 
-  // Function to handle form field changes
-  const handleInputChange = (chargeType, field, value) => {
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [chargeType]: {
-        ...prevValues[chargeType],
-        [field]: value,
-      },
-    }));
+ const setErrState = (loading,errMsg,isErr)=>{
+    setErr({
+      loading,
+      errMsg,
+      isErr,
+    });
+  }
+
+  const fetchLoanDataApi = async () => {
+    const payload = {};
+    try {
+      setErrState(true, "", false);
+      const response = await dispatch(fetchLoanDataThunk(payload));
+      setErrState(false, "", false);
+    } catch (error) {
+      setErrState(false, "", true);
+    }
   };
 
-  const handleLoanSubmit = (e) => {
+  const handleLoanSubmit = async (e) => {
     e.preventDefault();
-   console.log("loan", formValues);
-   
+    console.log("loan", formValues);
+    const payload = formValues;
+    try {
+      const response = await dispatch(updateLoanDataThunk(payload));
+    } catch (error) {}
   };
+
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
   return (
-    <div style={{ marginTop: 20 }}>
+    <div >
     <Box width={"90%"} margin={"0 auto"}>
         <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}

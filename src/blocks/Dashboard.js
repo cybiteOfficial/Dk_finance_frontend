@@ -3,7 +3,6 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
-import Pagination from "@mui/material/Pagination";
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from "react-router-dom";
@@ -39,8 +38,8 @@ useEffect(()=>{
    const endIndex = startIndex + usersPerPage;
    const displayedUsers = userInfo?.slice(startIndex, endIndex);
   return (
-    <div style={{ marginTop: 20 }}>
-       <Box width={"90%"} margin={"0 auto"}>
+    <div>
+       <Box width={"100%"} margin={"0 auto"}>
        <Typography variant="h6" style={{ marginBottom: 20 }}>
           Applications
         </Typography>

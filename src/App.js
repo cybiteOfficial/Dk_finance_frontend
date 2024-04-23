@@ -11,16 +11,17 @@ import DocumentUpload from "./blocks/Document-upload";
 import PhotoUpload from "./blocks/Photo-upload";
 import Collateral from "./blocks/Collateral";
 import CustomerCaf from "./blocks/Customer-caf";
-
+import Container from '@mui/material/Container';
 
 
 function App() {
   // Use useSelector hook to get the loggedIn state from Redux store
-  const isLoggedIn = useSelector((state) => state.loggedIn);
+  const isLoggedIn = useSelector((state) => state.authReducer.loggedIn);
 
   return (
     <BrowserRouter>
-      { <Header />} {/* Render Header based on loggedIn state */}
+      { <Header />} 
+      <div >
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -33,6 +34,7 @@ function App() {
         <Route path="/applicant/customer/application" element={<CustomerCaf />} />
 
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }
