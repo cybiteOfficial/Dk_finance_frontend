@@ -144,8 +144,8 @@ const LoanDetails = () => {
     navigate("/applicant/customers");
   };
   return (
-    <div >
-    <Box width={"90%"} margin={"0 auto"}>
+    < >
+    <Box width={"90%"} margin={"13vh auto 0 auto"}>
         <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}
         </Typography>
@@ -1027,7 +1027,7 @@ const LoanDetails = () => {
         </Button>
       </Box>
     </Box>
-    </div>
+    </>
   );
 };
 

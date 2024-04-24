@@ -1,11 +1,9 @@
-// userAPI.js
 
-// Import axios or any other HTTP client library you prefer
 import axios from "axios";
 import mockData from "../../../mocks/data.json";
 
 // Define your base API URL
-const baseURL = "https://api.example.com";
+export const baseURL = "http://3.111.52.245:8000/api/v1";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -21,7 +19,11 @@ export const authAPI = {
       // Make a GET request to fetch user by ID
       const response = await api.post(
         "https://jsonplaceholder.typicode.com/posts",
-        { title: "foo", body: "bar", userId: 1 },
+        {
+          title: "New Post Title",
+          body: "This is the body of the new post.",
+          userId: 1,
+        },
         {
           headers: {
             "Content-type": "application/json; charset=UTF-8",

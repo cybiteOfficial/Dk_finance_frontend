@@ -3,17 +3,16 @@ import { useNavigate } from "react-router-dom";
 import {
   TextField,
   Button,
-  Container,
-  Typography,
   Grid,
   Box,
 } from "@mui/material";
 import { useDispatch } from "react-redux"; // Import useDispatch hook
 import { logout, loginUserThunk } from "../redux/reducers/auth/auth-reducer";
 import SnackToast from "../components/Snackbar";
-import theme from "../theme";
+import {theme} from "../theme";
 import LoginImage from "../assets/images/login_image.png";
 import { styled } from "@mui/material/styles";
+import  {StyledTypography} from "../components/Common"
 
 const StyledTextField = styled(TextField)(({theme})=>({
  
@@ -51,12 +50,8 @@ export const LoginPage = () => {
     dispatch(logout());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log("====", err);
-  }, [err]);
 
   const setErrState = (loading, errMsg, isErr, severity) => {
-    console.log("isErr", isErr);
     setErr({
       loading,
       errMsg,
@@ -79,6 +74,7 @@ export const LoginPage = () => {
     // Dispatch the loginUserThunk action and wait for the Promise to resolve
     try {
       const response = await dispatch(loginUserThunk(loggedInUser));
+      console.log('response: ', response);
 
       if (response.payload) {
         setErrState(false, "Login successfull", true, "success");
@@ -128,13 +124,20 @@ export const LoginPage = () => {
           transform: "translate(-50%, -50%)",
           backgroundColor: "white",
           width: "80%",
-          height:"65%",
+          height: "696px",
           borderRadius: "40px",
           boxShadow: theme.shadows[5],
-
         }}
       >
-        <Grid container style={{ display: "flex", height:"100%" , alignItems:"center", justifyContent:"center"}}>
+        <Grid
+          container
+          style={{
+            display: "flex",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Grid item xs={12} sm={6}>
             <Box
               display={"flex"}
@@ -145,18 +148,18 @@ export const LoginPage = () => {
               gap={"2rem"}
             >
               {" "}
-              <img
-                style={{  }}
-                src={LoginImage}
-                width={"90%"}
-               
-              />{" "}
-              <Typography style={{  }} variant="semi">
+              <img src={LoginImage} width={"90%"} />{" "}
+              <StyledTypography variant="h4" weight={600}>
                 Welcome Back !
-              </Typography>
-              <Typography style={{ color:"#4C4C4C" }} align="center" variant="regular">
+              </StyledTypography>
+              <StyledTypography
+                color={theme.palette.blackFade.main}
+                align="center"
+                variant="body2"
+                weight={400}
+              >
                 Log in to access your account and manage your loan details.
-              </Typography>
+              </StyledTypography>
             </Box>
           </Grid>
           <Grid
@@ -167,10 +170,10 @@ export const LoginPage = () => {
               backgroundColor: theme.palette.lightSecondaryV4.main,
               borderTopRightRadius: "40px",
               borderBottomRightRadius: "40px",
-              display:"flex",
-              alignItems:"center",
-              height:"100%",
-              justifyContent:"center"
+              display: "flex",
+              alignItems: "center",
+              height: "100%",
+              justifyContent: "center",
             }}
           >
             <Box
@@ -180,44 +183,60 @@ export const LoginPage = () => {
               flexDirection={"column"}
               p={"1rem"}
             >
-              <Typography  variant="bold">
+              <StyledTypography variant="h2" weight={600}>
                 Login
-              </Typography>
+              </StyledTypography>
               <form
                 onSubmit={navigateToDashboardPage}
                 style={{ marginTop: "1rem" }}
               >
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    <Box gap={"0.5rem"} display={"flex"} flexDirection={"column"}>
-                    <Typography variant="regularMedium"color={theme.palette.primary.main}>Email</Typography>
-                    <StyledTextField
-                      variant="outlined"
-                      required
-                      fullWidth
-                      id="email"
-                     
-                      name="email"
-                      onChange={handleLoginChange}
-                    />
+                    <Box
+                      gap={"0.5rem"}
+                      display={"flex"}
+                      flexDirection={"column"}
+                    >
+                      <StyledTypography
+                        variant="body2"
+                        color={theme.palette.primary.main}
+                        weight={500}
+                      >
+                        Email
+                      </StyledTypography>
+                      <StyledTextField
+                        variant="outlined"
+                        required
+                        fullWidth
+                        id="email"
+                        name="email"
+                        onChange={handleLoginChange}
+                      />
                     </Box>
-                   
                   </Grid>
                   <Grid item xs={12}>
-                  <Box gap={"0.5rem"} display={"flex"} flexDirection={"column"}>
-                  <Typography variant="regularMedium"color={theme.palette.primary.main}>Password</Typography>
-                    <StyledTextField
-                      variant="outlined"
-                      required
-                      fullWidth
-                      name="password"
-                    
-                      type="password"
-                      id="password"
-                      onChange={handleLoginChange}
-                    />
-                  </Box>
-               
+                    <Box
+                      gap={"0.5rem"}
+                      display={"flex"}
+                      flexDirection={"column"}
+                    >
+                      <StyledTypography
+                        variant="body2"
+                        color={theme.palette.primary.main}
+                        weight={500}
+                      >
+                        Password
+                      </StyledTypography>
+                      <StyledTextField
+                        variant="outlined"
+                        required
+                        fullWidth
+                        name="password"
+                        type="password"
+                        id="password"
+                        onChange={handleLoginChange}
+                      />
+                    </Box>
                   </Grid>
                 </Grid>
                 <Button
@@ -225,11 +244,17 @@ export const LoginPage = () => {
                   fullWidth
                   variant="contained"
                   color="secondary"
-                  style={{borderRadius:"8px", marginTop:"2rem",}}
+                  style={{ borderRadius: "8px", marginTop: "2rem", height:"48px" }}
                   onClick={navigateToDashboardPage}
                 >
-                  <Typography variant="regularMedium">Login</Typography>
-                 
+                  <StyledTypography
+                    variant="body2"
+                    color={theme.palette.white.main}
+                    weight={500}
+                    
+                  >
+                    Login
+                  </StyledTypography>
                 </Button>
               </form>
             </Box>

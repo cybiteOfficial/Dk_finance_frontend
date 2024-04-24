@@ -4,7 +4,8 @@ import Chip from "@mui/material/Chip";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import theme from "../theme";
+import { StyledTypography } from "../components/Common";
+
 
 // Import JSON data using require()
 const jsonData = require("../mocks/customers.json");
@@ -29,11 +30,12 @@ export const Customers = () => {
   };
 
   return (
-    <div style={{ marginTop: 20 }}>
-      <Box width={"90%"} margin={"0 auto"}>
-        <Typography variant="h6" style={{ marginBottom: 20 }}>
+    <>
+      <Box width={"90%"} margin={"13vh auto 0 auto"}>
+        <StyledTypography variant="subtitle1" weight={700}>
           Application ID: {appId}
-        </Typography>
+        </StyledTypography>
+       
         <Box display={"flex"}>
           <Button
             onClick={handleGoBack}
@@ -60,33 +62,24 @@ export const Customers = () => {
               gap: "1rem",
             }}
           >
-            <Button
-              onClick={() => handleNavigate("/applicant/loan")}
-              style={{ backgroundColor: theme.palette.customColor2.textMain }}
-            >
+            <Button onClick={() => handleNavigate("/applicant/loan")}>
               Loan Details
             </Button>
             <Button
               onClick={() => handleNavigate("/applicant/document/uploads")}
-              style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Document Upload
             </Button>
             <Button
               onClick={() => handleNavigate("/applicant/photographs/uploads")}
-              style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Photograph Upload
             </Button>
-            <Button
-              onClick={() => handleNavigate("/applicant/collateral")}
-              style={{ backgroundColor: theme.palette.customColor2.textMain }}
-            >
+            <Button onClick={() => handleNavigate("/applicant/collateral")}>
               Collateral Details
             </Button>
             <Button
               onClick={() => handleNavigate("/applicant/customer/application")}
-              style={{ backgroundColor: theme.palette.customColor2.textMain }}
             >
               Customer Application Form
             </Button>
@@ -163,6 +156,6 @@ export const Customers = () => {
           ))}
         </div>
       </Paper>
-    </div>
+    </>
   );
 };

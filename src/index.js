@@ -3,8 +3,8 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "./theme";
+import { ThemeProvider ,  StyledEngineProvider} from "@mui/material/styles";
+import {theme} from "./theme";
 import { Provider } from "react-redux";
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistStore } from 'redux-persist';
@@ -17,11 +17,13 @@ let persistor = persistStore(store);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ThemeProvider theme={theme}>
+    <StyledEngineProvider injectFirst>
     <Provider store={store}>
     <PersistGate  persistor={persistor}> 
       <App />
       </PersistGate>
     </Provider>
+    </StyledEngineProvider>
   </ThemeProvider>
 );
 

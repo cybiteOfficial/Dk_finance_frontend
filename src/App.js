@@ -21,7 +21,7 @@ function App() {
   return (
     <BrowserRouter>
       { <Header />} 
-      <div >
+      <>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -34,7 +34,7 @@ function App() {
         <Route path="/applicant/customer/application" element={<CustomerCaf />} />
 
       </Routes>
-      </div>
+      </>
     </BrowserRouter>
   );
 }
