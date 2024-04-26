@@ -15,47 +15,56 @@ import {
   TextField,
   Typography,
   Divider,
-  AccordionActions,
-  IconButton,
   Input,
 } from "@mui/material";
 
-import {
-  ArrowBack,
-  ExpandLess,
-  ExpandMore,
-  ArrowForwardIosOutlined,
-} from "@mui/icons-material";
+import { ArrowBack, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import AvatarEditor from "react-avatar-editor";
-import Dropzone from "react-dropzone";
+
+import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import { logFormData } from "../components/Common";
+
+const fieldsToExtract = [
+  "existingCustomer",
+  "title",
+  "firstName",
+  "middle_name",
+  "lastName",
+  "dateOfBirth",
+  "age",
+  "sourceOfIncome",
+  "monthlyIncome",
+  "monthlyFamilyIncome",
+  "residenceOwnership",
+  "agriculturalLand",
+  "valueOfAgriculturalLand",
+  "earningsFromAgriculturalLand",
+  "educationQualification",
+  "numberOfDependents",
+  "gender",
+  "customerSegment",
+];
 
 const CustomerForm = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const token = useSelector((state) => state.authReducer.access_token);
+  const { selectedCustomer } = useSelector((state) => state.dashboardReducer);
+
+  const personalInformation = Object.fromEntries(
+    fieldsToExtract.map((field) => [
+      field,
+      selectedCustomer[field] !== undefined ? selectedCustomer[field] : "",
+    ])
+  );
   const [personalInfoFilled, setPersonalInfoFilled] = useState(false);
   const [addressInfoFilled, setAddressInfoFilled] = useState(false);
 
-  const [personInformation, setPersonalInformation] = useState({
-    existingCustomer: "",
-    title: "",
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    dateOfBirth: "",
-    age: "",
-    sourceOfIncome: "",
-    monthlyIncome: "",
-    monthlyFamilyIncome: "",
-    residenceOwnership: "",
-    agriculturalLand: "",
-    valueOfAgriculturalLand: "",
-    earningsFromAgriculturalLand: "",
-    educationQualification: "",
-    numberOfDependents: "",
-    gender: "",
-    customerSegment: "",
-  });
+  const [personInformation, setPersonalInformation] =
+    useState(personalInformation);
   const [addressFields, setAddressFields] = useState({
     current: {
       addressLine1: "",
@@ -91,7 +100,13 @@ const CustomerForm = () => {
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
   // State for cropped image
-  const [croppedImage, setCroppedImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(selectedCustomer.profile_photo);
+  const [err, setErr] = useState({
+    loading: false,
+    errMsg: "",
+    openSnack: false,
+    severity: "",
+  });
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -109,15 +124,46 @@ const CustomerForm = () => {
     }));
   };
 
-  const handleAddressSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission logic here
+  const setErrState = (loading, errMsg, openSnack, severity) => {
+    setErr({
+      loading,
+      errMsg,
+      openSnack,
+      severity,
+    });
   };
-  const handlePersonalSubmit = (e) => {
+
+  // console.log("===", Object.entries(personInformation));
+  const handlePersonalSubmit = async(e) => {
     e.preventDefault();
-    console.log("=====", personInformation);
-    console.log("=====", addressFields);
-    // Handle form submission logic here
+    // console.log("=====", personInformation);
+    // console.log("=====", addressFields);
+    const bodyFormData = new FormData();
+
+    Object.entries(personInformation)?.forEach((item) =>
+      bodyFormData.append(`${item[0]}`, item[1])
+    );
+
+    // Object.entries(addressFields)?.forEach((item) =>
+    //   bodyFormData.append(`${item[0]}`, item[1])
+    // );
+    
+    const payload = { bodyFormData, token , cif_id:selectedCustomer.cif_id};
+    try {
+      const response = await dispatch(updateCustomerDataThunk(payload));
+      console.log('response: ', response);
+      const { error, message } = response.payload;
+      if (error) {
+        return setErrState(false, message, true, "error");
+      }
+      setErrState(false, message, true, "success");
+      navigate("/applicant/customers")
+    } catch (error) {
+      console.error('error: ', error);
+
+    }
+  
+   
   };
 
   const handlePermanentAddressSameAsCurrent = () => {
@@ -152,8 +198,8 @@ const CustomerForm = () => {
   };
 
   return (
-    <div >
-      <Box width={"90%"} margin={"0 auto"}>
+    <>
+      <Box width={"90%"} margin={"13vh auto 0 auto"}>
         <Box display={"flex"} gap={"1rem"} justifyContent={"space-between"}>
           <Typography variant="h6" style={{ marginBottom: 20 }}>
             Applicant ID: 1245
@@ -187,7 +233,7 @@ const CustomerForm = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
-                <Grid item xs={2} sm={7} >
+                <Grid item xs={2} sm={7}>
                   <Box ml={"auto"}>
                     <Input
                       type="file"
@@ -209,16 +255,16 @@ const CustomerForm = () => {
                     </label>
                   </Box>
                   {croppedImage && (
-                  <Grid item xs={12}>
-                    <img
-                      src={croppedImage}
-                      alt="Selected Photo"
-                      style={{ maxWidth: "100%", maxHeight: "200px" }}
-                    />
-                  </Grid>
-                )}
+                    <Grid item xs={12}>
+                      <img
+                        src={croppedImage}
+                        alt="Selected Photo"
+                        style={{ maxWidth: "100%", maxHeight: "200px" }}
+                      />
+                    </Grid>
+                  )}
                 </Grid>
-             
+
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Existing Customer</InputLabel>
@@ -228,8 +274,8 @@ const CustomerForm = () => {
                       name="existingCustomer"
                       label="Existing Customer"
                     >
-                      <MenuItem value="yes">Yes</MenuItem>
-                      <MenuItem value="no">No</MenuItem>
+                      <MenuItem value="Yes">Yes</MenuItem>
+                      <MenuItem value="No">No</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -246,6 +292,7 @@ const CustomerForm = () => {
                       <MenuItem value="ms">MS</MenuItem>
                       <MenuItem value="miss">Miss</MenuItem>
                       <MenuItem value="mrs">Mrs</MenuItem>
+                      <MenuItem value="mr.">Mr.</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -262,9 +309,9 @@ const CustomerForm = () => {
                   <TextField
                     label="Middle Name"
                     fullWidth
-                    value={personInformation.middleName}
+                    value={personInformation.middle_name}
                     onChange={handleChange}
-                    name="middleName"
+                    name="middle_name"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -328,14 +375,15 @@ const CustomerForm = () => {
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Residence Ownership</InputLabel>
+                    {/* TODO:  */}
                     <Select
                       value={personInformation.residenceOwnership}
                       onChange={handleChange}
                       name="residenceOwnership"
                       label="Residence Ownership"
                     >
-                      <MenuItem value="yes">Yes</MenuItem>
-                      <MenuItem value="no">No</MenuItem>
+                      <MenuItem value="Yes">Yes</MenuItem>
+                      <MenuItem value="No">No</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -348,8 +396,8 @@ const CustomerForm = () => {
                       name="agriculturalLand"
                       label="Agricultural Land"
                     >
-                      <MenuItem value="yes">Yes</MenuItem>
-                      <MenuItem value="no">No</MenuItem>
+                      <MenuItem value="Yes">Yes</MenuItem>
+                      <MenuItem value="No">No</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -394,6 +442,7 @@ const CustomerForm = () => {
                       <MenuItem value="postgraduation">
                         Post Graduation
                       </MenuItem>
+                      {/* TODO: what should be the values selct hingi ya direct text filds */}
                     </Select>
                   </FormControl>
                 </Grid>
@@ -431,7 +480,8 @@ const CustomerForm = () => {
                       name="customerSegment"
                       label="Customer Segment"
                     >
-                      <MenuItem value="selfEmploymentProfessional">
+                      {/* TODO: values or kya ?? */}
+                      <MenuItem value="self_employee">
                         Self-Employment Professional
                       </MenuItem>
                     </Select>
@@ -442,7 +492,7 @@ const CustomerForm = () => {
             <Divider />
           </Accordion>
         </form>
-        <form onSubmit={handleAddressSubmit}>
+        <form onSubmit={handlePersonalSubmit}>
           <Accordion style={{ marginBottom: 20 }}>
             <AccordionSummary
               expandIcon={addressInfoFilled ? <ExpandLess /> : <ExpandMore />}
@@ -849,7 +899,7 @@ const CustomerForm = () => {
           </Button>
         </Box>
       </Paper>
-    </div>
+    </>
   );
 };
 

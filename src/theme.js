@@ -1,7 +1,8 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
-const typography = {
-  fontFamily: "Metropolis, sans-serif", // Define Quicksand font family
+
+export const weights = {
+  fontFamily: "Quicksand, sans-serif", // Define Quicksand font family
   fontWeightRegular: 400,
   fontWeightMedium: 500,
   fontWeightSemiBold: 700,
@@ -17,50 +18,53 @@ const breakpoints = {
   xl: 1920,
 };
 
-export const theme = createTheme({
+export const theme = responsiveFontSizes(createTheme({
   breakpoints: {
     values: breakpoints,
   },
+
   typography: {
-    fontFamily: typography.fontFamily,
-    extraBold: {
-      fontSize: "3rem",//48
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightExtraBold,
+    fontFamily: weights.fontFamily,
+    fontWeightLight: 300,
+    fontWeightRegular: 400,
+    fontWeightMedium: 500,
+    fontWeightSemiBold: 600,
+    fontWeightBold: 700,
+    h1: {
+        fontSize: 50,
     },
-    bold: {
-      fontSize: "2.5rem",//40
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightBold,
+    h2: {
+        fontSize: 40,
     },
-    semi: {
-      fontSize: "2rem",//32
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightSemiBold,
+    h3: {
+        fontSize: 35,
     },
-    medium: {
-      fontSize: "1.5rem",//24
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightMedium,
+    h4: {
+        fontSize: 32,
     },
-    regularMedium: {
-        fontSize: "1rem",//16
-        fontFamily: typography.fontFamily,
-        fontWeight: typography.fontWeightMedium,
-      },
-    regular: {
-      fontSize: "1rem",//16
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightRegular,
+    h5: {
+        fontSize: 30,
     },
-    light: {
-      fontSize: "0.5rem",//8
-      fontFamily: typography.fontFamily,
-      fontWeight: typography.fontWeightRegular,
+    h6: {
+        fontSize: 28,
     },
-   
-  },
-  fontFamily: typography.fontFamily,
+    subtitle1: {
+        fontSize: 24,
+    },
+    subtitle2: {
+        fontSize: 22,
+    },
+    body1: {
+        fontSize: 18,
+    },
+    body2: {
+        fontSize: 16
+    },
+    caption: {
+        fontSize: 14
+    }
+},
+ 
   palette: {
     primary: {
       main: "#7A306C", // purple
@@ -89,62 +93,11 @@ export const theme = createTheme({
     blackFade: {
       main: "#4C4C4C",
     },
-    white:{
-        main:"#FFFFFF"
+    white: {
+      main: "#FFFFFF",
     }
     // Add more custom colors as needed
   },
-});
-
-export default theme;
+}));
 
 
-
- // h1: {
-    //   fontSize: "2.5rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // h2: {
-    //   fontSize: "2.25rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // h3: {
-    //   fontSize: "2rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // h4: {
-    //   fontSize: "1.75rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // h5: {
-    //   fontSize: "1.5rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // h6: {
-    //   fontSize: "1.25rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // subtitle1: {
-    //   fontSize: "1rem",
-    //   fontWeight: typography.fontWeightBold,
-    // },
-    // subtitle2: {
-    //   fontSize: "0.875rem",
-    //   fontWeight: typography.fontWeightMedium,
-    // },
-    // body1: {
-    //   fontSize: "1rem",
-    //   fontWeight: typography.fontWeightMedium,
-    // },
-    // body2: {
-    //   fontSize: "0.875rem",
-    //   fontWeight: typography.fontWeightRegular,
-    // },
-    // caption: {
-    //   fontSize: "0.75rem",
-    //   fontWeight: typography.fontWeightRegular,
-    // },
-    // overline: {
-    //   fontSize: "0.625rem",
-    //   fontWeight: typography.fontWeightRegular,
-    // },

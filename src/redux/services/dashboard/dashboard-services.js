@@ -2,49 +2,75 @@
 
 // Import axios or any other HTTP client library you prefer
 import axios from "axios";
-
+import mockCustomers from "../../../mocks/customers.json";
 // Define your base API URL
-const baseURL = "https://api.example.com";
+const baseURL = "http://15.206.203.204/api/v1";
+const getAllAplicants = "/applicants/";
+const updateCustomer = "/customers";
+const  getLoanEndpoint = "/loan_details";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
   baseURL,
 });
 
-export const simpleHeaders = {
-  headers: {
-    "Content-type": "application/json; charset=UTF-8",
-  },
-};
+export const simpleHeaders = (token)=>{
+  return {
+    headers: {
+      "Content-type": "application/json; charset=UTF-8",
+      "Authorization":`Bearer ${token}`,
+    },
+  };
+}
 
-export const formHeaders = {
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
-};
+export const formHeaders = (token)=>{
+  return {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "Authorization":`Bearer ${token}`
+    },
+  };
+}
 // Define functions to interact with the user-related endpoints
 export const dashboardAPI = {
-  // Function to fetch 
+  // Function to fetch
   fetchApplicantDataApi: async (payload) => {
+    console.log("payloaddash: ", payload);
     try {
       // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
+      const url = `${baseURL}${getAllAplicants}`;
+      const response = await axios.get(`${url}`, simpleHeaders(payload.token));
+
       // Return the response data
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
-      throw error;
+      return error;
     }
   },
+
+  fetchCustomersByApplicantIdDataApi: async (payload) => {
+    const { application_id, token } = payload;
+    try {
+      const url = `${baseURL}${updateCustomer}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+
   fetchLoanDataApi: async (payload) => {
+    const {application_id,token} = payload
     try {
       // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getLoanEndpoint}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
   fetchDocumentDataApi: async (payload) => {
@@ -55,7 +81,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
   fetchPhotographDataApi: async (payload) => {
@@ -66,7 +91,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
   fetchCollateralDataApi: async (payload) => {
@@ -77,7 +101,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
   fetchCafDataApi: async (payload) => {
@@ -88,20 +111,38 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
 
   //update apis
-  updateLoanDataApi: async (payload) => {
+  updateCustomerDataApi: async (payload) => {
+    const { bodyFormData, token, cif_id } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, simpleHeaders);
+     
+      const response = await api.put(
+        `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
+        bodyFormData,
+        formHeaders(token)
+      );
+      // Return the response data
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+
+  updateLoanDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
+    try {
+      const response = await api.post(
+        `${baseURL}${getLoanEndpoint}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
 
@@ -113,7 +154,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
 
@@ -125,7 +165,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
 
@@ -137,7 +176,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
   updateCafDataApi: async (payload) => {
@@ -148,7 +186,6 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
-      throw error;
     }
   },
 };

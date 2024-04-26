@@ -1,11 +1,8 @@
-// userAPI.js
-
-// Import axios or any other HTTP client library you prefer
 import axios from "axios";
 import mockData from "../../../mocks/data.json";
 
 // Define your base API URL
-const baseURL = "https://api.example.com";
+export const baseURL = "http://15.206.203.204";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -16,24 +13,32 @@ const api = axios.create({
 export const authAPI = {
   // Function to fetch user by ID
   loginUserApi: async (payload) => {
-    console.log("payload: ", payload);
+    console.log("payload16: ", payload);
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(
-        "https://jsonplaceholder.typicode.com/posts",
-        { title: "foo", body: "bar", userId: 1 },
-        {
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-        }
-      );
-      return {
-        data:mockData
-      }
+     
+      const response = await axios.post(`${baseURL}/auth/signin`, {...payload}, {
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      });
+      // const data = {
+      //   Error: false,
+      //   data: {
+      //     access_token: "mVDtoD8KzrQkp9foThQNkfq1GbqMxC",
+      //     expires_in: 36000,
+      //     token_type: "Bearer",
+      //     scope: "read write groups",
+      //     refresh_token: "RApn4Cwf9l76GYYwjRBS4GnKQPyz10",
+      //   },
+      //   message: "Successfully login.",
+      // };
+      return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
-      throw error;
+      // const err = {
+      //   Error: true,
+      //   message: "Invalid credentials",
+      // };
+      return error
     }
   },
   // Add more functions for other user-related operations if needed

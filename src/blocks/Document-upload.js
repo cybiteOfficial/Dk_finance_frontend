@@ -95,8 +95,8 @@ const DocumentUpload = () => {
     } catch (error) {}
   };
   return (
-    <div >
-    <Box width={"90%"} margin={"0 auto"}>
+    < >
+    <Box width={"90%"} margin={"13vh auto 0 auto"}>
        <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}
         </Typography>
@@ -124,7 +124,7 @@ const DocumentUpload = () => {
               <TextField
                 margin="normal"
                 fullWidth
-                label="Key"
+                label="Document name"
                 value={pair.key}
                 onChange={(e) =>
                   handleTextFieldChange(index, e.target.value, "key")
@@ -135,7 +135,7 @@ const DocumentUpload = () => {
               <TextField
                 margin="normal"
                 fullWidth
-                label="Value"
+                label="Document ID"
                 value={pair.value}
                 onChange={(e) =>
                   handleTextFieldChange(index, e.target.value, "value")
@@ -212,7 +212,7 @@ const DocumentUpload = () => {
         </Button>
       </form>
     </Box>
-    </div>
+    </>
   );
 };
 

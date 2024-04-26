@@ -28,10 +28,8 @@ export const Header = () => {
 
   // Define your custom styles with theme
   const CustomAppBar = styled(AppBar)(({ theme }) => ({
-    backgroundColor: isLoggedIn
-      ? theme.palette.primary.main
-      : theme.palette.white.main,
-    color: isLoggedIn ? theme.palette.primary.main : theme.palette.white,
+    backgroundColor:  theme.palette.white.main,
+    color: isLoggedIn ? theme.palette.primary.main : theme.palette.white.main,
     position:"absolute",
     top:0
   }));
@@ -53,9 +51,9 @@ export const Header = () => {
 
   return (
     <CustomAppBar >
-      <Toolbar style={{height:"13vh"}}>
+      <Toolbar style={{height:"10vh"}}>
         <img src={Logo} width={"199px"} height={"64px"} />
-        {isLoggedIn && (
+        {/* {isLoggedIn && (
           <>
             <Typography
               variant="h6"
@@ -97,7 +95,7 @@ export const Header = () => {
               </MenuList>
             </Menu>
           </>
-        )}
+        )} */}
       </Toolbar>
     </CustomAppBar>
   );

@@ -37,8 +37,8 @@ const PhotoUpload = () => {
     }
   };
   return (
-    <div >
-    <Box width={"90%"} margin={"0 auto"}>
+    < >
+    <Box width={"90%"} margin={"13vh auto 0 auto"}>
         <Typography variant="h6" style={{ marginBottom: 20 }}>
           Application ID: {appId}
         </Typography>
@@ -144,7 +144,7 @@ const PhotoUpload = () => {
         </Button>
       </form>
     </Box>
-    </div>
+    </>
   );
 }
 
