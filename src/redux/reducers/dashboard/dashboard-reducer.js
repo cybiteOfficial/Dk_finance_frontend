@@ -138,6 +138,12 @@ const dashboardSlice = createSlice({
       console.log('actioncUSTOEMR: ', action);
       state.customerDetails = action.payload.results
     });
+
+    builder.addCase(fetchLoanDataThunk.fulfilled, (state, action) => {
+      // Add user to the state array
+      console.log('actionLoan ', action);
+      state.loanDetails = action.payload.data
+    });
   },
 });
 

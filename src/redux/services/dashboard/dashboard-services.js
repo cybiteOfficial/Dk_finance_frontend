@@ -7,6 +7,7 @@ import mockCustomers from "../../../mocks/customers.json";
 const baseURL = "http://15.206.203.204/api/v1";
 const getAllAplicants = "/applicants/";
 const updateCustomer = "/customers";
+const  getLoanEndpoint = "/loan_details";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -61,10 +62,12 @@ export const dashboardAPI = {
   },
 
   fetchLoanDataApi: async (payload) => {
+    const {application_id,token} = payload
     try {
       // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getLoanEndpoint}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
@@ -115,7 +118,7 @@ export const dashboardAPI = {
   updateCustomerDataApi: async (payload) => {
     const { bodyFormData, token, cif_id } = payload;
     try {
-      // Make a GET request to fetch user by ID
+     
       const response = await api.put(
         `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
         bodyFormData,
@@ -129,9 +132,13 @@ export const dashboardAPI = {
   },
 
   updateLoanDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, simpleHeaders);
+      const response = await api.post(
+        `${baseURL}${getLoanEndpoint}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {

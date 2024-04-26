@@ -124,7 +124,7 @@ const DocumentUpload = () => {
               <TextField
                 margin="normal"
                 fullWidth
-                label="Key"
+                label="Document name"
                 value={pair.key}
                 onChange={(e) =>
                   handleTextFieldChange(index, e.target.value, "key")
@@ -135,7 +135,7 @@ const DocumentUpload = () => {
               <TextField
                 margin="normal"
                 fullWidth
-                label="Value"
+                label="Document ID"
                 value={pair.value}
                 onChange={(e) =>
                   handleTextFieldChange(index, e.target.value, "value")

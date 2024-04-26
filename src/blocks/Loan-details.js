@@ -4,15 +4,20 @@ import { Button, TextField, Typography, Divider, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {fetchLoanDataThunk, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+import SnackToast from "../components/Snackbar";
+import { StyledTypography, logFormData } from "../components/Common";
+
+
 
 const LoanDetails = () => {
+  const token = useSelector((state) => state.authReducer.access_token);
   const {appId} = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
     async function fetchData() {
-      // fetchLoanDataApi();
+      fetchLoanDataApi();
     }
     fetchData();
   }, []);
@@ -24,91 +29,91 @@ const LoanDetails = () => {
   });
   
   const [formValues, setFormValues] = useState({
-    productType: "",
-    transactionType: "",
-    caseTag: "",
-    appliedLoanAmount: "",
-    appliedTenure: "",
-    appliedROI: "",
+    product_type: "",
+    transaction_type: "",
+    case_tag: "",
+    applied_loan_amount: "",
+    applied_tenure: "",
+    applied_ROI: "",
     description: "",
-    remark: "",
-    processingFees: {
-      applicableRate: "",
-      changeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    comment: "",
+    processing_fees: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
-    valuationCharges: {
-      applicableRate: "",
-      chargeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    valuation_charges: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
-    legalAndIncidentalFee: {
-      applicableRate: "",
-      chargeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    legal_and_incidental_fee: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
-    stampDuty: {
-      applicableRate: "",
-      chargeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    stamp_duty_applicable_rate: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
-    rcuCharges: {
-      applicableRate: "",
-      chargeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    rcu_charges_applicable_rate: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
-    stampingExpenses: {
-      applicableRate: "",
-      chargeAmount: "",
-      taxAmount: "",
-      totalAmount: "",
+    stamping_expenses_applicable_rate: {
+      applicable_rate: "",
+      charge_amount: "",
+      tax_amount: "",
+      total_amount: "",
     },
     // preEmi: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // carePACIInsurance: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // gpaHospitalCare: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // gpaHospicashChola: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // gpaHospicashABHI: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // sblHDFCLifeCreditProtectPlus: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
     // abhiGroupCIInsurance: {
-    //   applicableRate: "",
-    //   chargeAmount: "",
-    //   taxAmount: "",
-    //   totalAmount: "",
+    //   applicable_rate: "",
+    //   charge_amount: "",
+    //   tax_amount: "",
+    //   total_amount: "",
     // },
   });
 
@@ -120,24 +125,87 @@ const LoanDetails = () => {
     });
   }
 
+ const handleExtractFormValues = (dataObject) => {
+    const updatedFormValues = { ...formValues };
+
+    for (const key in dataObject) {
+      if (
+        key === "processing_fees" ||
+        key === "valuation_charges" ||
+        key === "legal_and_incidental_fee" ||
+        key === "stamp_duty_applicable_rate" ||
+        key === "rcu_charges_applicable_rate" ||
+        key === "stamping_expenses_applicable_rate"
+      ) {
+        // Handle nested objects separately
+        updatedFormValues[key] = { ...formValues[key], ...dataObject[key] };
+      }
+     else {
+        // Update other fields directly
+        updatedFormValues[key] = dataObject[key];
+      }
+    }
+      setFormValues(updatedFormValues)
+    
+  };
+
   const fetchLoanDataApi = async () => {
-    const payload = {};
+    const payload = {application_id:appId,token}
     try {
-      setErrState(true, "", false);
+      setErrState(true, "", false, "");
       const response = await dispatch(fetchLoanDataThunk(payload));
-      setErrState(false, "", false);
+      const { data, error, message } = response.payload;
+      if (error) {
+        return setErrState(false, message, true, "error");
+      }
+      if(data.length >0 ){
+        handleExtractFormValues(data[data.length-1]);
+      }
+    
+      
+      if (data && data.length > 0) {
+        setErrState(false, message, true, "success");
+      }
     } catch (error) {
-      setErrState(false, "", true);
+      console.error('error: ', error);
     }
   };
 
   const handleLoanSubmit = async (e) => {
     e.preventDefault();
+    delete formValues?.id;
+    delete formValues?.loan_id;
+    delete formValues?.applicant;
+
     console.log("loan", formValues);
-    const payload = formValues;
+    const bodyFormData = new FormData();
+    for (const key in formValues) {
+      if (typeof formValues[key] === 'object') {
+        // If the value is an object, loop through its key-value pairs and append them
+        for (const nestedKey in formValues[key]) {
+          bodyFormData.append(key, JSON.stringify(formValues[key]));
+        }
+      } else {
+        // If the value is not an object, append it directly
+        bodyFormData.append(key, formValues[key]);
+      }
+    }
+   
+    bodyFormData.append("applicant_id",appId)
+    logFormData(bodyFormData)
+    const payload = { bodyFormData, token };
     try {
       const response = await dispatch(updateLoanDataThunk(payload));
-    } catch (error) {}
+      const { error, message } = response.payload;
+      if (error) {
+        return setErrState(false, message, true, "error");
+      }
+      setErrState(false, message, true, "success");
+      navigate("/applicant/customers")
+    } catch (error) {
+      console.error('error: ', error);
+
+    }
   };
 
   const handleGoBack = () => {
@@ -145,10 +213,13 @@ const LoanDetails = () => {
   };
   return (
     < >
+     <SnackToast
+        openSnack={err.openSnack}
+        message={err.errMsg}
+        severity={err.severity}
+      />
     <Box width={"90%"} margin={"13vh auto 0 auto"}>
-        <Typography variant="h6" style={{ marginBottom: 20 }}>
-          Application ID: {appId}
-        </Typography>
+        
       <Button
         onClick={handleGoBack}
         startIcon={<ArrowBack />}
@@ -157,6 +228,9 @@ const LoanDetails = () => {
       >
         GO BACK
       </Button>
+      <StyledTypography variant="subtitle1" weight={700}>
+            Application ID: {appId}
+          </StyledTypography>
       <Typography variant="h6">Loan Details</Typography>
       <Divider style={{ marginBottom: 10 }} />
 
@@ -164,54 +238,54 @@ const LoanDetails = () => {
         label="Product type (normal)"
         fullWidth
         margin="normal"
-        value={formValues.productType}
+        value={formValues.product_type}
         onChange={(e) =>
-          setFormValues({ ...formValues, productType: e.target.value })
+          setFormValues({ ...formValues, product_type: e.target.value })
         }
       />
       <TextField
         label="Transaction type"
         fullWidth
         margin="normal"
-        value={formValues.transactionType}
+        value={formValues.transaction_type}
         onChange={(e) =>
-          setFormValues({ ...formValues, transactionType: e.target.value })
+          setFormValues({ ...formValues, transaction_type: e.target.value })
         }
       />
       <TextField
         label="Case tag"
         fullWidth
         margin="normal"
-        value={formValues.caseTag}
+        value={formValues.case_tag}
         onChange={(e) =>
-          setFormValues({ ...formValues, caseTag: e.target.value })
+          setFormValues({ ...formValues, case_tag: e.target.value })
         }
       />
       <TextField
         label="Applied loan amount"
         fullWidth
         margin="normal"
-        value={formValues.appliedLoanAmount}
+        value={formValues.applied_loan_amount}
         onChange={(e) =>
-          setFormValues({ ...formValues, appliedLoanAmount: e.target.value })
+          setFormValues({ ...formValues, applied_loan_amount: e.target.value })
         }
       />
       <TextField
         label="Applied tenure"
         fullWidth
         margin="normal"
-        value={formValues.appliedTenure}
+        value={formValues.applied_tenure}
         onChange={(e) =>
-          setFormValues({ ...formValues, appliedTenure: e.target.value })
+          setFormValues({ ...formValues, applied_tenure: e.target.value })
         }
       />
       <TextField
         label="Applied ROI"
         fullWidth
         margin="normal"
-        value={formValues.appliedROI}
+        value={formValues.applied_ROI}
         onChange={(e) =>
-          setFormValues({ ...formValues, appliedROI: e.target.value })
+          setFormValues({ ...formValues, applied_ROI: e.target.value })
         }
       />
 
@@ -220,10 +294,46 @@ const LoanDetails = () => {
       </Typography>
       <Divider style={{ marginBottom: 10 }} />
 
-      <TextField label="Applicable rate %" fullWidth margin="normal" />
-      <TextField label="Change amount" fullWidth margin="normal" />
-      <TextField label="Tax amount" fullWidth margin="normal" />
-      <TextField label="Total amount" fullWidth margin="normal" />
+      <TextField   value={formValues.processing_fees.applicable_rate}
+        onChange={(e) =>
+          setFormValues({
+            ...formValues,
+            processing_fees: {
+              ...formValues.processing_fees,
+              applicable_rate: e.target.value,
+            },
+          })
+        }  label="Applicable rate %" fullWidth margin="normal" />
+      <TextField  value={formValues.processing_fees.charge_amount}
+        onChange={(e) =>
+          setFormValues({
+            ...formValues,
+            processing_fees: {
+              ...formValues.processing_fees,
+              charge_amount: e.target.value,
+            },
+          })
+        } label="Change amount" fullWidth margin="normal" />
+      <TextField  value={formValues.processing_fees.tax_amount}
+        onChange={(e) =>
+          setFormValues({
+            ...formValues,
+            processing_fees: {
+              ...formValues.processing_fees,
+              tax_amount: e.target.value,
+            },
+          })
+        } label="Tax amount" fullWidth margin="normal" />
+      <TextField  value={formValues.processing_fees.total_amount}
+        onChange={(e) =>
+          setFormValues({
+            ...formValues,
+            processing_fees: {
+              ...formValues.processing_fees,
+              total_amount: e.target.value,
+            },
+          })
+        } label="Total amount" fullWidth margin="normal" />
 
       <Typography variant="h6" style={{ marginTop: 20 }}>
         Charges type (Valuation charges)
@@ -234,13 +344,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.valuationCharges.applicableRate}
+        value={formValues.valuation_charges.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            valuationCharges: {
-              ...formValues.valuationCharges,
-              applicableRate: e.target.value,
+            valuation_charges: {
+              ...formValues.valuation_charges,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -249,13 +359,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.valuationCharges.chargeAmount}
+        value={formValues.valuation_charges.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            valuationCharges: {
-              ...formValues.valuationCharges,
-              chargeAmount: e.target.value,
+            valuation_charges: {
+              ...formValues.valuation_charges,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -264,13 +374,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.valuationCharges.taxAmount}
+        value={formValues.valuation_charges.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            valuationCharges: {
-              ...formValues.valuationCharges,
-              taxAmount: e.target.value,
+            valuation_charges: {
+              ...formValues.valuation_charges,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -279,13 +389,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.valuationCharges.totalAmount}
+        value={formValues.valuation_charges.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            valuationCharges: {
-              ...formValues.valuationCharges,
-              totalAmount: e.target.value,
+            valuation_charges: {
+              ...formValues.valuation_charges,
+              total_amount: e.target.value,
             },
           })
         }
@@ -301,13 +411,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.legalAndIncidentalFee.applicableRate}
+        value={formValues.legal_and_incidental_fee.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            legalAndIncidentalFee: {
-              ...formValues.legalAndIncidentalFee,
-              applicableRate: e.target.value,
+            legal_and_incidental_fee: {
+              ...formValues.legal_and_incidental_fee,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -316,13 +426,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.legalAndIncidentalFee.chargeAmount}
+        value={formValues.legal_and_incidental_fee.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            legalAndIncidentalFee: {
-              ...formValues.legalAndIncidentalFee,
-              chargeAmount: e.target.value,
+            legal_and_incidental_fee: {
+              ...formValues.legal_and_incidental_fee,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -331,13 +441,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.legalAndIncidentalFee.taxAmount}
+        value={formValues.legal_and_incidental_fee.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            legalAndIncidentalFee: {
-              ...formValues.legalAndIncidentalFee,
-              taxAmount: e.target.value,
+            legal_and_incidental_fee: {
+              ...formValues.legal_and_incidental_fee,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -346,13 +456,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.legalAndIncidentalFee.totalAmount}
+        value={formValues.legal_and_incidental_fee.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            legalAndIncidentalFee: {
-              ...formValues.legalAndIncidentalFee,
-              totalAmount: e.target.value,
+            legal_and_incidental_fee: {
+              ...formValues.legal_and_incidental_fee,
+              total_amount: e.target.value,
             },
           })
         }
@@ -367,13 +477,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.stampDuty.applicableRate}
+        value={formValues.stamp_duty_applicable_rate.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampDuty: {
-              ...formValues.stampDuty,
-              applicableRate: e.target.value,
+            stamp_duty_applicable_rate: {
+              ...formValues.stamp_duty_applicable_rate,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -382,13 +492,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.stampDuty.chargeAmount}
+        value={formValues.stamp_duty_applicable_rate.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampDuty: {
-              ...formValues.stampDuty,
-              chargeAmount: e.target.value,
+            stamp_duty_applicable_rate: {
+              ...formValues.stamp_duty_applicable_rate,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -397,11 +507,11 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.stampDuty.taxAmount}
+        value={formValues.stamp_duty_applicable_rate.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampDuty: { ...formValues.stampDuty, taxAmount: e.target.value },
+            stamp_duty_applicable_rate: { ...formValues.stamp_duty_applicable_rate, tax_amount: e.target.value },
           })
         }
       />
@@ -409,11 +519,11 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.stampDuty.totalAmount}
+        value={formValues.stamp_duty_applicable_rate.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampDuty: { ...formValues.stampDuty, totalAmount: e.target.value },
+            stamp_duty_applicable_rate: { ...formValues.stamp_duty_applicable_rate, total_amount: e.target.value },
           })
         }
       />
@@ -427,13 +537,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.rcuCharges.applicableRate}
+        value={formValues.rcu_charges_applicable_rate.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            rcuCharges: {
-              ...formValues.rcuCharges,
-              applicableRate: e.target.value,
+            rcu_charges_applicable_rate: {
+              ...formValues.rcu_charges_applicable_rate,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -442,13 +552,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.rcuCharges.chargeAmount}
+        value={formValues.rcu_charges_applicable_rate.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            rcuCharges: {
-              ...formValues.rcuCharges,
-              chargeAmount: e.target.value,
+            rcu_charges_applicable_rate: {
+              ...formValues.rcu_charges_applicable_rate,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -457,11 +567,11 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.rcuCharges.taxAmount}
+        value={formValues.rcu_charges_applicable_rate.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            rcuCharges: { ...formValues.rcuCharges, taxAmount: e.target.value },
+            rcu_charges_applicable_rate: { ...formValues.rcu_charges_applicable_rate, tax_amount: e.target.value },
           })
         }
       />
@@ -469,13 +579,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.rcuCharges.totalAmount}
+        value={formValues.rcu_charges_applicable_rate.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            rcuCharges: {
-              ...formValues.rcuCharges,
-              totalAmount: e.target.value,
+            rcu_charges_applicable_rate: {
+              ...formValues.rcu_charges_applicable_rate,
+              total_amount: e.target.value,
             },
           })
         }
@@ -490,13 +600,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.stampingExpenses.applicableRate}
+        value={formValues.stamping_expenses_applicable_rate.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampingExpenses: {
-              ...formValues.stampingExpenses,
-              applicableRate: e.target.value,
+            stamping_expenses_applicable_rate: {
+              ...formValues.stamping_expenses_applicable_rate,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -505,13 +615,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.stampingExpenses.chargeAmount}
+        value={formValues.stamping_expenses_applicable_rate.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampingExpenses: {
-              ...formValues.stampingExpenses,
-              chargeAmount: e.target.value,
+            stamping_expenses_applicable_rate: {
+              ...formValues.stamping_expenses_applicable_rate,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -520,13 +630,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.stampingExpenses.taxAmount}
+        value={formValues.stamping_expenses_applicable_rate.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampingExpenses: {
-              ...formValues.stampingExpenses,
-              taxAmount: e.target.value,
+            stamping_expenses_applicable_rate: {
+              ...formValues.stamping_expenses_applicable_rate,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -535,13 +645,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.stampingExpenses.totalAmount}
+        value={formValues.stamping_expenses_applicable_rate.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            stampingExpenses: {
-              ...formValues.stampingExpenses,
-              totalAmount: e.target.value,
+            stamping_expenses_applicable_rate: {
+              ...formValues.stamping_expenses_applicable_rate,
+              total_amount: e.target.value,
             },
           })
         }
@@ -563,11 +673,11 @@ const LoanDetails = () => {
         label="Remarks"
         fullWidth
         margin="normal"
-        name="remarks"
-        value={formValues.remarks}
+        name="comment"
+        value={formValues.comment}
         onChange={(e)=>setFormValues({
           ...formValues,
-          remark: e.target.value,
+          comment: e.target.value,
         })}
       />
       {/* <Typography variant="h6" style={{ marginTop: 20 }}>
@@ -578,11 +688,11 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.preEmi.applicableRate}
+        value={formValues.preEmi.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            preEmi: { ...formValues.preEmi, applicableRate: e.target.value },
+            preEmi: { ...formValues.preEmi, applicable_rate: e.target.value },
           })
         }
       />
@@ -590,11 +700,11 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.preEmi.chargeAmount}
+        value={formValues.preEmi.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            preEmi: { ...formValues.preEmi, chargeAmount: e.target.value },
+            preEmi: { ...formValues.preEmi, charge_amount: e.target.value },
           })
         }
       />
@@ -602,11 +712,11 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.preEmi.taxAmount}
+        value={formValues.preEmi.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            preEmi: { ...formValues.preEmi, taxAmount: e.target.value },
+            preEmi: { ...formValues.preEmi, tax_amount: e.target.value },
           })
         }
       />
@@ -614,11 +724,11 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.preEmi.totalAmount}
+        value={formValues.preEmi.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
-            preEmi: { ...formValues.preEmi, totalAmount: e.target.value },
+            preEmi: { ...formValues.preEmi, total_amount: e.target.value },
           })
         }
       />
@@ -631,13 +741,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.carePACIInsurance.applicableRate}
+        value={formValues.carePACIInsurance.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             carePACIInsurance: {
               ...formValues.carePACIInsurance,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -646,13 +756,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.carePACIInsurance.chargeAmount}
+        value={formValues.carePACIInsurance.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             carePACIInsurance: {
               ...formValues.carePACIInsurance,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -661,13 +771,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.carePACIInsurance.taxAmount}
+        value={formValues.carePACIInsurance.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             carePACIInsurance: {
               ...formValues.carePACIInsurance,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -676,13 +786,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.carePACIInsurance.totalAmount}
+        value={formValues.carePACIInsurance.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             carePACIInsurance: {
               ...formValues.carePACIInsurance,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }
@@ -696,13 +806,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospitalCare.applicableRate}
+        value={formValues.gpaHospitalCare.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospitalCare: {
               ...formValues.gpaHospitalCare,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -711,13 +821,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospitalCare.chargeAmount}
+        value={formValues.gpaHospitalCare.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospitalCare: {
               ...formValues.gpaHospitalCare,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -726,13 +836,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospitalCare.taxAmount}
+        value={formValues.gpaHospitalCare.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospitalCare: {
               ...formValues.gpaHospitalCare,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -741,13 +851,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospitalCare.totalAmount}
+        value={formValues.gpaHospitalCare.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospitalCare: {
               ...formValues.gpaHospitalCare,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }
@@ -761,13 +871,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashChola.applicableRate}
+        value={formValues.gpaHospicashChola.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashChola: {
               ...formValues.gpaHospicashChola,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -776,13 +886,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashChola.chargeAmount}
+        value={formValues.gpaHospicashChola.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashChola: {
               ...formValues.gpaHospicashChola,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -791,13 +901,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashChola.taxAmount}
+        value={formValues.gpaHospicashChola.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashChola: {
               ...formValues.gpaHospicashChola,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -806,13 +916,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashChola.totalAmount}
+        value={formValues.gpaHospicashChola.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashChola: {
               ...formValues.gpaHospicashChola,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }
@@ -827,13 +937,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashABHI.applicableRate}
+        value={formValues.gpaHospicashABHI.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashABHI: {
               ...formValues.gpaHospicashABHI,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -842,13 +952,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashABHI.chargeAmount}
+        value={formValues.gpaHospicashABHI.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashABHI: {
               ...formValues.gpaHospicashABHI,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -857,13 +967,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashABHI.taxAmount}
+        value={formValues.gpaHospicashABHI.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashABHI: {
               ...formValues.gpaHospicashABHI,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -872,13 +982,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.gpaHospicashABHI.totalAmount}
+        value={formValues.gpaHospicashABHI.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             gpaHospicashABHI: {
               ...formValues.gpaHospicashABHI,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }
@@ -893,13 +1003,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.sblHDFCLifeCreditProtectPlus.applicableRate}
+        value={formValues.sblHDFCLifeCreditProtectPlus.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             sblHDFCLifeCreditProtectPlus: {
               ...formValues.sblHDFCLifeCreditProtectPlus,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -908,13 +1018,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.sblHDFCLifeCreditProtectPlus.chargeAmount}
+        value={formValues.sblHDFCLifeCreditProtectPlus.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             sblHDFCLifeCreditProtectPlus: {
               ...formValues.sblHDFCLifeCreditProtectPlus,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -923,13 +1033,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.sblHDFCLifeCreditProtectPlus.taxAmount}
+        value={formValues.sblHDFCLifeCreditProtectPlus.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             sblHDFCLifeCreditProtectPlus: {
               ...formValues.sblHDFCLifeCreditProtectPlus,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -938,13 +1048,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.sblHDFCLifeCreditProtectPlus.totalAmount}
+        value={formValues.sblHDFCLifeCreditProtectPlus.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             sblHDFCLifeCreditProtectPlus: {
               ...formValues.sblHDFCLifeCreditProtectPlus,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }
@@ -958,13 +1068,13 @@ const LoanDetails = () => {
         label="Applicable rate"
         fullWidth
         margin="normal"
-        value={formValues.abhiGroupCIInsurance.applicableRate}
+        value={formValues.abhiGroupCIInsurance.applicable_rate}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             abhiGroupCIInsurance: {
               ...formValues.abhiGroupCIInsurance,
-              applicableRate: e.target.value,
+              applicable_rate: e.target.value,
             },
           })
         }
@@ -973,13 +1083,13 @@ const LoanDetails = () => {
         label="Charge amount"
         fullWidth
         margin="normal"
-        value={formValues.abhiGroupCIInsurance.chargeAmount}
+        value={formValues.abhiGroupCIInsurance.charge_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             abhiGroupCIInsurance: {
               ...formValues.abhiGroupCIInsurance,
-              chargeAmount: e.target.value,
+              charge_amount: e.target.value,
             },
           })
         }
@@ -988,13 +1098,13 @@ const LoanDetails = () => {
         label="Tax amount"
         fullWidth
         margin="normal"
-        value={formValues.abhiGroupCIInsurance.taxAmount}
+        value={formValues.abhiGroupCIInsurance.tax_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             abhiGroupCIInsurance: {
               ...formValues.abhiGroupCIInsurance,
-              taxAmount: e.target.value,
+              tax_amount: e.target.value,
             },
           })
         }
@@ -1003,13 +1113,13 @@ const LoanDetails = () => {
         label="Total amount"
         fullWidth
         margin="normal"
-        value={formValues.abhiGroupCIInsurance.totalAmount}
+        value={formValues.abhiGroupCIInsurance.total_amount}
         onChange={(e) =>
           setFormValues({
             ...formValues,
             abhiGroupCIInsurance: {
               ...formValues.abhiGroupCIInsurance,
-              totalAmount: e.target.value,
+              total_amount: e.target.value,
             },
           })
         }

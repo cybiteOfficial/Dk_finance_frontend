@@ -158,7 +158,10 @@ const CustomerForm = () => {
       }
       setErrState(false, message, true, "success");
       navigate("/applicant/customers")
-    } catch (error) {}
+    } catch (error) {
+      console.error('error: ', error);
+
+    }
   
    
   };
