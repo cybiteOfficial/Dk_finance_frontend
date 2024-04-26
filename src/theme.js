@@ -2,7 +2,7 @@ import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
 
 export const weights = {
-  fontFamily: "Metropolis, sans-serif", // Define Quicksand font family
+  fontFamily: "Quicksand, sans-serif", // Define Quicksand font family
   fontWeightRegular: 400,
   fontWeightMedium: 500,
   fontWeightSemiBold: 700,

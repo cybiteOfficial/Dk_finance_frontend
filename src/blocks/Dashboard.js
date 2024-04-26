@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@mui/styles";
-
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAppId } from "../redux/reducers/auth/auth-reducer";
-
+import  {fetchApplicantDataThunk} from "../redux/reducers/dashboard/dashboard-reducer";
+import SnackToast from "../components/Snackbar";
 import {
   NavigateBefore,
   NavigateNext,
@@ -80,7 +80,8 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const DashboardPage = () => {
-  const userInfo = useSelector((state) => state.authReducer.userInfo);
+  const userInfo = useSelector((state) => state.dashboardReducer.applicantData);
+  const token = useSelector((state) => state.authReducer.access_token);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -89,10 +90,26 @@ const DashboardPage = () => {
 
   const [page, setPage] = useState(1); // State to manage current page
   const [sort,setSort] = useState("1")
+  const [err, setErr] = useState({
+    loading: false,
+    errMsg: "",
+    openSnack: false,
+    severity: "",
+  });
 
   useEffect(() => {
-    console.log("page", page);
-  }, [page]);
+    const fetchApplicants = async () => getApplicantsApi();
+    fetchApplicants();
+  }, []);
+
+  const setErrState = (loading, errMsg, openSnack, severity) => {
+    setErr({
+      loading,
+      errMsg,
+      openSnack,
+      severity,
+    });
+  };
   const handlePrevPage = () => {
     setPage((prevPage) => Math.max(prevPage - 1, 1)); // Decrement page, but not less than 1
   };
@@ -104,11 +121,35 @@ const DashboardPage = () => {
   const handleSetSort = (item)=>setSort(item.id);
 
   const showCustomer = (item) => {
-    dispatch(setAppId({ appId: item.id, type: "setAppId" }));
+    dispatch(setAppId({ appId: item.application_id, type: "setAppId" }));
     navigate("/applicant/customers");
+  };
+
+
+  const getApplicantsApi = async (event) => {
+    setErrState(true, "", false, "");
+    const payload = {token}
+    try {
+      const response = await dispatch(fetchApplicantDataThunk(payload));
+      console.log('responsedash: ', response);
+       // where is err and msg
+      const { results } = response.payload;
+      if (results && results.length > 0) {
+        setErrState(false, "Fetched successfully.", true, "success");
+      }
+    } catch (error) {
+      const { message } = error;
+      setErrState(false, message, true, "error");
+    }
   };
  
   return (
+    <>
+     <SnackToast
+        openSnack={err.openSnack}
+        message={err.errMsg}
+        severity={err.severity}
+      />
     <Box
       width={"90%"}
       margin={"17vh auto 0 auto"}
@@ -119,7 +160,7 @@ const DashboardPage = () => {
       <Grid container>
         <Grid item xs={12}>
           <Box p={"2rem"}>
-            {/* <StyledTypography style={{ fontWeight: 700 }}>Applications</StyledTypography> */}
+          
             <StyledTypography variant="subtitle1" weight={700}>
               Applications
             </StyledTypography>
@@ -217,7 +258,7 @@ const DashboardPage = () => {
               </Grid>
             </Grid>
             <Box style={{ overflowY: "scroll" }} height={"583px"}>
-              {userInfo?.map((item, index) => (
+              {userInfo && userInfo.length > 0 && userInfo?.map((item, index) => (
                 <>
                   <Grid
                     key={item.id}
@@ -227,12 +268,12 @@ const DashboardPage = () => {
                   >
                     <Grid item xs={2}>
                       <StyledTypography variant="body2"  weight={600}>
-                        #{item.id}
+                        #{item?.application_id}
                       </StyledTypography>
                     </Grid>
                     <Grid item xs={2}>
                       <StyledTypography variant="body2"  weight={600}>
-                        {item.assignee}
+                        {item.lead}
                       </StyledTypography>
                     </Grid>
 
@@ -250,23 +291,17 @@ const DashboardPage = () => {
                           propFontSize={theme.typography.body2.fontSize}
                           propFontWeight={theme.typography.fontWeightRegular}
                           propColor={
-                            item.status === "Pending"
-                              ? theme.palette.primary.main
-                              : item.status === "Completed"
-                              ? "#00B02C"
-                              : theme.palette.black.main
+                            //TODO: need statuses
+                              theme.palette.primary.main
+                           
                           }
                           propWidth={"160px"}
                           propHeight={"40px"}
                           propBorderRadius={"8px"}
-                          propBackgroundColor={
-                            item.status === "Pending"
-                              ? theme.palette.lightSecondaryV3.main
-                              : item.status === "Completed"
-                              ? "#EAF2EC"
-                              : theme.palette.lightSecondaryV2.main
+                          propBackgroundColor={ theme.palette.lightSecondaryV3.main
                           }
                           label={item.status}
+                          
                         />
                       </Box>
                     </Grid>
@@ -289,6 +324,7 @@ const DashboardPage = () => {
         </IconButton>
       </Box> */}
     </Box>
+    </>
   );
 };
 

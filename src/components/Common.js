@@ -23,7 +23,11 @@ const StyledChip = styled(Chip)(
     },
   })
 );
-
+export const logFormData = (bodyFormData) => {
+  for (const [key, value] of bodyFormData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
+}; 
 export const CommonChip = (props) => {
   return (
     <StyledChip

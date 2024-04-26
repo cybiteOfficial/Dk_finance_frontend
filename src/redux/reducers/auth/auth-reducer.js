@@ -8,7 +8,7 @@ export const loginUserThunk = createAsyncThunk(
   async (payload) => {
     const response = await authAPI.loginUserApi(payload)
     console.log('responseauth: ', response);
-    return response.data; 
+    return response; 
   },
 );
 
@@ -16,6 +16,7 @@ const initialState = {
   loggedIn: false,
   userInfo: null,
   appId:"",
+  access_token:""
 };
 
 const authSlice = createSlice({
@@ -29,13 +30,16 @@ const authSlice = createSlice({
       state.loggedIn = false;
       state.userInfo = null;
       state.appId=""
+      state.access_token=""
     },
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
     builder.addCase(loginUserThunk.fulfilled, (state, action) => {
-      state.userInfo = action.payload;
+      console.log('action: ', action);
+      state.userInfo = [];
       state.loggedIn = true;
+      state.access_token=action.payload.data.access_token
     });
   },
 });

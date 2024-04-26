@@ -1,39 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  TextField,
-  Button,
-  Grid,
-  Box,
-} from "@mui/material";
+import { TextField, Button, Grid, Box } from "@mui/material";
 import { useDispatch } from "react-redux"; // Import useDispatch hook
 import { logout, loginUserThunk } from "../redux/reducers/auth/auth-reducer";
+import { removeStore } from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
-import {theme} from "../theme";
+import { theme } from "../theme";
 import LoginImage from "../assets/images/login_image.png";
 import { styled } from "@mui/material/styles";
-import  {StyledTypography} from "../components/Common"
+import { StyledTypography } from "../components/Common";
 
-const StyledTextField = styled(TextField)(({theme})=>({
- 
-  '& .MuiInputBase-input':{
-    borderRadius:"8px",
-    height:"16px",
-    border:`1px solid ${theme.palette.primary.main}`,
-    fontFamily:theme.typography.fontFamily,
-    color:theme.palette.primary.main,
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  "& .MuiInputBase-input": {
+    borderRadius: "8px",
+    height: "16px",
+    border: `1px solid ${theme.palette.primary.main}`,
+    fontFamily: theme.typography.fontFamily,
+    color: theme.palette.primary.main,
   },
-  '& .MuiOutlinedInput-notchedOutline':{
-    borderRadius:"8px",
-  }
-}))
-
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderRadius: "8px",
+  },
+}));
 
 export const LoginPage = () => {
   const dispatch = useDispatch(); // Initialize dispatch function
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState({
     email: "",
     password: "",
@@ -41,62 +34,62 @@ export const LoginPage = () => {
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
-    isErr: false,
+    openSnack: false,
     severity: "",
   });
 
- 
   useEffect(() => {
     dispatch(logout());
+    dispatch(removeStore())
   }, [dispatch]);
 
-
-  const setErrState = (loading, errMsg, isErr, severity) => {
+  const setErrState = (loading, errMsg, openSnack, severity) => {
     setErr({
       loading,
       errMsg,
-      isErr,
+      openSnack,
       severity,
     });
   };
   //onchange
   const handleLoginChange = (event) => {
     const { value, name } = event.target;
-    setLoggedInUser({
-      [name]: value,
-    });
+    console.log('event.target: ', name,value);
+    setLoggedInUser((prev) => ({
+      ...prev,
+      [name]: value 
+  }));
   };
 
   const navigateToDashboardPage = async (event) => {
     event.preventDefault();
     setErrState(true, "", false, "");
-
+    console.log("logg",loggedInUser);
     // Dispatch the loginUserThunk action and wait for the Promise to resolve
     try {
       const response = await dispatch(loginUserThunk(loggedInUser));
-      console.log('response: ', response);
-
-      if (response.payload) {
-        setErrState(false, "Login successfull", true, "success");
+      console.log("response: ", response);
+      const { Error, message } = response.payload;
+      if (!Error) {
+        setErrState(false, message, true, "success");
         setTimeout(() => {
           navigate("/dashboard");
         }, 500);
       }
     } catch (error) {
-      // Handle any errors here
-      console.error("Login failed:", error);
-      setErrState(false, "Login failed", true, "error");
-      // Optionally, display error message to the user
+      const { message } = error;
+      setErrState(false, message, true, "error");
     }
   };
 
   return (
     <>
       <SnackToast
-        openSnack={err.isErr}
+        openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
       />
+      
       <Grid
         container
         style={{
@@ -244,14 +237,17 @@ export const LoginPage = () => {
                   fullWidth
                   variant="contained"
                   color="secondary"
-                  style={{ borderRadius: "8px", marginTop: "2rem", height:"48px" }}
+                  style={{
+                    borderRadius: "8px",
+                    marginTop: "2rem",
+                    height: "48px",
+                  }}
                   onClick={navigateToDashboardPage}
                 >
                   <StyledTypography
                     variant="body2"
                     color={theme.palette.white.main}
                     weight={500}
-                    
                   >
                     Login
                   </StyledTypography>
