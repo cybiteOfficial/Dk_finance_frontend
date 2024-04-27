@@ -1,28 +1,44 @@
-import React, { useState } from "react";
-import { ArrowBack } from "@mui/icons-material";
-import { Button, Box, Typography, Grid, TextField, Input,IconButton } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { ArrowBack, Upload } from "@mui/icons-material";
+import {
+  Button,
+  Box,
+  Typography,
+  Grid,
+  TextField,
+  Input,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import {fetchDocumentDataThunk,updateDocumentDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+import {
+  fetchDocumentDataThunk,
+  updateDocumentDataThunk,
+} from "../redux/reducers/dashboard/dashboard-reducer";
+import SnackToast from "../components/Snackbar";
 
-
-//...
 const DocumentUpload = () => {
-  const {appId} = useSelector((state) => state.authReducer);
+  const { appId, uuid } = useSelector((state) => state.authReducer);
+  const token = useSelector((state) => state.authReducer.access_token);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [keyValuePairs, setKeyValuePairs] = useState([]);
-  const [data,setData]=useState({
-    description:"",
-    remarks:""
-  })
+  // Define a loading state for each file
+  const [loadingStates, setLoadingStates] = useState();
+
+  const [data, setData] = useState({
+    description: "",
+    remarks: "",
+  });
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
-    isErr: false,
+    openSnack: false,
+    severity: "",
   });
 
   const handleGoBack = () => {
@@ -33,12 +49,12 @@ const DocumentUpload = () => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
   };
-  // Function to update value of a text field
+
   const handleTextFieldChange = (index, value, key) => {
     const updatedPairs = [...keyValuePairs];
-    if (key == "key") {
+    if (key === "document_name") {
       updatedPairs[index].key = value;
-    } else if (key == "value") {
+    } else if (key === "document_id") {
       updatedPairs[index].value = value;
     } else if (key === "file") {
       updatedPairs[index].fileName = value?.name;
@@ -50,168 +66,215 @@ const DocumentUpload = () => {
   const addKeyValuePair = () => {
     setKeyValuePairs([
       ...keyValuePairs,
-      { key: "", value: "", fileName: "", file: "" },
+      { key: "", value: "", fileName: "", file: "", document_type: "others" },
     ]);
   };
 
- const setErrState = (loading,errMsg,isErr)=>{
-    setErr({
-      loading,
-      errMsg,
-      isErr,
-    });
-  }
+  const setErrState = (loading, errMsg, openSnack, severity) => {
+    setErr({ loading, errMsg, openSnack, severity });
+  };
+
   const handleDeleteKeyValuePair = (index) => {
     const updatedPairs = [...keyValuePairs];
     updatedPairs.splice(index, 1);
     setKeyValuePairs(updatedPairs);
   };
 
-  const fetchDocumentDataApi = async () => {
-    const payload = {};
+  const callApi = async (index) => {
+    setErrState(true, "", false, "");
+    const formData = new FormData();
+    formData.append("document_name", keyValuePairs[index].key);
+    formData.append("document_type", "other");
+    formData.append("document_id", keyValuePairs[index].value);
+    formData.append("file", keyValuePairs[index].file);
+
+    formData.append("application", uuid);
+    if (data.remarks) {
+      formData.append("comment", data.remarks);
+    } else {
+      formData.append("comment", "");
+    }
+
+    if (data.description) {
+      formData.append("description", data.description);
+    } else {
+      formData.append("description", "");
+    }
+
+    const payload = { formData, token };
+
     try {
-      setErrState(true, "", false);
-      const response = await dispatch(fetchDocumentDataThunk(payload));
-      setErrState(false, "", false);
+      const response = await dispatch(updateDocumentDataThunk(payload));
+      const { error, message } = response.payload;
+      if (error) {
+        setErrState(false, message, true, "error");
+      } else {
+        setErrState(false, message, true, "success");
+      }
     } catch (error) {
-      setErrState(false, "", true);
+      console.error("error: ", error);
+      setErrState(false, "", false, "");
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("keyValuePairs", keyValuePairs);
-    const formData = new FormData();
-    keyValuePairs.forEach((item,index) => {
-      // Append data to FormData object
-      formData.append(`key${index}`, item.value); // Append key-value pairs
-      formData.append(`{file${index}}`, item.file); // Append file with its name
-    });
-    
-    const payload = formData;
-    // Add your submit logic here
+
+  const handleSubmit = async (indexer) => {
+
+    if (!keyValuePairs[indexer].fileName) {
+      setErrState(false, "No file selected", true, "warning");
+      return;
+    }
+
+    // Set loading state for the clicked indexer to true
+    setLoadingStates(indexer);
+
     try {
-      const response = await dispatch(updateDocumentDataThunk(payload));
-    } catch (error) {}
+      await callApi(indexer);
+    } finally {
+      // Reset loading state for the clicked indexer
+      setLoadingStates(null);
+    }
   };
+
   return (
-    < >
-    <Box width={"90%"} margin={"13vh auto 0 auto"}>
-       <Typography variant="h6" style={{ marginBottom: 20 }}>
+    <>
+      <SnackToast
+        openSnack={err.openSnack}
+        message={err.errMsg}
+        severity={err.severity}
+      />
+      <Box width={"90%"} margin={"13vh auto 0 auto"}>
+      <Button
+          onClick={handleGoBack}
+          startIcon={<ArrowBack />}
+          variant="contained"
+          style={{ marginBottom: 20 }}
+        >
+          GO BACK
+        </Button>
+        <Typography variant="subtitle1" style={{ fontWeight:700 }}>
           Application ID: {appId}
         </Typography>
-      <Button
-        onClick={handleGoBack}
-        startIcon={<ArrowBack />}
-        variant="contained"
-        style={{ marginBottom: 20 }}
-      >
-        GO BACK
-      </Button>
-      <Typography variant="h5">Document Upload</Typography>
-      <form onSubmit={handleSubmit}>
-        {keyValuePairs.map((pair, index) => (
-          <Grid
-            container
-            spacing={2}
-            key={index}
-            style={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Grid item xs={3}>
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Document name"
-                value={pair.key}
-                onChange={(e) =>
-                  handleTextFieldChange(index, e.target.value, "key")
-                }
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Document ID"
-                value={pair.value}
-                onChange={(e) =>
-                  handleTextFieldChange(index, e.target.value, "value")
-                }
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <TextField
-                fullWidth
-                label="Uploaded File"
-                margin="normal"
-                name="uploadedFile"
-                value={pair.fileName}
-              />
-            </Grid>
-            <Grid item xs={2}>
-              <Box ml={"auto"}>
-                <Input
-                  type="file"
+      
+        <Typography variant="h5">Document Upload</Typography>
+        <form>
+          {keyValuePairs.map((pair, indexer) => (
+            <Grid
+              container
+              spacing={2}
+              key={indexer}
+              style={{
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Grid item xs={2}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Document name"
+                  value={pair.key}
                   onChange={(e) =>
-                    handleTextFieldChange(index, e.target.files[0], "file")
+                    handleTextFieldChange(
+                      indexer,
+                      e.target.value,
+                      "document_name"
+                    )
                   }
-                  style={{ display: "none" }}
-                  id={`file-input${index}`}
                 />
-                <label htmlFor={`file-input${index}`}>
-                  <Button
-                    fullWidth
-                    style={{ margin: "16px 0 8px 0" }}
-                    variant="outlined"
-                    component="span"
-                    startIcon={<AttachFileIcon />}
-                  >
-                    Choose File
-                  </Button>
-                </label>
-              </Box>
+              </Grid>
+              <Grid item xs={2}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Document ID"
+                  value={pair.value}
+                  onChange={(e) =>
+                    handleTextFieldChange(
+                      indexer,
+                      e.target.value,
+                      "document_id"
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={2}>
+                <TextField
+                  fullWidth
+                  label="Uploaded File"
+                  margin="normal"
+                  name="uploadedFile"
+                  value={pair.fileName}
+                />
+              </Grid>
+              <Grid item xs={2}>
+                <Box ml={"auto"}>
+                  <Input
+                    type="file"
+                    onChange={(e) =>
+                      handleTextFieldChange(indexer, e.target.files[0], "file")
+                    }
+                    style={{ display: "none" }}
+                    id={`file-input${indexer}`}
+                  />
+                  <label htmlFor={`file-input${indexer}`}>
+                    <Button
+                      fullWidth
+                      style={{ margin: "16px 0 8px 0" }}
+                      variant="outlined"
+                      component="span"
+                      startIcon={<AttachFileIcon />}
+                    >
+                      Choose File
+                    </Button>
+                  </label>
+                </Box>
+              </Grid>
+
+              <Grid item xs={1}>
+                <IconButton onClick={() => handleSubmit(indexer)}>
+                  <Upload />
+                </IconButton>
+              </Grid>
+              <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
+                <IconButton onClick={() => handleDeleteKeyValuePair(indexer)}>
+                  <DeleteIcon />
+                  {loadingStates === indexer && <CircularProgress />}
+                </IconButton>
+              </Grid>
             </Grid>
-            <Grid item xs={1}>
-              <IconButton onClick={() => handleDeleteKeyValuePair(index)}>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-        <TextField
-          label="Description"
-          fullWidth
-          multiline
-          rows={4}
-          margin="normal"
-          name="description"
-          value={data.description}
-          onChange={handleInputChange}
-        />
-        <TextField
-          label="Remarks"
-          fullWidth
-          margin="normal"
-          name="remarks"
-          value={data.remarks}
-          onChange={handleInputChange}
-        />
-        <Button variant="contained" type="button" onClick={addKeyValuePair}>
-          Add More
-        </Button>
-        <Button
-          style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
-          variant="contained"
-          type="submit"
-          fullWidth
-        >
-          Submit
-        </Button>
-      </form>
-    </Box>
+          ))}
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            margin="normal"
+            name="description"
+            value={data.description}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Remarks"
+            fullWidth
+            margin="normal"
+            name="remarks"
+            value={data.remarks}
+            onChange={handleInputChange}
+          />
+          <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
+          <Button
+            style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
+            variant="contained"
+            fullWidth
+            onClick={() => navigate("/applicant/customers")}
+          >
+            Submit
+          </Button>
+        </form>
+      </Box>
     </>
   );
 };

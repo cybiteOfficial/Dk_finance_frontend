@@ -8,6 +8,7 @@ const baseURL = "http://15.206.203.204/api/v1";
 const getAllAplicants = "/applicants/";
 const updateCustomer = "/customers";
 const  getLoanEndpoint = "/loan_details";
+const uploadDocument ="/upload_document";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -147,9 +148,13 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
+    const {formData,token} = payload
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${uploadDocument}`,
+        formData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {

@@ -16,7 +16,8 @@ const initialState = {
   loggedIn: false,
   userInfo: null,
   appId:"",
-  access_token:""
+  access_token:"",
+  uuid:""
 };
 
 const authSlice = createSlice({
@@ -24,7 +25,8 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setAppId(state, action) {
-      state.appId = action.payload.appId;
+      state.appId = action.payload.appId.app_id;
+      state.uuid = action.payload.appId.uuid;
     },
     logout(state) {
       state.loggedIn = false;

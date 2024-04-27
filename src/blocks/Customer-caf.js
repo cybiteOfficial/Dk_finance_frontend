@@ -49,10 +49,7 @@ console.log("key",keyValuePairs);
   return (
     < >
     <Box width={"90%"}  margin={"13vh auto 0 auto"}>
-        <Typography variant="h6" style={{ marginBottom: 20 }}>
-          Application ID: {appId}
-        </Typography>
-      <Button
+    <Button
         onClick={handleGoBack}
         startIcon={<ArrowBack />}
         variant="contained"
@@ -60,6 +57,10 @@ console.log("key",keyValuePairs);
       >
         GO BACK
       </Button>
+      <Typography variant="subtitle1" style={{ fontWeight:700 }}>
+          Application ID: {appId}
+        </Typography>
+     
       <Typography variant="h5">Customer CAF</Typography>
       <form onSubmit={handleSubmit}>
         <TextField

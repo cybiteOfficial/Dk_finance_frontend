@@ -1,4 +1,4 @@
-import { createTheme, responsiveFontSizes } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
 
 export const weights = {
@@ -18,7 +18,7 @@ const breakpoints = {
   xl: 1920,
 };
 
-export const theme = responsiveFontSizes(createTheme({
+export const theme = createTheme({
   breakpoints: {
     values: breakpoints,
   },
@@ -98,6 +98,6 @@ export const theme = responsiveFontSizes(createTheme({
     }
     // Add more custom colors as needed
   },
-}));
+});
 
 

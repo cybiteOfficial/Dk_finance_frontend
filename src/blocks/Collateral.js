@@ -68,10 +68,7 @@ const Collateral = () => {
   return (
     < >
     <Box width={"90%"} margin={"13vh auto 0 auto"}>
-       <Typography variant="h6" style={{ marginBottom: 20 }}>
-          Application ID: {appId}
-        </Typography>
-      <Button
+    <Button
         onClick={handleGoBack}
         startIcon={<ArrowBack />}
         variant="contained"
@@ -79,6 +76,10 @@ const Collateral = () => {
       >
         GO BACK
       </Button>
+      <Typography variant="subtitle1" style={{ fontWeight:700 }}>
+          Application ID: {appId}
+        </Typography>
+     
       <Typography variant="h6">Collateral Details</Typography>
       <Divider style={{ marginBottom: 10 }} />
       <TextField
