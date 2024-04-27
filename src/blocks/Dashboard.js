@@ -121,7 +121,12 @@ const DashboardPage = () => {
   const handleSetSort = (item)=>setSort(item.id);
 
   const showCustomer = (item) => {
-    dispatch(setAppId({ appId: item.application_id, type: "setAppId" }));
+    dispatch(
+      setAppId({
+        appId: { app_id: item.application_id, uuid: item.uuid },
+        type: "setAppId",
+      })
+    );
     navigate("/applicant/customers");
   };
 
@@ -195,7 +200,8 @@ const DashboardPage = () => {
               />
               {sortingFilter.map((item) => {
                 return (
-                  <CommonChip
+                  <CommonChip 
+                     key={item.id}
                     propFontSize={theme.typography.body2.fontSize}
                     propFontWeight={theme.typography.fontWeightSemiBold}
                     propColor={
@@ -259,9 +265,10 @@ const DashboardPage = () => {
             </Grid>
             <Box style={{ overflowY: "scroll" }} height={"583px"}>
               {userInfo && userInfo.length > 0 && userInfo?.map((item, index) => (
-                <>
+                <div key={item.application_id
+                }>
                   <Grid
-                    key={item.id}
+                    
                     container
                     className={classes.appLicantRows}
                     onClick={() => showCustomer(item)}
@@ -307,8 +314,8 @@ const DashboardPage = () => {
                     </Grid>
                   </Grid>
                   <img src={DashedImg} className={classes.dashedImg} />
-                  {/* <hr style={{margin:"0 30px", borderStyle: "dashed" , borderColor:"#E4D6E2"}} /> */}
-                </>
+                 
+                </div>
               ))}
             </Box>
           </Paper>

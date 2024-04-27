@@ -27,7 +27,6 @@ import { updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-r
 import { logFormData } from "../components/Common";
 
 const fieldsToExtract = [
-  "existingCustomer",
   "title",
   "firstName",
   "middle_name",
@@ -53,6 +52,7 @@ const CustomerForm = () => {
 
   const token = useSelector((state) => state.authReducer.access_token);
   const { selectedCustomer } = useSelector((state) => state.dashboardReducer);
+  const { appId } = useSelector((state) => state.authReducer);
 
   const personalInformation = Object.fromEntries(
     fieldsToExtract.map((field) => [
@@ -200,16 +200,7 @@ const CustomerForm = () => {
   return (
     <>
       <Box width={"90%"} margin={"13vh auto 0 auto"}>
-        <Box display={"flex"} gap={"1rem"} justifyContent={"space-between"}>
-          <Typography variant="h6" style={{ marginBottom: 20 }}>
-            Applicant ID: 1245
-          </Typography>
-
-          <Typography variant="h6" style={{ marginBottom: 20 }}>
-            Customer ID : 1235
-          </Typography>
-        </Box>
-        <Button
+      <Button
           onClick={() => navigate("/applicant/customers")}
           variant="contained"
           startIcon={<ArrowBack />}
@@ -217,6 +208,17 @@ const CustomerForm = () => {
         >
           Go Back
         </Button>
+        <Box display={"flex"} gap={"1rem"} justifyContent={"space-between"}>
+        <Typography variant="subtitle1" style={{ fontWeight:700 }}>
+          Application ID: {appId}
+        </Typography>
+      
+
+          <Typography variant="subtitle1" style={{ fontWeight:700 }}>
+            Customer ID : {selectedCustomer.cif_id}
+          </Typography>
+        </Box>
+       
       </Box>
 
       <Paper style={{ width: "90%", padding: 20, margin: "auto" }}>
@@ -233,7 +235,7 @@ const CustomerForm = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
-                <Grid item xs={2} sm={7}>
+                {/* <Grid item xs={2} sm={7}>
                   <Box ml={"auto"}>
                     <Input
                       type="file"
@@ -263,22 +265,9 @@ const CustomerForm = () => {
                       />
                     </Grid>
                   )}
-                </Grid>
+                </Grid> */}
 
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Existing Customer</InputLabel>
-                    <Select
-                      value={personInformation.existingCustomer}
-                      onChange={handleChange}
-                      name="existingCustomer"
-                      label="Existing Customer"
-                    >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+               
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Title</InputLabel>

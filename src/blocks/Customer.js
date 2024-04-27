@@ -169,7 +169,7 @@ export const Customers = () => {
         <div>
           {customerDetails && customerDetails.length>0 && customerDetails?.map((item, index) => (
             <Grid
-              key={item.id}
+              key={item.uuid}
               container
               style={{
                 padding: 10,
@@ -198,8 +198,8 @@ export const Customers = () => {
               <Grid item xs={2}>
                 {/* TODO: need kyc in response */}
                 <Chip
-                  label={item.kyc ? "Verified" : "Not Verified"}
-                  color={item.kyc ? "primary" : "default"}
+                  label={ "Verified" }
+                  color={ "primary"}
                 />
               </Grid>
             </Grid>

@@ -22,7 +22,7 @@ export default function AutohideSnackbar({openSnack,message,severity}) {
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={open}
-        autoHideDuration={5000}
+        autoHideDuration={1000}
         onClose={handleClose}
       >
         <Alert

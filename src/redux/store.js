@@ -2,7 +2,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./reducers/auth/auth-reducer";
 import dashboardReducer from "./reducers/dashboard/dashboard-reducer";
-import { persistReducer } from 'redux-persist'
+import { persistReducer , FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,} from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { combineReducers } from 'redux';
 
@@ -23,10 +28,8 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      thunk: {
-        extraArgument: {
-         
-        },
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
 });
