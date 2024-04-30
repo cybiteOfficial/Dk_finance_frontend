@@ -45,7 +45,7 @@ export const CommonChip = (props) => {
   );
 };
 
-export const StyledTypography = ({color, align,variant, weight, children }) => {
+export const StyledTypography = ({color, align,variant, weight, children ,capitalize}) => {
   return (
     <Typography
       align={align && align}
@@ -53,6 +53,7 @@ export const StyledTypography = ({color, align,variant, weight, children }) => {
       style={{
         fontWeight: weight ? weight : 400,
         color: color ? color : theme.palette.black.main,
+        textTransform:capitalize
       }}
     >
       {children}

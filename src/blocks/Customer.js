@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Box, Button, Paper, Grid } from "@mui/material";
+import { Typography, Box, Button, Paper, Grid,  Pagination,Stack } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowBack } from "@mui/icons-material";
@@ -19,6 +19,9 @@ export const Customers = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
+  const [page, setPage] = useState(1); // State to manage current page
+  const itemsPerPage = 20; // Assuming 20 items per page
+  const [totalPages ,setTotalPages]=useState(0);
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -33,11 +36,40 @@ export const Customers = () => {
     navigate("/dashboard");
   };
 
-  const addForm = (item) => {
+  const handlePageChange = (event, value) => {
+    setPage(value); 
+  };
+
+  const addForm = () => {
+    const item = {
+      "title": "",
+      "firstName": "",
+      "middle_name": "",
+      "lastName": "",
+      "dateOfBirth": "",
+      "age": "",
+      "sourceOfIncome": "",
+      "monthlyIncome": "",
+      "monthlyFamilyIncome": "",
+      "residenceOwnership": "",
+      "agriculturalLand": "",
+      "valueOfAgriculturalLand": "",
+      "earningsFromAgriculturalLand": "",
+      "educationQualification": "",
+      "numberOfDependents": "",
+      "gender": "",
+      "customerSegment": ""
+    }
+    
     dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
     navigate("/applicant/customer/details");
   };
   
+  const editForm = (item) => {
+    dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
+    navigate("/applicant/customer/details");
+  };
+
   const setErrState = (loading, errMsg, openSnack, severity) => {
     setErr({
       loading,
@@ -50,22 +82,24 @@ export const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => getCustomersApi();
     fetchCustomers();
-  }, [appId]);
+  }, [page]);
 
   const getCustomersApi = async () => {
     
     setErrState(true, "", false, "");
-    const payload = {application_id:appId,token}
+    const payload = {application_id:appId,token,page}
     try {
       const response = await dispatch(
         fetchCustomersByApplicantIdDataThunk(payload)
       );
       // where is err and msg
-      const { results, error, message } = response.payload;
+      const { results, error, message ,count} = response.payload;
       if (error) {
         return setErrState(false, message, true, "error");
       }
       if (results && results.length > 0) {
+        const totalPages = Math.ceil(count / itemsPerPage);
+        setTotalPages(totalPages)
         setErrState(false, "Fetched successfully.", true, "success");
       }
     } catch (error) {
@@ -134,6 +168,15 @@ export const Customers = () => {
             </Button>
           </div>
         </Box>
+        <Box >
+        <Button
+          onClick={addForm}
+          variant="outlined"
+          style={{ marginBottom: 20 }}
+        >
+          Add Customer
+        </Button>
+        </Box>
       </Box>
 
       <Paper
@@ -186,7 +229,7 @@ export const Customers = () => {
                 (e.currentTarget.style.backgroundColor =
                   index % 2 === 0 ? "#f9f9f9" : "#ffffff")
               }
-              onClick={() => addForm(item)}
+              onClick={() => editForm(item)}
             >
               <Grid item xs={2}>
                 <Typography variant="body1">{item?.cif_id}</Typography>
@@ -206,6 +249,18 @@ export const Customers = () => {
           ))}
         </div>
       </Paper>
+
+      <Box width={"90%"} margin={"auto"}>
+          <Stack spacing={2}>
+            <Pagination
+              style={{ margin: "0 0 2rem auto" }}
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="secondary"
+            />
+          </Stack>
+        </Box>
     </>
   );
 };
