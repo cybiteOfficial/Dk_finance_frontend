@@ -39,7 +39,7 @@ export const dashboardAPI = {
     console.log("payloaddash: ", payload);
     try {
       // Make a GET request to fetch user by ID
-      const url = `${baseURL}${getAllAplicants}`;
+      const url = `${baseURL}${getAllAplicants}?page=${payload.page}`;
       const response = await axios.get(`${url}`, simpleHeaders(payload.token));
 
       // Return the response data
@@ -51,9 +51,9 @@ export const dashboardAPI = {
   },
 
   fetchCustomersByApplicantIdDataApi: async (payload) => {
-    const { application_id, token } = payload;
+    const { application_id, token,page } = payload;
     try {
-      const url = `${baseURL}${updateCustomer}?application_id=${application_id}`;
+      const url = `${baseURL}${updateCustomer}?application_id=${application_id}&page=${page}`;
       const response = await api.get(`${url}`, simpleHeaders(token));
 
       return response.data;

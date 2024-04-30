@@ -100,7 +100,7 @@ const CustomerForm = () => {
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
   // State for cropped image
-  const [croppedImage, setCroppedImage] = useState(selectedCustomer.profile_photo);
+  const [croppedImage, setCroppedImage] = useState(selectedCustomer?.profile_photo);
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -148,11 +148,11 @@ const CustomerForm = () => {
     //   bodyFormData.append(`${item[0]}`, item[1])
     // );
     
-    const payload = { bodyFormData, token , cif_id:selectedCustomer.cif_id};
+    const payload = { bodyFormData, token , cif_id:selectedCustomer?.cif_id};
     try {
       const response = await dispatch(updateCustomerDataThunk(payload));
       console.log('response: ', response);
-      const { error, message } = response.payload;
+      const { error, message } = response.payload;  
       if (error) {
         return setErrState(false, message, true, "error");
       }
@@ -200,7 +200,7 @@ const CustomerForm = () => {
   return (
     <>
       <Box width={"90%"} margin={"13vh auto 0 auto"}>
-      <Button
+        <Button
           onClick={() => navigate("/applicant/customers")}
           variant="contained"
           startIcon={<ArrowBack />}
@@ -209,16 +209,16 @@ const CustomerForm = () => {
           Go Back
         </Button>
         <Box display={"flex"} gap={"1rem"} justifyContent={"space-between"}>
-        <Typography variant="subtitle1" style={{ fontWeight:700 }}>
-          Application ID: {appId}
-        </Typography>
-      
-
-          <Typography variant="subtitle1" style={{ fontWeight:700 }}>
-            Customer ID : {selectedCustomer.cif_id}
+          <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
+            Application ID: {appId}
           </Typography>
+
+          {selectedCustomer?.cif_id && (
+            <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
+              Customer ID : {selectedCustomer.cif_id}
+            </Typography>
+          )}
         </Box>
-       
       </Box>
 
       <Paper style={{ width: "90%", padding: 20, margin: "auto" }}>
@@ -267,7 +267,6 @@ const CustomerForm = () => {
                   )}
                 </Grid> */}
 
-               
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Title</InputLabel>

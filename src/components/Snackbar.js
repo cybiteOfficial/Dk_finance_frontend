@@ -3,6 +3,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from '@mui/material/Alert';
 
 export default function AutohideSnackbar({openSnack,message,severity}) {
+  
   const [open, setOpen] = React.useState(openSnack);
 
   React.useEffect(() => {
