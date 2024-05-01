@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState } from "react";
 
 import {
   Accordion,
@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import { removeCustomer, updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
 import { logFormData } from "../components/Common";
 
 const fieldsToExtract = [
@@ -49,6 +49,13 @@ const fieldsToExtract = [
 const CustomerForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+   
+    return () => {
+      dispatch(removeCustomer({ payload: {}, type: "removeCustomer" }));
+    };
+  }, []);
 
   const token = useSelector((state) => state.authReducer.access_token);
   const { selectedCustomer } = useSelector((state) => state.dashboardReducer);

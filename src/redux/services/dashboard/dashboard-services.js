@@ -9,6 +9,7 @@ const getAllAplicants = "/applicants/";
 const updateCustomer = "/customers";
 const  getLoanEndpoint = "/loan_details";
 const uploadDocument ="/upload_document";
+const getCollateral = "/collateral_details"
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -74,14 +75,16 @@ export const dashboardAPI = {
       // If an error occurs, throw it or handle it as needed
     }
   },
+
   fetchDocumentDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getCollateral}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchPhotographDataApi: async (payload) => {
@@ -95,13 +98,14 @@ export const dashboardAPI = {
     }
   },
   fetchCollateralDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getCollateral}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchCafDataApi: async (payload) => {
@@ -174,13 +178,18 @@ export const dashboardAPI = {
   },
 
   updateCollateralDataApi: async (payload) => {
+    const { bodyFormData, token} = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+     
+      const response = await api.post(
+        `${baseURL}${getCollateral}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   updateCafDataApi: async (payload) => {

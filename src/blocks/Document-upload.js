@@ -135,10 +135,13 @@ const DocumentUpload = () => {
       setLoadingStates(null);
     }
   };
-
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+      onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}

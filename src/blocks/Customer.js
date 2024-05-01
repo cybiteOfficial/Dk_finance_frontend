@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { StyledTypography } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
-import {fetchCustomersByApplicantIdDataThunk,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
+import {fetchCustomersByApplicantIdDataThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
 
 // Import JSON data using require()
 const jsonData = require("../mocks/customers.json");
@@ -82,6 +82,7 @@ export const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => getCustomersApi();
     fetchCustomers();
+   
   }, [page]);
 
   const getCustomersApi = async () => {
@@ -106,9 +107,13 @@ export const Customers = () => {
       console.error('error: ', error);
     }
   };
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
      <SnackToast
+      onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}

@@ -3,7 +3,7 @@ import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAppId } from "../redux/reducers/auth/auth-reducer";
-import  {fetchApplicantDataThunk} from "../redux/reducers/dashboard/dashboard-reducer";
+import  {fetchApplicantDataThunk, removeApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
 import {
   Search,
@@ -98,6 +98,9 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchApplicants = async () => getApplicantsApi();
     fetchApplicants();
+    return () => {
+      dispatch(removeApplicant({ payload: {}, type: "removeApplicant" }));
+    };
   }, [page]);
 
 
@@ -142,10 +145,13 @@ const DashboardPage = () => {
     }
   };
   
-
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+      onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}

@@ -3,7 +3,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { Button, TextField, Typography, Divider, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {fetchLoanDataThunk, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+import {fetchLoanDataThunk, removeLoan, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
 import SnackToast from "../components/Snackbar";
 import { StyledTypography, logFormData } from "../components/Common";
 
@@ -21,6 +21,9 @@ const LoanDetails = () => {
       fetchLoanDataApi();
     }
     fetchData();
+    return () => {
+      dispatch(removeLoan({ payload: {}, type: "removeLoan" }));
+    };
   }, []);
 
   const[isRemarks,setIsRemarks]=useState(false)
@@ -76,48 +79,7 @@ const LoanDetails = () => {
       tax_amount: "",
       total_amount: "",
     },
-    // preEmi: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // carePACIInsurance: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospitalCare: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospicashChola: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospicashABHI: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // sblHDFCLifeCreditProtectPlus: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // abhiGroupCIInsurance: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
+   
   });
 
   const setErrState = (loading, errMsg, openSnack, severity) => {
@@ -164,8 +126,8 @@ const LoanDetails = () => {
       }
       
       if (data && data.length > 0) {
-        handleExtractFormValues(data[data.length-1]);
-        setErrState(false, message, true, "success");
+        handleExtractFormValues(data[data.length-1]);//TODO: must be 0 index later
+        setErrState(false, "Fetched successfully", true, "success");
       }
     } catch (error) {
       setErrState(false, "", false, "success");
@@ -224,9 +186,13 @@ const LoanDetails = () => {
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+       onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}

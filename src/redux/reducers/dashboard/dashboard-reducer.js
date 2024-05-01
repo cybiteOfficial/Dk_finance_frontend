@@ -9,11 +9,11 @@ const initialState = {
   photographDetails: [],
   collateralDetails: [],
   cafDetails: [],
-  customerDetails:[],
-  selectedCustomer:{}
-}
+  customerDetails: [],
+  selectedCustomer: {},
+};
 
-export  const fetchApplicantDataThunk = createAsyncThunk(
+export const fetchApplicantDataThunk = createAsyncThunk(
   "/fetchApplicantData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchApplicantDataApi(payload);
@@ -21,42 +21,44 @@ export  const fetchApplicantDataThunk = createAsyncThunk(
   }
 );
 
-export  const fetchCustomersByApplicantIdDataThunk = createAsyncThunk(
+export const fetchCustomersByApplicantIdDataThunk = createAsyncThunk(
   "/fetchCustomersByApplicantIdData",
   async (payload, thunkAPI) => {
-    const response = await dashboardAPI.fetchCustomersByApplicantIdDataApi(payload);
+    const response = await dashboardAPI.fetchCustomersByApplicantIdDataApi(
+      payload
+    );
     return response;
   }
 );
-export  const fetchLoanDataThunk = createAsyncThunk(
+export const fetchLoanDataThunk = createAsyncThunk(
   "/fetchLoanData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchLoanDataApi(payload);
     return response;
   }
 );
-export  const fetchDocumentDataThunk = createAsyncThunk(
+export const fetchDocumentDataThunk = createAsyncThunk(
   "/fetchDocumentData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchDocumentDataApi(payload);
     return response;
   }
 );
-export  const fetchPhotographDataThunk = createAsyncThunk(
+export const fetchPhotographDataThunk = createAsyncThunk(
   "/fetchPhotographData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchPhotographDataApi(payload);
     return response;
   }
 );
-export  const fetchCollateralDataThunk = createAsyncThunk(
+export const fetchCollateralDataThunk = createAsyncThunk(
   "/fetchCollateralData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchCollateralDataApi(payload);
     return response;
   }
 );
-export  const fetchCafDataThunk = createAsyncThunk(
+export const fetchCafDataThunk = createAsyncThunk(
   "/fetchCafData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchCafDataApi(payload);
@@ -113,40 +115,86 @@ const dashboardSlice = createSlice({
   name: "dashboard",
   initialState,
   reducers: {
-    setCustomer(state,action){
-      state.selectedCustomer = action.payload.selectedCustomer
+    setCustomer(state, action) {
+      state.selectedCustomer = action.payload.selectedCustomer;
     },
-    removeCustomer(state,action){
-      state.selectedCustomer = []
+    removeCustomer(state, action) {
+      state.selectedCustomer = [];
     },
+    removeLoan(state, action) {
+      state.loanDetails = [];
+    },
+    removeCollateral(state, action) {
+      state.collateralDetails = [];
+    },
+    removeApplicant(state, action) {
+      state.applicantData = [];
+    },
+    removeCaf(state, action) {
+      state.cafDetails = [];
+    },
+    removeDocs(state, action) {
+      state.documentDetails = [];
+    },
+    removePhotos(state, action) {
+      state.photographDetails = [];
+    },
+
     removeStore(state) {
       state.applicantData = [];
       state.customerDetails = [];
-      state.selectedCustomer=""
+      state.loanDetails = [];
+      state.collateralDetails = [];
+      state.cafDetails = [];
+      state.documentDetails = [];
+      state.photographDetails = [];
+      state.selectedCustomer = "";
     },
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
     builder.addCase(fetchApplicantDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log('actionDash: ', action);
-      state.applicantData = action.payload.results
-      
+      console.log("actionDash: ", action);
+      state.applicantData = action.payload.results;
     });
-    builder.addCase(fetchCustomersByApplicantIdDataThunk.fulfilled, (state, action) => {
+    builder.addCase(
+      fetchCustomersByApplicantIdDataThunk.fulfilled,
+      (state, action) => {
+        // Add user to the state array
+        console.log("actioncUSTOEMR: ", action);
+        state.customerDetails = action.payload.results;
+      }
+    );
+    builder.addCase(fetchCollateralDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log('actioncUSTOEMR: ', action);
-      state.customerDetails = action.payload.results
+      console.log("actionColla: ", action);
+      state.collateralDetails = action.payload.data;
     });
 
+    builder.addCase(updateCollateralDataThunk.fulfilled, (state, action) => {
+      // Add user to the state array
+      console.log("actionColla: ", action);
+      state.collateralDetails = [action.payload.data];
+    });
     builder.addCase(fetchLoanDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log('actionLoan ', action);
-      state.loanDetails = action.payload.data
+      console.log("actionLoan ", action);
+      state.loanDetails = action.payload.data;
     });
   },
 });
 
-export const {setCustomer,removeCustomer,removeStore} = dashboardSlice.actions;
+export const {
+  setCustomer,
+  removeCustomer,
+  removeStore,
+  removeApplicant,
+  removeCaf,
+  removeCollateral,
+  removeDocs,
+  removeLoan,
+  removePhotos,
+} = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;
