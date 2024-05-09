@@ -10,6 +10,7 @@ const updateCustomer = "/customers";
 const  getLoanEndpoint = "/loan_details";
 const uploadDocument ="/upload_document";
 const getCollateral = "/collateral_details"
+const getCafDetail = "/caf_detail"
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -24,6 +25,7 @@ export const simpleHeaders = (token)=>{
     },
   };
 }
+
 
 export const formHeaders = (token)=>{
   return {
@@ -51,8 +53,19 @@ export const dashboardAPI = {
     }
   },
 
+  fetchCustomerByApplicantIdDataApi: async (payload) => {
+    const { customer_id, token,  } = payload;
+    try {
+      const url = `${baseURL}${updateCustomer}?customer_id=${customer_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
   fetchCustomersByApplicantIdDataApi: async (payload) => {
-    const { application_id, token,page } = payload;
+    const { application_id, token, page } = payload;
     try {
       const url = `${baseURL}${updateCustomer}?application_id=${application_id}&page=${page}`;
       const response = await api.get(`${url}`, simpleHeaders(token));
@@ -63,8 +76,21 @@ export const dashboardAPI = {
     }
   },
 
+  
+  fetchAllCustomersByApplicantIdDataApi: async (payload) => {
+    const { application_id, token, } = payload;
+    try {
+      const url = `${baseURL}${updateCustomer}?application_id=${application_id}&is_all=True`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+
   fetchLoanDataApi: async (payload) => {
-    const {application_id,token} = payload
+    const { application_id, token } = payload;
     try {
       // Make a GET request to fetch user by ID
       const url = `${baseURL}${getLoanEndpoint}?application_id=${application_id}`;
@@ -109,23 +135,23 @@ export const dashboardAPI = {
     }
   },
   fetchCafDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getCafDetail}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
 
   //update apis
   updateCustomerDataApi: async (payload) => {
-    const { bodyFormData, token, cif_id } = payload;
+    const { bodyFormData, token} = payload;
     try {
-     
-      const response = await api.put(
-        `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
+      const response = await api.post(
+        `${baseURL}${updateCustomer}`,
         bodyFormData,
         formHeaders(token)
       );
@@ -152,7 +178,7 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    const {formData,token} = payload
+    const { formData, token } = payload;
     try {
       const response = await api.post(
         `${baseURL}${uploadDocument}`,
@@ -178,9 +204,8 @@ export const dashboardAPI = {
   },
 
   updateCollateralDataApi: async (payload) => {
-    const { bodyFormData, token} = payload;
+    const { bodyFormData, token } = payload;
     try {
-     
       const response = await api.post(
         `${baseURL}${getCollateral}`,
         bodyFormData,
@@ -193,13 +218,18 @@ export const dashboardAPI = {
     }
   },
   updateCafDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${getCafDetail}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
 };
+

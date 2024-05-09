@@ -10,7 +10,9 @@ const initialState = {
   collateralDetails: [],
   cafDetails: [],
   customerDetails: [],
+  allCustomers:[],
   selectedCustomer: {},
+  selectedCustomerData: {},
 };
 
 export const fetchApplicantDataThunk = createAsyncThunk(
@@ -21,10 +23,30 @@ export const fetchApplicantDataThunk = createAsyncThunk(
   }
 );
 
+export const fetchCustomerByApplicantIdDataThunk = createAsyncThunk(
+  "/fetchCustomerByApplicantIdData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.fetchCustomerByApplicantIdDataApi(
+      payload
+    );
+    return response;
+  }
+);
+
 export const fetchCustomersByApplicantIdDataThunk = createAsyncThunk(
   "/fetchCustomersByApplicantIdData",
   async (payload, thunkAPI) => {
     const response = await dashboardAPI.fetchCustomersByApplicantIdDataApi(
+      payload
+    );
+    return response;
+  }
+);
+
+export const fetchAllCustomersByApplicantIdDataThunk = createAsyncThunk(
+  "/fetchAllCustomersByApplicantIdData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.fetchAllCustomersByApplicantIdDataApi(
       payload
     );
     return response;
@@ -116,10 +138,14 @@ const dashboardSlice = createSlice({
   initialState,
   reducers: {
     setCustomer(state, action) {
-      state.selectedCustomer = action.payload.selectedCustomer;
+      state.selectedCustomer = action.payload.selectedCustomer.item;
+      state.selectedCustomerData = action.payload.selectedCustomer.data;
     },
     removeCustomer(state, action) {
       state.selectedCustomer = [];
+    },
+    removeCustomerData(state, action) {
+      state.selectedCustomerData = [];
     },
     removeLoan(state, action) {
       state.loanDetails = [];
@@ -149,6 +175,7 @@ const dashboardSlice = createSlice({
       state.documentDetails = [];
       state.photographDetails = [];
       state.selectedCustomer = "";
+      state.selectedCustomerData = "";
     },
   },
   extraReducers: (builder) => {
@@ -158,12 +185,28 @@ const dashboardSlice = createSlice({
       console.log("actionDash: ", action);
       state.applicantData = action.payload.results;
     });
+
+    builder.addCase(
+      fetchCustomerByApplicantIdDataThunk.fulfilled,
+      (state, action) => {
+        // Add user to the state array
+        
+        state.selectedCustomerData = action.payload.data;
+      }
+    );
     builder.addCase(
       fetchCustomersByApplicantIdDataThunk.fulfilled,
       (state, action) => {
         // Add user to the state array
         console.log("actioncUSTOEMR: ", action);
         state.customerDetails = action.payload.results;
+      }
+    );
+    builder.addCase(
+      fetchAllCustomersByApplicantIdDataThunk.fulfilled,
+      (state, action) => {
+       
+        state.allCustomers = action.payload.data;
       }
     );
     builder.addCase(fetchCollateralDataThunk.fulfilled, (state, action) => {
@@ -176,6 +219,16 @@ const dashboardSlice = createSlice({
       // Add user to the state array
       console.log("actionColla: ", action);
       state.collateralDetails = [action.payload.data];
+    });
+    builder.addCase(fetchCafDataThunk.fulfilled, (state, action) => {
+      // Add user to the state array
+      
+      state.cafDetails = [action.payload.data];
+    });
+    builder.addCase(updateCafDataThunk.fulfilled, (state, action) => {
+      // Add user to the state array
+      console.log("actionCaf: ", action);
+     
     });
     builder.addCase(fetchLoanDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
@@ -195,6 +248,7 @@ export const {
   removeDocs,
   removeLoan,
   removePhotos,
+  removeCustomerData
 } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

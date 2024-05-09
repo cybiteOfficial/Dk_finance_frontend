@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Accordion,
@@ -23,7 +23,12 @@ import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { removeCustomer, updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import {
+  fetchCustomerByApplicantIdDataThunk,
+  removeCustomer,
+  removeCustomerData,
+  updateCustomerDataThunk,
+} from "../redux/reducers/dashboard/dashboard-reducer";
 import { logFormData } from "../components/Common";
 
 const fieldsToExtract = [
@@ -44,22 +49,35 @@ const fieldsToExtract = [
   "numberOfDependents",
   "gender",
   "customerSegment",
+  "profile_photo",
 ];
 
 const CustomerForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const token = useSelector((state) => state.authReducer.access_token);
+  const { selectedCustomer, selectedCustomerData } = useSelector(
+    (state) => state.dashboardReducer
+  );
+  const { appId } = useSelector((state) => state.authReducer);
+
   useEffect(() => {
-   
+    if (selectedCustomer.cif_id) {
+      async function fetchData() {
+        fetchCustomerDataApi();
+      }
+      fetchData();
+    }
+
     return () => {
-      dispatch(removeCustomer({ payload: {}, type: "removeCustomer" }));
+      dispatch(removeCustomerData({ payload: {}, type: "removeCustomerData" }));
     };
   }, []);
 
-  const token = useSelector((state) => state.authReducer.access_token);
-  const { selectedCustomer } = useSelector((state) => state.dashboardReducer);
-  const { appId } = useSelector((state) => state.authReducer);
+  useEffect(() => {
+    handleExtractFormValues();
+  }, [selectedCustomerData]);
 
   const personalInformation = Object.fromEntries(
     fieldsToExtract.map((field) => [
@@ -70,50 +88,126 @@ const CustomerForm = () => {
   const [personalInfoFilled, setPersonalInfoFilled] = useState(false);
   const [addressInfoFilled, setAddressInfoFilled] = useState(false);
 
-  const [personInformation, setPersonalInformation] =
-    useState(personalInformation);
+  const [personInformation, setPersonalInformation] = useState({
+    ...personalInformation,
+  });
+
   const [addressFields, setAddressFields] = useState({
     current: {
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
       state: "",
       district: "",
       city: "",
-      tehsilOrTaluka: "",
-      pinCode: "",
+      tehsil_or_taluka: "",
+      pincode: "",
       landmark: "",
-      residenceStatus: "",
-      residenceType: "",
-      stabilityAtResidence: "",
-      distanceFromBranch: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
     },
     permanent: {
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
       state: "",
       district: "",
       city: "",
-      tehsilOrTaluka: "",
-      pinCode: "",
+      tehsil_or_taluka: "",
+      pincode: "",
       landmark: "",
-      residenceStatus: "",
-      residenceType: "",
-      stabilityAtResidence: "",
-      distanceFromBranch: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
     },
   });
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
+
+
   // State for cropped image
-  const [croppedImage, setCroppedImage] = useState(selectedCustomer?.profile_photo);
+  const [croppedImage, setCroppedImage] = useState(
+    selectedCustomer?.profile_photo
+  );
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
     openSnack: false,
     severity: "",
   });
+
+  useEffect(() => {
+    if (permanentAddressSameAsCurrent) {
+      setAddressFields((prevState) => ({
+        ...prevState,
+        permanent: {
+          ...prevState.current,
+        },
+      }));
+    } else
+      setAddressFields((prevState) => ({
+        ...prevState,
+        permanent: {
+          address_line_1: "",
+          address_line_2: "",
+          address_line_3: "",
+          state: "",
+          district: "",
+          city: "",
+          tehsil_or_taluka: "",
+          pincode: "",
+          landmark: "",
+          residence_state: "",
+          residence_type: "",
+          stability_at_residence: "",
+          distance_from_branch: "",
+        },
+      }));
+    {
+    }
+  }, [permanentAddressSameAsCurrent]);
+
+  // Define keys to discard
+  const keysToDiscard = [
+    "uuid",
+    "created_at",
+    "updated_at",
+    "is_current",
+    "is_permanent",
+    "customer",
+  ];
+
+  // Function to filter out keys to discard
+  const filterKeys = (obj) => {
+    const filteredObj = {};
+    Object.keys(obj).forEach((key) => {
+      if (!keysToDiscard.includes(key)) {
+        filteredObj[key] = obj[key];
+      }
+    });
+    return filteredObj;
+  };
+
+  const handleExtractFormValues = () => {
+    setAddressFields((prevState) => ({
+      ...prevState,
+      current: selectedCustomerData?.current_address
+        ? {
+            ...prevState.current,
+            ...filterKeys(selectedCustomerData?.current_address),
+          }
+        : prevState.current,
+      permanent: selectedCustomerData?.permanent_address
+        ? {
+            ...prevState.permanent,
+            ...filterKeys(selectedCustomerData?.permanent_address),
+          }
+        : prevState.permanent,
+    }));
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -123,13 +217,6 @@ const CustomerForm = () => {
     }));
   };
 
-  const handleChangeAddress = (event) => {
-    const { name, value } = event.target;
-    setPersonalInformation((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
 
   const setErrState = (loading, errMsg, openSnack, severity) => {
     setErr({
@@ -140,47 +227,78 @@ const CustomerForm = () => {
     });
   };
 
-  // console.log("===", Object.entries(personInformation));
-  const handlePersonalSubmit = async(e) => {
-    e.preventDefault();
-    // console.log("=====", personInformation);
-    // console.log("=====", addressFields);
-    const bodyFormData = new FormData();
-
-    Object.entries(personInformation)?.forEach((item) =>
-      bodyFormData.append(`${item[0]}`, item[1])
-    );
-
-    // Object.entries(addressFields)?.forEach((item) =>
-    //   bodyFormData.append(`${item[0]}`, item[1])
-    // );
-    
-    const payload = { bodyFormData, token , cif_id:selectedCustomer?.cif_id};
+  const fetchCustomerDataApi = async () => {
+    const payload = { customer_id: selectedCustomer?.cif_id, token };
     try {
-      const response = await dispatch(updateCustomerDataThunk(payload));
-      console.log('response: ', response);
-      const { error, message } = response.payload;  
-      if (error) {
+      setErrState(true, "", false, "");
+      const response = await dispatch(
+        fetchCustomerByApplicantIdDataThunk(payload)
+      );
+      const { error, message, code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      } else if (error) {
         return setErrState(false, message, true, "error");
       }
-      setErrState(false, message, true, "success");
-      navigate("/applicant/customers")
-    } catch (error) {
-      console.error('error: ', error);
 
+      setErrState(false, "", false, "success");
+    } catch (error) {
+      setErrState(false, "", false, "success");
+      console.error("error: ", error);
     }
+  };
+  const handlePersonalSubmit = async (e) => {
+    e.preventDefault();
   
-   
+    const bodyFormData = new FormData();
+    bodyFormData.append("profile_photo", personInformation.profile_photo);
+    delete personInformation.profile_photo;
+
+    const customer_data = { ...personInformation, application_id: appId };
+  
+
+    bodyFormData.append("customer_data", JSON.stringify(customer_data));
+    bodyFormData.append(
+      "current_address",
+      JSON.stringify(addressFields.current)
+    );
+    bodyFormData.append(
+      "permanent_address",
+      JSON.stringify(addressFields.permanent)
+    );
+    bodyFormData.append("is_permanent", permanentAddressSameAsCurrent);
+    logFormData(bodyFormData)
+    const payload = { bodyFormData, token, cif_id: selectedCustomer?.cif_id };
+    try {
+      const response = await dispatch(updateCustomerDataThunk(payload));
+     
+      const { error, message,code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      } else if (error) {
+        return setErrState(false, message, true, "error");
+      }else{
+        setErrState(false, message, false, "success");
+        navigate("/applicant/customers");
+      }
+     
+    } catch (error) {
+      console.error("error: ", error);
+    }
   };
 
   const handlePermanentAddressSameAsCurrent = () => {
-    console.log("calling");
-    setAddressFields((prevState) => ({
-      ...prevState,
-      permanent: {
-        ...prevState.current,
-      },
-    }));
+    setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
   };
   const handlePermanentAddressChange = (fieldName) => (event) => {
     const { value } = event.target;
@@ -196,6 +314,10 @@ const CustomerForm = () => {
   // Function to handle file drop and set cropped image
   const handleDrop = (e) => {
     if (e.target.files[0]) {
+      setPersonalInformation((prevState) => ({
+        ...prevState,
+        profile_photo: e.target.files[0],
+      }));
       const reader = new FileReader();
       reader.onload = (event) => {
         setCroppedImage(event.target.result);
@@ -242,7 +364,7 @@ const CustomerForm = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
-                {/* <Grid item xs={2} sm={7}>
+                <Grid item xs={2} sm={7}>
                   <Box ml={"auto"}>
                     <Input
                       type="file"
@@ -272,7 +394,7 @@ const CustomerForm = () => {
                       />
                     </Grid>
                   )}
-                </Grid> */}
+                </Grid>
 
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
@@ -505,13 +627,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Address Line 1"
                     fullWidth
-                    value={addressFields.current.addressLine1}
+                    value={addressFields.current.address_line_1}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          addressLine1: e.target.value,
+                          address_line_1: e.target.value,
                         },
                       }))
                     }
@@ -521,13 +643,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Address Line 2"
                     fullWidth
-                    value={addressFields.current.addressLine2}
+                    value={addressFields.current.address_line_2}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          addressLine2: e.target.value,
+                          address_line_2: e.target.value,
                         },
                       }))
                     }
@@ -537,13 +659,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Address Line 3"
                     fullWidth
-                    value={addressFields.current.addressLine3}
+                    value={addressFields.current.address_line_3}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          addressLine3: e.target.value,
+                          address_line_3: e.target.value,
                         },
                       }))
                     }
@@ -598,13 +720,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Tehsil/Taluka"
                     fullWidth
-                    value={addressFields.current.tehsilOrTaluka}
+                    value={addressFields.current.tehsil_or_taluka}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          tehsilOrTaluka: e.target.value,
+                          tehsil_or_taluka: e.target.value,
                         },
                       }))
                     }
@@ -614,13 +736,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Pin Code"
                     fullWidth
-                    value={addressFields.current.pinCode}
+                    value={addressFields.current.pincode}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          pinCode: e.target.value,
+                          pincode: e.target.value,
                         },
                       }))
                     }
@@ -646,13 +768,13 @@ const CustomerForm = () => {
                   <FormControl fullWidth>
                     <InputLabel>Residence Status</InputLabel>
                     <Select
-                      value={addressFields.current.residenceStatus}
+                      value={addressFields.current.residence_state}
                       onChange={(e) =>
                         setAddressFields((prevState) => ({
                           ...prevState,
                           current: {
                             ...prevState.current,
-                            residenceStatus: e.target.value,
+                            residence_state: e.target.value,
                           },
                         }))
                       }
@@ -671,13 +793,13 @@ const CustomerForm = () => {
                   <FormControl fullWidth>
                     <InputLabel>Residence Type</InputLabel>
                     <Select
-                      value={addressFields.current.residenceType}
+                      value={addressFields.current.residence_type}
                       onChange={(e) =>
                         setAddressFields((prevState) => ({
                           ...prevState,
                           current: {
                             ...prevState.current,
-                            residenceType: e.target.value,
+                            residence_type: e.target.value,
                           },
                         }))
                       }
@@ -699,13 +821,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Stability at Residence"
                     fullWidth
-                    value={addressFields.current.stabilityAtResidence}
+                    value={addressFields.current.stability_at_residence}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          stabilityAtResidence: e.target.value,
+                          stability_at_residence: e.target.value,
                         },
                       }))
                     }
@@ -715,13 +837,13 @@ const CustomerForm = () => {
                   <TextField
                     label="Distance from Branch"
                     fullWidth
-                    value={addressFields.current.distanceFromBranch}
+                    value={addressFields.current.distance_from_branch}
                     onChange={(e) =>
                       setAddressFields((prevState) => ({
                         ...prevState,
                         current: {
                           ...prevState.current,
-                          distanceFromBranch: e.target.value,
+                          distance_from_branch: e.target.value,
                         },
                       }))
                     }
@@ -739,31 +861,33 @@ const CustomerForm = () => {
                   variant="outlined"
                   style={{ marginBottom: 10 }}
                 >
-                  Same as Current Address
+                  {permanentAddressSameAsCurrent
+                    ? "Change Permanent Address"
+                    : "Same as Current Address"}
                 </Button>
                 <Grid container spacing={2}>
                   {/* Add permanent address fields here */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Permanent Address Line 1"
-                      value={addressFields.permanent.addressLine1}
-                      onChange={handlePermanentAddressChange("addressLine1")}
+                      value={addressFields.permanent.address_line_1}
+                      onChange={handlePermanentAddressChange("address_line_1")}
                       fullWidth
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Permanent Address Line 2"
-                      value={addressFields.permanent.addressLine2}
-                      onChange={handlePermanentAddressChange("addressLine2")}
+                      value={addressFields.permanent.address_line_2}
+                      onChange={handlePermanentAddressChange("address_line_2")}
                       fullWidth
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Permanent Address Line 3"
-                      value={addressFields.permanent.addressLine3}
-                      onChange={handlePermanentAddressChange("addressLine3")}
+                      value={addressFields.permanent.address_line_3}
+                      onChange={handlePermanentAddressChange("address_line_3")}
                       fullWidth
                     />
                   </Grid>
@@ -794,16 +918,18 @@ const CustomerForm = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Permanent Tehsil/Taluka"
-                      value={addressFields.permanent.tehsilOrTaluka}
-                      onChange={handlePermanentAddressChange("tehsilOrTaluka")}
+                      value={addressFields.permanent.tehsil_or_taluka}
+                      onChange={handlePermanentAddressChange(
+                        "tehsil_or_taluka"
+                      )}
                       fullWidth
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       label="Permanent Pin Code"
-                      value={addressFields.permanent.pinCode}
-                      onChange={handlePermanentAddressChange("pinCode")}
+                      value={addressFields.permanent.pincode}
+                      onChange={handlePermanentAddressChange("pincode")}
                       fullWidth
                     />
                   </Grid>
@@ -820,9 +946,9 @@ const CustomerForm = () => {
                       <InputLabel>Permanent Residence Status</InputLabel>
                       <Select
                         onChange={handlePermanentAddressChange(
-                          "residenceStatus"
+                          "residence_state"
                         )}
-                        value={addressFields.permanent.residenceStatus}
+                        value={addressFields.permanent.residence_state}
                         defaultValue=""
                         label="Permanent Residence Status"
                       >
@@ -839,8 +965,10 @@ const CustomerForm = () => {
                     <FormControl fullWidth>
                       <InputLabel>Permanent Residence Type</InputLabel>
                       <Select
-                        onChange={handlePermanentAddressChange("residenceType")}
-                        value={addressFields.permanent.residenceType}
+                        onChange={handlePermanentAddressChange(
+                          "residence_type"
+                        )}
+                        value={addressFields.permanent.residence_type}
                         defaultValue=""
                         label="Permanent Residence Type"
                       >
@@ -859,9 +987,9 @@ const CustomerForm = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       onChange={handlePermanentAddressChange(
-                        "stabilityAtResidence"
+                        "stability_at_residence"
                       )}
-                      value={addressFields.permanent.stabilityAtResidence}
+                      value={addressFields.permanent.stability_at_residence}
                       label="Permanent Stability at Residence"
                       fullWidth
                     />
@@ -869,9 +997,9 @@ const CustomerForm = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       onChange={handlePermanentAddressChange(
-                        "distanceFromBranch"
+                        "distance_from_branch"
                       )}
-                      value={addressFields.permanent.distanceFromBranch}
+                      value={addressFields.permanent.distance_from_branch}
                       label="Permanent Distance from Branch"
                       fullWidth
                     />

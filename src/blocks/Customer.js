@@ -60,13 +60,52 @@ export const Customers = () => {
       "gender": "",
       "customerSegment": ""
     }
-    
-    dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
+    const address =  {
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
+      state: "",
+      district: "",
+      city: "",
+      tehsil_or_taluka: "",
+      pincode: "",
+      landmark: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
+    }
+    const data ={
+      customer_data:item,
+      current_address:address,
+      permanent_address:address
+    }
+    dispatch(setCustomer({selectedCustomer:{item,data},type:"setCustomer"}));
     navigate("/applicant/customer/details");
   };
   
   const editForm = (item) => {
-    dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
+    const address =  {
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
+      state: "",
+      district: "",
+      city: "",
+      tehsil_or_taluka: "",
+      pincode: "",
+      landmark: "",
+      residenceState: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
+    }
+    const data ={
+      customer_data:item,
+      current_address:address,
+      permanent_address:address
+    }
+    dispatch(setCustomer({selectedCustomer:{item,data},type:"setCustomer"}));
     navigate("/applicant/customer/details");
   };
 
@@ -83,7 +122,7 @@ export const Customers = () => {
     const fetchCustomers = async () => getCustomersApi();
     fetchCustomers();
    
-  }, [page]);
+  }, [page]); 
 
   const getCustomersApi = async () => {
     
