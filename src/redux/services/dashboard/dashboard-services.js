@@ -148,13 +148,23 @@ export const dashboardAPI = {
 
   //update apis
   updateCustomerDataApi: async (payload) => {
-    const { bodyFormData, token} = payload;
+    const { bodyFormData, token, cif_id} = payload;
+    let response;
     try {
-      const response = await api.post(
-        `${baseURL}${updateCustomer}`,
-        bodyFormData,
-        formHeaders(token)
-      );
+      if(cif_id){
+         response = await api.post(
+          `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      }else{
+         response = await api.post(
+          `${baseURL}${updateCustomer}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      }
+    
       // Return the response data
       return response.data;
     } catch (error) {
