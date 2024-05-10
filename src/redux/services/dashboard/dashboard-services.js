@@ -105,7 +105,7 @@ export const dashboardAPI = {
   fetchDocumentDataApi: async (payload) => {
     const { application_id, token } = payload;
     try {
-      const url = `${baseURL}${getCollateral}?application_id=${application_id}`;
+      const url = `${baseURL}${uploadDocument}?application_id=${application_id}&document_type=other`;
       const response = await api.get(`${url}`, simpleHeaders(token));
 
       return response.data;
@@ -188,11 +188,11 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    const { formData, token } = payload;
+    const { bodyFormData, token } = payload;
     try {
       const response = await api.post(
         `${baseURL}${uploadDocument}`,
-        formData,
+        bodyFormData,
         formHeaders(token)
       );
       // Return the response data

@@ -55,9 +55,7 @@ const CustomerCaf = () => {
       severity,
     });
   };
-useEffect(()=>{
-  console.log("caf",cafDetails);
-},[cafDetails])
+
   const handleExtractFormValues = (dataObject) => {
     const updatedFormValues = { ...cafDetails };
 

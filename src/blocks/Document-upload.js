@@ -19,20 +19,34 @@ import {
   updateDocumentDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
+import { extractFileName, logFormData } from "../components/Common";
 
 const DocumentUpload = () => {
-  const { appId, uuid } = useSelector((state) => state.authReducer);
-  const token = useSelector((state) => state.authReducer.access_token);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    async function fetchData() {
+      fetchDocumentDataApi()
+    }
+    fetchData();
+    return () => {
+      // dispatch(removeLoan({ payload: {}, type: "removeLoan" }));
+    };
+  }, []);
+
+  const token = useSelector((state) => state.authReducer.access_token);
+  const {appId} = useSelector((state) => state.authReducer);
+  const dashboardReducer = useSelector((state) => state.dashboardReducer);
+
+
   const [keyValuePairs, setKeyValuePairs] = useState([]);
-  // Define a loading state for each file
+  const[isRemarks,setIsRemarks]=useState(false)
   const [loadingStates, setLoadingStates] = useState();
 
   const [data, setData] = useState({
     description: "",
-    remarks: "",
+    comment: "",
   });
   const [err, setErr] = useState({
     loading: false,
@@ -53,9 +67,9 @@ const DocumentUpload = () => {
   const handleTextFieldChange = (index, value, key) => {
     const updatedPairs = [...keyValuePairs];
     if (key === "document_name") {
-      updatedPairs[index].key = value;
+      updatedPairs[index].document_name = value;
     } else if (key === "document_id") {
-      updatedPairs[index].value = value;
+      updatedPairs[index].document_id = value;
     } else if (key === "file") {
       updatedPairs[index].fileName = value?.name;
       updatedPairs[index].file = value;
@@ -66,7 +80,7 @@ const DocumentUpload = () => {
   const addKeyValuePair = () => {
     setKeyValuePairs([
       ...keyValuePairs,
-      { key: "", value: "", fileName: "", file: "", document_type: "others" },
+      { document_name: "", document_id: "", fileName: "", file: "" },
     ]);
   };
 
@@ -80,59 +94,101 @@ const DocumentUpload = () => {
     setKeyValuePairs(updatedPairs);
   };
 
-  const callApi = async (index) => {
-    setErrState(true, "", false, "");
-    const formData = new FormData();
-    formData.append("document_name", keyValuePairs[index].key);
-    formData.append("document_type", "other");
-    formData.append("document_id", keyValuePairs[index].value);
-    formData.append("file", keyValuePairs[index].file);
+  const handleExtractFormValues = (dataObject) => {
+    const keyValuePairs = dataObject.map((item) => {
+      return {
+        document_name: item.document_name,
+        document_id: item.document_id,
+        file: item.file,
+        fileName: extractFileName(item.file),
+      };
+    });
 
-    formData.append("application", uuid);
-    if (data.remarks) {
-      formData.append("comment", data.remarks);
-    } else {
-      formData.append("comment", "");
-    }
+    const data = {
+      description: dataObject[0]?.description,
+      comment: dataObject[0]?.comment,
+    };
 
-    if (data.description) {
-      formData.append("description", data.description);
-    } else {
-      formData.append("description", "");
-    }
+    setData(data);
+    setKeyValuePairs(keyValuePairs);
+  };
 
-    const payload = { formData, token };
-
+  const fetchDocumentDataApi = async () => {
+    const payload = {application_id:appId,token, document_type:"other"}
     try {
-      const response = await dispatch(updateDocumentDataThunk(payload));
-      const { error, message } = response.payload;
-      if (error) {
-        setErrState(false, message, true, "error");
-      } else {
-        setErrState(false, message, true, "success");
+      setErrState(true, "", false, "");
+      const response = await dispatch(fetchDocumentDataThunk(payload));
+      const { data, error, message,code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      } else if (error) {
+        return setErrState(false, message, true, "error");
+      }
+      
+      if (data && data.length > 0) {
+        handleExtractFormValues(data);
+        setErrState(false, "", false, "success");
       }
     } catch (error) {
-      console.error("error: ", error);
-      setErrState(false, "", false, "");
+      setErrState(false, "", false, "success");
+      console.error('error: ', error);
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isRemarks) {
+      if (!data.comment.trim()) {
+        setErrState(false, "Please add a remark", true, "warning");
+        return;
+      }
 
-  const handleSubmit = async (indexer) => {
+      const modifiedKeyValuePairs = keyValuePairs.map((item) => {
+        return {
+          document_name: item.document_name,
+          document_id: item.document_id,
+          file: item.file,
+        };
+      });
+      const bodyFormData = new FormData();
 
-    if (!keyValuePairs[indexer].fileName) {
-      setErrState(false, "No file selected", true, "warning");
+      bodyFormData.append("document_type", "other");
+      bodyFormData.append("applicant_id", appId);
+      bodyFormData.append("documents", JSON.stringify(modifiedKeyValuePairs));
+
+      logFormData(bodyFormData);
+      const payload = { bodyFormData, token };
+      try {
+        const response = await dispatch(updateDocumentDataThunk(payload));
+
+        const { error, message, code } = response.payload;
+        if (code) {
+          return setErrState(
+            false,
+            response.payload.response.data.message,
+            true,
+            "error"
+          );
+        } else if (error) {
+          return setErrState(false, message, true, "error");
+        } else {
+          setIsRemarks(false);
+          setErrState(false, message, true, "success");
+          // navigate("/applicant/customers");
+        }
+      } catch (error) {
+        setIsRemarks(false);
+        console.error("error: ", error);
+      }
+    } else {
+      setErrState(false, "Please add a remark", true, "warning");
+      setIsRemarks(true);
       return;
-    }
-
-    // Set loading state for the clicked indexer to true
-    setLoadingStates(indexer);
-
-    try {
-      await callApi(indexer);
-    } finally {
-      // Reset loading state for the clicked indexer
-      setLoadingStates(null);
     }
   };
   const handleCloseToast = () => {
@@ -141,13 +197,13 @@ const DocumentUpload = () => {
   return (
     <>
       <SnackToast
-      onClose={handleCloseToast}
+        onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
       />
       <Box width={"90%"} margin={"13vh auto 0 auto"}>
-      <Button
+        <Button
           onClick={handleGoBack}
           startIcon={<ArrowBack />}
           variant="contained"
@@ -155,12 +211,22 @@ const DocumentUpload = () => {
         >
           GO BACK
         </Button>
-        <Typography variant="subtitle1" style={{ fontWeight:700 }}>
+        <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
           Application ID: {appId}
         </Typography>
-      
+
         <Typography variant="h5">Document Upload</Typography>
         <form>
+        <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            margin="normal"
+            name="description"
+            value={data.description}
+            onChange={handleInputChange}
+          />
           {keyValuePairs.map((pair, indexer) => (
             <Grid
               container
@@ -176,7 +242,7 @@ const DocumentUpload = () => {
                   margin="normal"
                   fullWidth
                   label="Document name"
-                  value={pair.key}
+                  value={pair.document_name}
                   onChange={(e) =>
                     handleTextFieldChange(
                       indexer,
@@ -191,7 +257,7 @@ const DocumentUpload = () => {
                   margin="normal"
                   fullWidth
                   label="Document ID"
-                  value={pair.value}
+                  value={pair.document_id}
                   onChange={(e) =>
                     handleTextFieldChange(
                       indexer,
@@ -234,11 +300,6 @@ const DocumentUpload = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={1}>
-                <IconButton onClick={() => handleSubmit(indexer)}>
-                  <Upload />
-                </IconButton>
-              </Grid>
               <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
                 <IconButton onClick={() => handleDeleteKeyValuePair(indexer)}>
                   <DeleteIcon />
@@ -247,32 +308,27 @@ const DocumentUpload = () => {
               </Grid>
             </Grid>
           ))}
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            margin="normal"
-            name="description"
-            value={data.description}
-            onChange={handleInputChange}
-          />
-          <TextField
-            label="Remarks"
-            fullWidth
-            margin="normal"
-            name="remarks"
-            value={data.remarks}
-            onChange={handleInputChange}
-          />
+       
+
+          {isRemarks && (
+            <TextField
+              label="Remarks"
+              fullWidth
+              margin="normal"
+              name="comment"
+              value={data.comment}
+              onChange={handleInputChange}
+            />
+          )}
           <Button variant="contained" type="button" onClick={addKeyValuePair}>
             Add More
           </Button>
           <Button
+            type="submit"
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
             fullWidth
-            onClick={() => navigate("/applicant/customers")}
+            onClick={handleSubmit}
           >
             Submit
           </Button>

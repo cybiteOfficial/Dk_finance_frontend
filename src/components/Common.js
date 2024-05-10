@@ -1,4 +1,4 @@
-import { Typography, styled ,Chip, TextField} from "@mui/material";
+import { Typography, styled, Chip, TextField } from "@mui/material";
 import { theme } from "../theme";
 
 const StyledChip = styled(Chip)(
@@ -27,7 +27,22 @@ export const logFormData = (bodyFormData) => {
   for (const [key, value] of bodyFormData?.entries()) {
     console.log(`${key}: ${value}`);
   }
-}; 
+};
+
+export const extractFileName = (url) => {
+  if (url) {
+    const pathname = new URL(url).pathname;
+
+    // Using string manipulation to extract the filename with extension
+    const filenameWithExtension = pathname.split("/").pop();
+
+    console.log(filenameWithExtension);
+    return filenameWithExtension;
+  } else {
+    return "";
+  }
+};
+
 export const CommonChip = (props) => {
   return (
     <StyledChip
@@ -45,7 +60,14 @@ export const CommonChip = (props) => {
   );
 };
 
-export const StyledTypography = ({color, align,variant, weight, children ,capitalize}) => {
+export const StyledTypography = ({
+  color,
+  align,
+  variant,
+  weight,
+  children,
+  capitalize,
+}) => {
   return (
     <Typography
       align={align && align}
@@ -53,7 +75,7 @@ export const StyledTypography = ({color, align,variant, weight, children ,capita
       style={{
         fontWeight: weight ? weight : 400,
         color: color ? color : theme.palette.black.main,
-        textTransform:capitalize
+        textTransform: capitalize,
       }}
     >
       {children}

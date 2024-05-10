@@ -235,6 +235,10 @@ const dashboardSlice = createSlice({
       console.log("actionLoan ", action);
       state.loanDetails = action.payload.data;
     });
+    builder.addCase(fetchDocumentDataThunk.fulfilled, (state, action) => {
+     
+      state.documentDetails = action.payload.data;
+    });
   },
 });
 
