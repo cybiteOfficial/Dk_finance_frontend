@@ -159,6 +159,12 @@ const DocumentUpload = () => {
 
       bodyFormData.append("document_type", "other");
       bodyFormData.append("applicant_id", appId);
+
+      // modifiedKeyValuePairs.forEach((item,index)=>{
+      //   bodyFormData.append(`document_name${index}`, item.document_name)
+      //   bodyFormData.append(`document_id${index}`, item.document_id)
+      //   bodyFormData.append(`file${index}`, item.file)
+      // })
       bodyFormData.append("documents", JSON.stringify(modifiedKeyValuePairs));
 
       logFormData(bodyFormData);

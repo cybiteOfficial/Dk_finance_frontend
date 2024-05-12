@@ -114,13 +114,14 @@ export const dashboardAPI = {
     }
   },
   fetchPhotographDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${uploadDocument}?application_id=${application_id}&document_type=photos`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchCollateralDataApi: async (payload) => {
@@ -152,7 +153,7 @@ export const dashboardAPI = {
     let response;
     try {
       if(cif_id){
-         response = await api.post(
+         response = await api.put(
           `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
           bodyFormData,
           formHeaders(token)
@@ -203,9 +204,13 @@ export const dashboardAPI = {
   },
 
   updatePhotographDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${uploadDocument}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {

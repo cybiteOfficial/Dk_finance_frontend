@@ -228,7 +228,6 @@ const dashboardSlice = createSlice({
     builder.addCase(updateCafDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
       console.log("actionCaf: ", action);
-     
     });
     builder.addCase(fetchLoanDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
@@ -236,8 +235,10 @@ const dashboardSlice = createSlice({
       state.loanDetails = action.payload.data;
     });
     builder.addCase(fetchDocumentDataThunk.fulfilled, (state, action) => {
-     
       state.documentDetails = action.payload.data;
+    });
+    builder.addCase(fetchPhotographDataThunk.fulfilled, (state, action) => {
+      state.photographDetails = action.payload.data;
     });
   },
 });
