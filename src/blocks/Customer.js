@@ -59,7 +59,7 @@ export const Customers = () => {
       "numberOfDependents": "",
       "gender": "",
       "customerSegment": "",
-      
+     
     }
     const address =  {
       address_line_1: "",

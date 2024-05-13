@@ -292,14 +292,15 @@ const CustomerForm = () => {
       delete addressFields.permanent.is_current
       delete addressFields.permanent.is_permanent
       delete addressFields.permanent.customer
-
+      personInformation.role =
+      customerDetails.length === 0 ? "applicant" : "co_applicant";
 
     }
     const bodyFormData = new FormData();
     bodyFormData.append("profile_photo", personInformation.profile_photo);
   
-    personInformation.role =
-      customerDetails.length === 0 ? "applicant" : "co_applicant";
+
+    
     const customer_data = { ...personInformation, application_id: appId };
   
 
