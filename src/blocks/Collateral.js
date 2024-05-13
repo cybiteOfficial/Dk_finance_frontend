@@ -415,6 +415,7 @@ const Collateral = () => {
         />
 
         <TextField
+          type="number"
           label="Estimated Property Value"
           fullWidth
           margin="normal"

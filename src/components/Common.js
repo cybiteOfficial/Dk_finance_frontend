@@ -11,6 +11,7 @@ const StyledChip = styled(Chip)(
     propHeight,
     propBorderRadius,
     propBackgroundColor,
+    textTransform
   }) => ({
     "&.MuiChip-root": {
       width: propWidth,
@@ -20,6 +21,7 @@ const StyledChip = styled(Chip)(
       color: propColor,
       fontSize: propFontSize,
       fontWeight: propFontWeight,
+      textTransform:textTransform
     },
   })
 );
@@ -29,14 +31,13 @@ export const logFormData = (bodyFormData) => {
   }
 };
 
+
 export const extractFileName = (url) => {
   if (url) {
     const pathname = new URL(url).pathname;
 
     // Using string manipulation to extract the filename with extension
     const filenameWithExtension = pathname.split("/").pop();
-
-    console.log(filenameWithExtension);
     return filenameWithExtension;
   } else {
     return "";
@@ -47,6 +48,7 @@ export const CommonChip = (props) => {
   return (
     <StyledChip
       {...props}
+      textTransform={props.textTransform}
       propFontSize={props.propFontSize}
       propFontWeight={props.propFontWeight}
       propColor={props.propColor}

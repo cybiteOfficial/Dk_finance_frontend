@@ -155,6 +155,7 @@ const DocumentUpload = () => {
           file: item.file,
         };
       });
+    
       const bodyFormData = new FormData();
 
       bodyFormData.append("document_type", "other");
@@ -165,7 +166,8 @@ const DocumentUpload = () => {
       //   bodyFormData.append(`document_id${index}`, item.document_id)
       //   bodyFormData.append(`file${index}`, item.file)
       // })
-      bodyFormData.append("documents", JSON.stringify(modifiedKeyValuePairs));
+      bodyFormData.append("documents", modifiedKeyValuePairs);
+     
 
       logFormData(bodyFormData);
       const payload = { bodyFormData, token };

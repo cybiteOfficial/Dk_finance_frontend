@@ -97,6 +97,14 @@ export const updateCustomerDataThunk = createAsyncThunk(
   }
 );
 
+export const fileForwardedThunk = createAsyncThunk(
+  "/updateCustomerData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.fileForwardedDataApi(payload);
+    return response;
+  }
+);
+
 export const updateLoanDataThunk = createAsyncThunk(
   "/updateLoanData",
   async (payload, thunkAPI) => {
@@ -137,6 +145,9 @@ const dashboardSlice = createSlice({
   name: "dashboard",
   initialState,
   reducers: {
+    setApplicant(state,action) {
+      state.applicantData = action.payload.applicantData
+    },
     setCustomer(state, action) {
       state.selectedCustomer = action.payload.selectedCustomer.item;
       state.selectedCustomerData = action.payload.selectedCustomer.data;
@@ -182,7 +193,7 @@ const dashboardSlice = createSlice({
     // Add reducers for additional action types here, and handle loading state as needed
     builder.addCase(fetchApplicantDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log("actionDash: ", action);
+    
       state.applicantData = action.payload.results;
     });
 
@@ -198,8 +209,8 @@ const dashboardSlice = createSlice({
       fetchCustomersByApplicantIdDataThunk.fulfilled,
       (state, action) => {
         // Add user to the state array
-        console.log("actioncUSTOEMR: ", action);
-        state.customerDetails = action.payload.results;
+       
+        state.customerDetails = action.payload.results ? action.payload.results :[];
       }
     );
     builder.addCase(
@@ -209,15 +220,16 @@ const dashboardSlice = createSlice({
         state.allCustomers = action.payload.data;
       }
     );
+    
     builder.addCase(fetchCollateralDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log("actionColla: ", action);
+     
       state.collateralDetails = action.payload.data;
     });
 
     builder.addCase(updateCollateralDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log("actionColla: ", action);
+      
       state.collateralDetails = [action.payload.data];
     });
     builder.addCase(fetchCafDataThunk.fulfilled, (state, action) => {
@@ -227,11 +239,11 @@ const dashboardSlice = createSlice({
     });
     builder.addCase(updateCafDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log("actionCaf: ", action);
+    
     });
     builder.addCase(fetchLoanDataThunk.fulfilled, (state, action) => {
       // Add user to the state array
-      console.log("actionLoan ", action);
+     
       state.loanDetails = action.payload.data;
     });
     builder.addCase(fetchDocumentDataThunk.fulfilled, (state, action) => {
@@ -253,7 +265,8 @@ export const {
   removeDocs,
   removeLoan,
   removePhotos,
-  removeCustomerData
+  removeCustomerData,
+  setApplicant
 } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

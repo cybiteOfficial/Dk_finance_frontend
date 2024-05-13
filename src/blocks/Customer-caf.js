@@ -219,6 +219,7 @@ const CustomerCaf = () => {
         <Typography variant="h5">Customer CAF</Typography>
         <form onSubmit={handleSubmit}>
           <TextField
+           type="number"
             fullWidth
             label="Tentative Amount"
             name="tentative_amt"

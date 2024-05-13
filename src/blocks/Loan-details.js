@@ -240,6 +240,7 @@ const LoanDetails = () => {
           }
         />
         <TextField
+         type="number"
           label="Applied loan amount"
           fullWidth
           margin="normal"
@@ -291,6 +292,7 @@ const LoanDetails = () => {
           margin="normal"
         />
         <TextField
+         type="number"
           value={formValues.processing_fees.charge_amount}
           onChange={(e) =>
             setFormValues({
@@ -321,6 +323,7 @@ const LoanDetails = () => {
           margin="normal"
         />
         <TextField
+         type="number"
           value={formValues.processing_fees.total_amount}
           onChange={(e) =>
             setFormValues({
@@ -358,6 +361,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.charge_amount}
@@ -388,6 +392,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.total_amount}
@@ -425,6 +430,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.charge_amount}
@@ -455,6 +461,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.total_amount}
@@ -491,6 +498,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.charge_amount}
@@ -521,6 +529,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.total_amount}
@@ -557,6 +566,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.charge_amount}
@@ -587,6 +597,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.total_amount}
@@ -623,6 +634,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+           type="number"
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.charge_amount}
@@ -653,6 +665,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.total_amount}

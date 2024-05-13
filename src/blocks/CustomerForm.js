@@ -50,6 +50,16 @@ const fieldsToExtract = [
   "gender",
   "customerSegment",
   "profile_photo",
+  "created_at",
+  "updated_at",
+  "uuid",
+  "cif_id",
+  "applicant",
+  "current_address",
+  "permanent_address",
+  "applicant",
+  "description",
+  "comment"
 ];
 
 const CustomerForm = () => {
@@ -57,7 +67,7 @@ const CustomerForm = () => {
   const dispatch = useDispatch();
 
   const token = useSelector((state) => state.authReducer.access_token);
-  const { selectedCustomer, selectedCustomerData } = useSelector(
+  const { selectedCustomer, selectedCustomerData ,customerDetails} = useSelector(
     (state) => state.dashboardReducer
   );
   const { appId } = useSelector((state) => state.authReducer);
@@ -78,6 +88,8 @@ const CustomerForm = () => {
   useEffect(() => {
     handleExtractFormValues();
   }, [selectedCustomerData]);
+
+ 
 
   const personalInformation = Object.fromEntries(
     fieldsToExtract.map((field) => [
@@ -139,6 +151,7 @@ const CustomerForm = () => {
     severity: "",
   });
 
+
   useEffect(() => {
     if (permanentAddressSameAsCurrent) {
       setAddressFields((prevState) => ({
@@ -184,9 +197,9 @@ const CustomerForm = () => {
   const filterKeys = (obj) => {
     const filteredObj = {};
     Object.keys(obj).forEach((key) => {
-      if (!keysToDiscard.includes(key)) {
+      // if (!keysToDiscard.includes(key)) {
         filteredObj[key] = obj[key];
-      }
+      // }
     });
     return filteredObj;
   };
@@ -254,11 +267,39 @@ const CustomerForm = () => {
   };
   const handlePersonalSubmit = async (e) => {
     e.preventDefault();
-  
+    if(!selectedCustomer?.cif_id){
+     
+      delete personInformation.created_at
+      delete personInformation.updated_at
+      delete personInformation.comment
+      delete personInformation.description
+      delete personInformation.cif_id
+      delete personInformation.applicant
+      delete personInformation.current_address
+      delete personInformation.permanent_address
+      delete personInformation.uuid
+
+      delete addressFields.current.created_at
+      delete addressFields.current.updated_at
+      delete addressFields.current.uuid
+      delete addressFields.current.is_current
+      delete addressFields.current.is_permanent
+      delete addressFields.current.customer
+
+      delete addressFields.permanent.created_at
+      delete addressFields.permanent.updated_at
+      delete addressFields.permanent.uuid
+      delete addressFields.permanent.is_current
+      delete addressFields.permanent.is_permanent
+      delete addressFields.permanent.customer
+
+
+    }
     const bodyFormData = new FormData();
     bodyFormData.append("profile_photo", personInformation.profile_photo);
-    delete personInformation.profile_photo;
-
+  
+    personInformation.role =
+      customerDetails.length === 0 ? "applicant" : "co_applicant";
     const customer_data = { ...personInformation, application_id: appId };
   
 
@@ -273,6 +314,8 @@ const CustomerForm = () => {
     );
     bodyFormData.append("is_permanent", permanentAddressSameAsCurrent);
     logFormData(bodyFormData)
+   
+   
     const payload = { bodyFormData, token, cif_id: selectedCustomer?.cif_id };
     try {
       const response = await dispatch(updateCustomerDataThunk(payload));
@@ -405,7 +448,7 @@ const CustomerForm = () => {
                       name="title"
                       label="Title"
                     >
-                      <MenuItem value="md">MD</MenuItem>
+                     
                       <MenuItem value="ms">MS</MenuItem>
                       <MenuItem value="miss">Miss</MenuItem>
                       <MenuItem value="mrs">Mrs</MenuItem>
@@ -415,6 +458,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                    type="text"
                     label="First Name"
                     fullWidth
                     value={personInformation.firstName}
@@ -424,6 +468,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Middle Name"
                     fullWidth
                     value={personInformation.middle_name}
@@ -433,6 +478,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Last Name"
                     fullWidth
                     value={personInformation.lastName}
@@ -443,7 +489,7 @@ const CustomerForm = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     type="date"
-                    label="Date of Birth"
+                   
                     fullWidth
                     value={personInformation.dateOfBirth}
                     onChange={handleChange}
@@ -462,6 +508,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Source of Income"
                     fullWidth
                     value={personInformation.sourceOfIncome}
@@ -518,26 +565,31 @@ const CustomerForm = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Tentative Value of Total Agricultural Land"
-                    fullWidth
-                    value={personInformation.valueOfAgriculturalLand}
-                    onChange={handleChange}
-                    name="valueOfAgriculturalLand"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Tentative Earnings from Agricultural Land"
-                    fullWidth
-                    value={personInformation.earningsFromAgriculturalLand}
-                    onChange={handleChange}
-                    name="earningsFromAgriculturalLand"
-                  />
-                </Grid>
+                {personInformation.agriculturalLand === "Yes" && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        type="number"
+                        label="Tentative Value of Total Agricultural Land"
+                        fullWidth
+                        value={personInformation.valueOfAgriculturalLand}
+                        onChange={handleChange}
+                        name="valueOfAgriculturalLand"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        type="number"
+                        label="Tentative Earnings from Agricultural Land"
+                        fullWidth
+                        value={personInformation.earningsFromAgriculturalLand}
+                        onChange={handleChange}
+                        name="earningsFromAgriculturalLand"
+                      />
+                    </Grid>
+                  </>
+                )}
+
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Education Qualification</InputLabel>
@@ -625,6 +677,7 @@ const CustomerForm = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Address Line 1"
                     fullWidth
                     value={addressFields.current.address_line_1}
@@ -642,6 +695,7 @@ const CustomerForm = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="Address Line 2"
+                    type="text"
                     fullWidth
                     value={addressFields.current.address_line_2}
                     onChange={(e) =>
@@ -657,6 +711,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Address Line 3"
                     fullWidth
                     value={addressFields.current.address_line_3}
@@ -673,6 +728,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="State"
                     fullWidth
                     value={addressFields.current.state}
@@ -689,6 +745,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="District"
                     fullWidth
                     value={addressFields.current.district}
@@ -705,6 +762,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="City"
                     fullWidth
                     value={addressFields.current.city}
@@ -718,6 +776,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Tehsil/Taluka"
                     fullWidth
                     value={addressFields.current.tehsil_or_taluka}
@@ -734,6 +793,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="number"
                     label="Pin Code"
                     fullWidth
                     value={addressFields.current.pincode}
@@ -750,6 +810,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                  type="text"
                     label="Landmark"
                     fullWidth
                     value={addressFields.current.landmark}
@@ -819,6 +880,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                    type="text"
                     label="Stability at Residence"
                     fullWidth
                     value={addressFields.current.stability_at_residence}
@@ -835,6 +897,7 @@ const CustomerForm = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                    type="text"
                     label="Distance from Branch"
                     fullWidth
                     value={addressFields.current.distance_from_branch}
@@ -869,6 +932,7 @@ const CustomerForm = () => {
                   {/* Add permanent address fields here */}
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent Address Line 1"
                       value={addressFields.permanent.address_line_1}
                       onChange={handlePermanentAddressChange("address_line_1")}
@@ -877,6 +941,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent Address Line 2"
                       value={addressFields.permanent.address_line_2}
                       onChange={handlePermanentAddressChange("address_line_2")}
@@ -885,6 +950,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent Address Line 3"
                       value={addressFields.permanent.address_line_3}
                       onChange={handlePermanentAddressChange("address_line_3")}
@@ -893,6 +959,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent State"
                       value={addressFields.permanent.state}
                       onChange={handlePermanentAddressChange("state")}
@@ -901,6 +968,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent District"
                       value={addressFields.permanent.district}
                       onChange={handlePermanentAddressChange("district")}
@@ -909,6 +977,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent City"
                       value={addressFields.permanent.city}
                       onChange={handlePermanentAddressChange("city")}
@@ -917,6 +986,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent Tehsil/Taluka"
                       value={addressFields.permanent.tehsil_or_taluka}
                       onChange={handlePermanentAddressChange(
@@ -927,6 +997,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="number"
                       label="Permanent Pin Code"
                       value={addressFields.permanent.pincode}
                       onChange={handlePermanentAddressChange("pincode")}
@@ -935,6 +1006,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       label="Permanent Landmark"
                       value={addressFields.permanent.landmark}
                       onChange={handlePermanentAddressChange("landmark")}
@@ -986,6 +1058,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       onChange={handlePermanentAddressChange(
                         "stability_at_residence"
                       )}
@@ -996,6 +1069,7 @@ const CustomerForm = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
+                      type="text"
                       onChange={handlePermanentAddressChange(
                         "distance_from_branch"
                       )}
