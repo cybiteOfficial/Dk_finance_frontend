@@ -16,9 +16,10 @@ import {
   Typography,
   Divider,
   Input,
+  InputAdornment
 } from "@mui/material";
 
-import { ArrowBack, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ArrowBack, ExpandLess, ExpandMore,Star } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -31,6 +32,7 @@ import {
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import { capitalize, errText, hasErrors, logFormData } from "../components/Common";
 import InputValidation from "../components/InputValidation";
+import SnackToast from "../components/Snackbar";
 
 const fieldsToExtract = [
   "title",
@@ -170,9 +172,7 @@ const CustomerForm = () => {
     current: {},
     permanent: {},
   });
-  useEffect(()=>{
-    console.log("errObject",hasErrors(errObject));
-  },[errObject])
+ 
   useEffect(() => {
     if (permanentAddressSameAsCurrent) {
       setAddressFields((prevState) => ({
@@ -283,6 +283,39 @@ const CustomerForm = () => {
   };
   const handlePersonalSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if any mandatory fields are empty
+    const mandatoryFields = [
+      "firstName",
+      "middle_name",
+      "lastName",
+      "dateOfBirth",
+      "age",
+      "gender",
+    ];
+    const missingFields = mandatoryFields.filter(
+      (field) => !personInformation[field]
+    );
+
+    if (missingFields.length > 0) {
+      // Set errObject to indicate missing fields
+      setErrObject((prevState) => ({
+        ...prevState,
+        ...missingFields.reduce(
+          (acc, field) => ({ ...acc, [field]: true }),
+          {}
+        ),
+      }));
+      setErrState(false,"Please fill mandatory fields",true,"error")
+      return; // Stop further processing
+    }
+
+    // Clear error for mandatory fields
+    setErrObject((prevState) => ({
+      ...prevState,
+      ...missingFields.reduce((acc, field) => ({ ...acc, [field]: false }), {}),
+    }));
+
     if (!selectedCustomer?.cif_id) {
       delete personInformation.created_at;
       delete personInformation.updated_at;
@@ -310,6 +343,7 @@ const CustomerForm = () => {
       personInformation.role =
         customerDetails.length === 0 ? "applicant" : "co_applicant";
     }
+
     const bodyFormData = new FormData();
     bodyFormData.append("profile_photo", personInformation.profile_photo);
 
@@ -377,6 +411,9 @@ const CustomerForm = () => {
       };
       reader.readAsDataURL(e.target.files[0]);
     }
+  };
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
   };
   const fieldsMapped = [
     {
@@ -455,6 +492,12 @@ const CustomerForm = () => {
   ]
   return (
     <>
+     <SnackToast
+        onClose={handleCloseToast}
+        openSnack={err.openSnack}
+        message={err.errMsg}
+        severity={err.severity}
+      />
       <Box width={"90%"} margin={"13vh auto 0 auto"}>
         <Button
           onClick={() => navigate("/applicant/customers")}
@@ -524,7 +567,7 @@ const CustomerForm = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                     {/* <FormControl fullWidth> */}
                     <InputValidation
                       type="select"
                       value={personInformation.title}
@@ -544,7 +587,7 @@ const CustomerForm = () => {
                         { value: "mr.", label: "Mr" },
                       ]}
                     />
-                  </FormControl>
+                     {/* </FormControl> */}
                 </Grid>
 
                 {fieldsMapped.map((item) => {
@@ -567,7 +610,7 @@ const CustomerForm = () => {
                   );
                 })}
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                     {/* <FormControl fullWidth> */}
                     <InputValidation
                       type="select"
                       value={personInformation.residenceOwnership}
@@ -587,10 +630,10 @@ const CustomerForm = () => {
                         { value: "no", label: "No" },
                       ]}
                     />
-                  </FormControl>
+                     {/* </FormControl> */}
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                     {/* <FormControl fullWidth> */}
                     <InputValidation
                       type="select"
                       value={personInformation.agriculturalLand}
@@ -610,7 +653,7 @@ const CustomerForm = () => {
                         { value: "no", label: "No" },
                       ]}
                     />
-                  </FormControl>
+                     {/* </FormControl> */}
                 </Grid>
                 {personInformation.agriculturalLand === "yes" && (
                   <>
@@ -656,7 +699,7 @@ const CustomerForm = () => {
                 )}
 
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                     {/* <FormControl fullWidth> */}
                     <InputValidation
                       type="select"
                       value={personInformation.educationQualification}
@@ -684,7 +727,7 @@ const CustomerForm = () => {
                         { label: "Post Graduation", value: "postgraduation" },
                       ]}
                     />
-                  </FormControl>
+                     {/* </FormControl> */}
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <InputValidation
@@ -724,7 +767,7 @@ const CustomerForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
+                     {/* <FormControl fullWidth> */}
                     <InputValidation
                       type="select"
                       label="Customer Segment"
@@ -747,7 +790,7 @@ const CustomerForm = () => {
                         // Add other options here if needed
                       ]}
                     />
-                  </FormControl>
+                     {/* </FormControl> */}
                 </Grid>
               </Grid>
             </AccordionDetails>
