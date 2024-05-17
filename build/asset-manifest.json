@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/static/css/main.19c87230.css",
-    "main.js": "/static/js/main.803438ed.js",
+    "main.js": "/static/js/main.5bf3083b.js",
     "static/js/453.f544cc3c.chunk.js": "/static/js/453.f544cc3c.chunk.js",
     "static/media/login_image.png": "/static/media/login_image.4b78e3863603ef15375f.png",
     "static/media/dk_finance_logo.png": "/static/media/dk_finance_logo.25b6e7c5e3f537bc45a9.png",
     "index.html": "/index.html",
     "main.19c87230.css.map": "/static/css/main.19c87230.css.map",
-    "main.803438ed.js.map": "/static/js/main.803438ed.js.map",
+    "main.5bf3083b.js.map": "/static/js/main.5bf3083b.js.map",
     "453.f544cc3c.chunk.js.map": "/static/js/453.f544cc3c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.19c87230.css",
-    "static/js/main.803438ed.js"
+    "static/js/main.5bf3083b.js"
   ]
 }
