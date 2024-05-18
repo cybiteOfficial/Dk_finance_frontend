@@ -3,7 +3,7 @@ import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAppId } from "../redux/reducers/auth/auth-reducer";
-import  {fetchApplicantDataThunk} from "../redux/reducers/dashboard/dashboard-reducer";
+import  {fetchApplicantDataThunk,  removeApplicant, setApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
 import {
   Search,
@@ -98,6 +98,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchApplicants = async () => getApplicantsApi();
     fetchApplicants();
+   
   }, [page]);
 
 
@@ -119,7 +120,15 @@ const DashboardPage = () => {
         appId: { app_id: item.application_id, uuid: item.uuid },
         type: "setAppId",
       })
+     
     );
+
+    dispatch(
+      setApplicant({
+        applicantData:[item],
+        type:"setApplicantData"
+      })
+    )
     navigate("/applicant/customers");
   };
 
@@ -141,11 +150,15 @@ const DashboardPage = () => {
       setErrState(false, message, true, "error");
     }
   };
-  
 
+  
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+      onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
@@ -165,7 +178,7 @@ const DashboardPage = () => {
               </StyledTypography>
             </Box>
           </Grid>
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Box pl={"80px"}>
               <StyledTextField
                 placeholder="Search"
@@ -178,7 +191,7 @@ const DashboardPage = () => {
                 }}
               />
             </Box>
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12}>
             <Box pl={"80px"} mt={"24px"}></Box>
@@ -198,16 +211,12 @@ const DashboardPage = () => {
                     Application ID
                   </StyledTypography>
                 </Grid>
-                <Grid item xs={2}>
+                {/* <Grid item xs={2}>
                   <StyledTypography variant="body2" weight={600}>
                     Name
                   </StyledTypography>
-                </Grid>
-                <Grid item xs={2}>
-                  <StyledTypography variant="body2" weight={600}>
-                    Role
-                  </StyledTypography>
-                </Grid>
+                </Grid> */}
+              
                 <Grid
                   item
                   xs={2}
@@ -243,16 +252,12 @@ const DashboardPage = () => {
                           </StyledTypography>
                         </Grid>
 
-                        <Grid item xs={2}>
+                        {/* <Grid item xs={2}>
                           <StyledTypography variant="body2" weight={600}>
                             {item.lead}
                           </StyledTypography>
-                        </Grid>
-                        <Grid item xs={2}>
-                          <StyledTypography variant="body2" weight={600}>
-                            Co_applicant
-                          </StyledTypography>
-                        </Grid>
+                        </Grid> */}
+                      
                         <Grid
                           item
                           xs={2}
@@ -278,7 +283,8 @@ const DashboardPage = () => {
                               propBackgroundColor={
                                 theme.palette.lightSecondaryV3.main
                               }
-                              label={item.status}
+                              textTransform={"capitalize"}
+                              label={item.status==="cluster" ? "Approved":item.status}
                             />
                           </Box>
                         </Grid>

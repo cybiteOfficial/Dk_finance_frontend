@@ -13,7 +13,7 @@ const api = axios.create({
 export const authAPI = {
   // Function to fetch user by ID
   loginUserApi: async (payload) => {
-    console.log("payload16: ", payload);
+  
     try {
      
       const response = await axios.post(`${baseURL}/auth/signin`, {...payload}, {

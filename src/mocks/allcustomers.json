@@ -1,0 +1,76 @@
+{
+    "error": false,
+    "data": [
+        {
+            "uuid": "0688359f-b125-4ea2-838d-c17107b9527c",
+            "cif_id": "cif_90451351",
+            "firstName": "John"
+        },
+        {
+            "uuid": "7cc52e11-3d56-404c-8d45-89d14d2581fb",
+            "cif_id": "cif_71246134",
+            "firstName": "John"
+        },
+        {
+            "uuid": "bca2618b-f157-4870-bac5-519b2c6595b9",
+            "cif_id": "cif_54512639",
+            "firstName": "John"
+        },
+        {
+            "uuid": "3bc49ae3-7ba6-46b8-81a0-838ae9c75a59",
+            "cif_id": "cif_33159885",
+            "firstName": "John"
+        },
+        {
+            "uuid": "2ffc512e-23cd-4fcb-ac70-b3845e2a7c49",
+            "cif_id": "cif_57571355",
+            "firstName": "John"
+        },
+        {
+            "uuid": "23ff25eb-6fec-43db-9ccc-52078a88b190",
+            "cif_id": "cif_75767025",
+            "firstName": "John"
+        },
+        {
+            "uuid": "61618640-f4eb-4ea4-ac58-307da397b04b",
+            "cif_id": "cif_74881836",
+            "firstName": "John"
+        },
+        {
+            "uuid": "6ee28243-bba2-4b07-b111-90e914e7cced",
+            "cif_id": "cif_04083762",
+            "firstName": "John"
+        },
+        {
+            "uuid": "43284515-d8b6-4aea-b724-6c8e960fa3ee",
+            "cif_id": "cif_80130080",
+            "firstName": "John"
+        },
+        {
+            "uuid": "1c2b4802-4861-4c8b-917f-0db6be724da8",
+            "cif_id": "cif_18046485",
+            "firstName": "John"
+        },
+        {
+            "uuid": "4c38bd11-8087-4317-b412-55ba16be9de5",
+            "cif_id": "cif_12570121",
+            "firstName": "John"
+        },
+        {
+            "uuid": "6cb66253-ea58-4450-bb1b-5d42b1152f21",
+            "cif_id": "cif_08146901",
+            "firstName": "John"
+        },
+        {
+            "uuid": "3f19afe7-d16b-41d3-b5fc-878bfe3588cf",
+            "cif_id": "cif_48200892",
+            "firstName": "John"
+        },
+        {
+            "uuid": "facf1ac0-ac14-4570-a3af-26668d574072",
+            "cif_id": "cif_42321888",
+            "firstName": "John"
+        }
+    ],
+    "message": "All customer with specific applicaiton"
+}

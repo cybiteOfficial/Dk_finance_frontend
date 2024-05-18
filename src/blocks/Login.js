@@ -54,7 +54,7 @@ export const LoginPage = () => {
   //onchange
   const handleLoginChange = (event) => {
     const { value, name } = event.target;
-    console.log('event.target: ', name,value);
+   
     setLoggedInUser((prev) => ({
       ...prev,
       [name]: value 
@@ -64,11 +64,11 @@ export const LoginPage = () => {
   const navigateToDashboardPage = async (event) => {
     event.preventDefault();
     setErrState(true, "", false, "");
-    console.log("logg",loggedInUser);
+  
     // Dispatch the loginUserThunk action and wait for the Promise to resolve
     try {
       const response = await dispatch(loginUserThunk(loggedInUser));
-      console.log("response: ", response);
+  
       const { Error, message } = response.payload;
       if (!Error) {
         setErrState(false, message, true, "success");
@@ -81,10 +81,13 @@ export const LoginPage = () => {
       setErrState(false, message, true, "error");
     }
   };
-
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+      onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}

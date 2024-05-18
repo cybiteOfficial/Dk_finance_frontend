@@ -7,7 +7,7 @@ export const loginUserThunk = createAsyncThunk(
   '/loginUser',
   async (payload) => {
     const response = await authAPI.loginUserApi(payload)
-    console.log('responseauth: ', response);
+ 
     return response; 
   },
 );
@@ -38,7 +38,7 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
     builder.addCase(loginUserThunk.fulfilled, (state, action) => {
-      console.log('action: ', action);
+  
       state.userInfo = [];
       state.loggedIn = true;
       state.access_token=action.payload.data.access_token

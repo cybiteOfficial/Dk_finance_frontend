@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Accordion,
@@ -16,15 +16,23 @@ import {
   Typography,
   Divider,
   Input,
+  InputAdornment
 } from "@mui/material";
 
-import { ArrowBack, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ArrowBack, ExpandLess, ExpandMore,Star } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { updateCustomerDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
-import { logFormData } from "../components/Common";
+import {
+  fetchCustomerByApplicantIdDataThunk,
+  removeCustomer,
+  removeCustomerData,
+  updateCustomerDataThunk,
+} from "../redux/reducers/dashboard/dashboard-reducer";
+import { capitalize, errText, hasErrors, logFormData } from "../components/Common";
+import InputValidation from "../components/InputValidation";
+import SnackToast from "../components/Snackbar";
 
 const fieldsToExtract = [
   "title",
@@ -44,16 +52,63 @@ const fieldsToExtract = [
   "numberOfDependents",
   "gender",
   "customerSegment",
+  "profile_photo",
+  "created_at",
+  "updated_at",
+  "uuid",
+  "cif_id",
+  "applicant",
+  "current_address",
+  "permanent_address",
+  "applicant",
+  "description",
+  "comment",
+];
+const residenceStateOptions = [
+  { value: "owned", label: "Owned" },
+  { value: "rented", label: "Rented" },
+  { value: "parented", label: "Parented" },
+  { value: "spouseOwned", label: "Spouse Owned" },
+  { value: "company", label: "Company" },
+  { value: "govtProvided", label: "Govt Provided" },
 ];
 
+const  residenceTypeOptions  =[
+  { value: "independentHouse", label: "Independent House" },
+  { value: "flat", label: "Flat" },
+  { value: "slum", label: "Slum" },
+  { value: "chawl", label: "Chawl" },
+  { value: "kuchaHouse", label: "Kucha House" },
+  { value: "others", label: "Others (Specify)" },
+];
 const CustomerForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const token = useSelector((state) => state.authReducer.access_token);
-  const { selectedCustomer } = useSelector((state) => state.dashboardReducer);
+  const { selectedCustomer, selectedCustomerData, customerDetails } =
+    useSelector((state) => state.dashboardReducer);
   const { appId } = useSelector((state) => state.authReducer);
 
+
+  useEffect(() => {
+    if (selectedCustomer.cif_id) {
+      async function fetchData() {
+        fetchCustomerDataApi();
+      }
+      fetchData();
+    }
+
+    return () => {
+      dispatch(removeCustomerData({ payload: {}, type: "removeCustomerData" }));
+    };
+  }, []);
+
+  useEffect(() => {
+    handleExtractFormValues();
+  }, [selectedCustomerData]);
+
+  
   const personalInformation = Object.fromEntries(
     fieldsToExtract.map((field) => [
       field,
@@ -63,44 +118,49 @@ const CustomerForm = () => {
   const [personalInfoFilled, setPersonalInfoFilled] = useState(false);
   const [addressInfoFilled, setAddressInfoFilled] = useState(false);
 
-  const [personInformation, setPersonalInformation] =
-    useState(personalInformation);
+  const [personInformation, setPersonalInformation] = useState({
+    ...personalInformation,
+  });
+
   const [addressFields, setAddressFields] = useState({
     current: {
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
       state: "",
       district: "",
       city: "",
-      tehsilOrTaluka: "",
-      pinCode: "",
+      tehsil_or_taluka: "",
+      pincode: "",
       landmark: "",
-      residenceStatus: "",
-      residenceType: "",
-      stabilityAtResidence: "",
-      distanceFromBranch: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
     },
     permanent: {
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
       state: "",
       district: "",
       city: "",
-      tehsilOrTaluka: "",
-      pinCode: "",
+      tehsil_or_taluka: "",
+      pincode: "",
       landmark: "",
-      residenceStatus: "",
-      residenceType: "",
-      stabilityAtResidence: "",
-      distanceFromBranch: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
     },
   });
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
+
   // State for cropped image
-  const [croppedImage, setCroppedImage] = useState(selectedCustomer?.profile_photo);
+  const [croppedImage, setCroppedImage] = useState(
+    selectedCustomer?.profile_photo
+  );
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -108,20 +168,83 @@ const CustomerForm = () => {
     severity: "",
   });
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setPersonalInformation((prevState) => ({
+  const [errObject, setErrObject] = useState({
+    current: {},
+    permanent: {},
+  });
+ 
+  useEffect(() => {
+    if (permanentAddressSameAsCurrent) {
+      setAddressFields((prevState) => ({
+        ...prevState,
+        permanent: {
+          ...prevState.current,
+        },
+      }));
+    } else
+      setAddressFields((prevState) => ({
+        ...prevState,
+        permanent: {
+          address_line_1: "",
+          address_line_2: "",
+          address_line_3: "",
+          state: "",
+          district: "",
+          city: "",
+          tehsil_or_taluka: "",
+          pincode: "",
+          landmark: "",
+          residence_state: "",
+          residence_type: "",
+          stability_at_residence: "",
+          distance_from_branch: "",
+        },
+      }));
+    {
+    }
+  }, [permanentAddressSameAsCurrent]);
+
+  // Define keys to discard
+  const keysToDiscard = [
+    "uuid",
+    "created_at",
+    "updated_at",
+    "is_current",
+    "is_permanent",
+    "customer",
+  ];
+
+  // Function to filter out keys to discard
+  const filterKeys = (obj) => {
+    const filteredObj = {};
+    Object.keys(obj).forEach((key) => {
+      // if (!keysToDiscard.includes(key)) {
+      filteredObj[key] = obj[key];
+      // }
+    });
+    return filteredObj;
+  };
+
+  const handleExtractFormValues = () => {
+    setAddressFields((prevState) => ({
       ...prevState,
-      [name]: value,
+      current: selectedCustomerData?.current_address
+        ? {
+            ...prevState.current,
+            ...filterKeys(selectedCustomerData?.current_address),
+          }
+        : prevState.current,
+      permanent: selectedCustomerData?.permanent_address
+        ? {
+            ...prevState.permanent,
+            ...filterKeys(selectedCustomerData?.permanent_address),
+          }
+        : prevState.permanent,
     }));
   };
 
-  const handleChangeAddress = (event) => {
-    const { name, value } = event.target;
-    setPersonalInformation((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+  const handleChange = ({ name, value }) => {
+   
   };
 
   const setErrState = (loading, errMsg, openSnack, severity) => {
@@ -133,47 +256,136 @@ const CustomerForm = () => {
     });
   };
 
-  // console.log("===", Object.entries(personInformation));
-  const handlePersonalSubmit = async(e) => {
-    e.preventDefault();
-    // console.log("=====", personInformation);
-    // console.log("=====", addressFields);
-    const bodyFormData = new FormData();
-
-    Object.entries(personInformation)?.forEach((item) =>
-      bodyFormData.append(`${item[0]}`, item[1])
-    );
-
-    // Object.entries(addressFields)?.forEach((item) =>
-    //   bodyFormData.append(`${item[0]}`, item[1])
-    // );
-    
-    const payload = { bodyFormData, token , cif_id:selectedCustomer?.cif_id};
+  const fetchCustomerDataApi = async () => {
+    const payload = { customer_id: selectedCustomer?.cif_id, token };
     try {
-      const response = await dispatch(updateCustomerDataThunk(payload));
-      console.log('response: ', response);
-      const { error, message } = response.payload;  
-      if (error) {
+      setErrState(true, "", false, "");
+      const response = await dispatch(
+        fetchCustomerByApplicantIdDataThunk(payload)
+      );
+      const { error, message, code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      } else if (error) {
         return setErrState(false, message, true, "error");
       }
-      setErrState(false, message, true, "success");
-      navigate("/applicant/customers")
-    } catch (error) {
-      console.error('error: ', error);
 
+      setErrState(false, "", false, "success");
+    } catch (error) {
+      setErrState(false, "", false, "success");
+      console.error("error: ", error);
     }
-  
-   
+  };
+  const handlePersonalSubmit = async (e) => {
+    e.preventDefault();
+
+    // Check if any mandatory fields are empty
+    const mandatoryFields = [
+      "firstName",
+      "middle_name",
+      "lastName",
+      "dateOfBirth",
+      "age",
+      "gender",
+    ];
+    const missingFields = mandatoryFields.filter(
+      (field) => !personInformation[field]
+    );
+
+    if (missingFields.length > 0) {
+      // Set errObject to indicate missing fields
+      setErrObject((prevState) => ({
+        ...prevState,
+        ...missingFields.reduce(
+          (acc, field) => ({ ...acc, [field]: true }),
+          {}
+        ),
+      }));
+      setErrState(false,"Please fill mandatory fields",true,"error")
+      return; // Stop further processing
+    }
+
+    // Clear error for mandatory fields
+    setErrObject((prevState) => ({
+      ...prevState,
+      ...missingFields.reduce((acc, field) => ({ ...acc, [field]: false }), {}),
+    }));
+
+    if (!selectedCustomer?.cif_id) {
+      delete personInformation.created_at;
+      delete personInformation.updated_at;
+      delete personInformation.comment;
+      delete personInformation.description;
+      delete personInformation.cif_id;
+      delete personInformation.applicant;
+      delete personInformation.current_address;
+      delete personInformation.permanent_address;
+      delete personInformation.uuid;
+
+      delete addressFields.current.created_at;
+      delete addressFields.current.updated_at;
+      delete addressFields.current.uuid;
+      delete addressFields.current.is_current;
+      delete addressFields.current.is_permanent;
+      delete addressFields.current.customer;
+
+      delete addressFields.permanent.created_at;
+      delete addressFields.permanent.updated_at;
+      delete addressFields.permanent.uuid;
+      delete addressFields.permanent.is_current;
+      delete addressFields.permanent.is_permanent;
+      delete addressFields.permanent.customer;
+      personInformation.role =
+        customerDetails.length === 0 ? "applicant" : "co_applicant";
+    }
+
+    const bodyFormData = new FormData();
+    bodyFormData.append("profile_photo", personInformation.profile_photo);
+
+    const customer_data = { ...personInformation, application_id: appId };
+
+    bodyFormData.append("customer_data", JSON.stringify(customer_data));
+    bodyFormData.append(
+      "current_address",
+      JSON.stringify(addressFields.current)
+    );
+    bodyFormData.append(
+      "permanent_address",
+      JSON.stringify(addressFields.permanent)
+    );
+    bodyFormData.append("is_permanent", permanentAddressSameAsCurrent);
+    logFormData(bodyFormData);
+
+    const payload = { bodyFormData, token, cif_id: selectedCustomer?.cif_id };
+    try {
+      const response = await dispatch(updateCustomerDataThunk(payload));
+
+      const { error, message, code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      } else if (error) {
+        return setErrState(false, message, true, "error");
+      } else {
+        setErrState(false, message, false, "success");
+        navigate("/applicant/customers");
+      }
+    } catch (error) {
+      console.error("error: ", error);
+    }
   };
 
   const handlePermanentAddressSameAsCurrent = () => {
-    console.log("calling");
-    setAddressFields((prevState) => ({
-      ...prevState,
-      permanent: {
-        ...prevState.current,
-      },
-    }));
+    setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
   };
   const handlePermanentAddressChange = (fieldName) => (event) => {
     const { value } = event.target;
@@ -189,6 +401,10 @@ const CustomerForm = () => {
   // Function to handle file drop and set cropped image
   const handleDrop = (e) => {
     if (e.target.files[0]) {
+      setPersonalInformation((prevState) => ({
+        ...prevState,
+        profile_photo: e.target.files[0],
+      }));
       const reader = new FileReader();
       reader.onload = (event) => {
         setCroppedImage(event.target.result);
@@ -196,9 +412,92 @@ const CustomerForm = () => {
       reader.readAsDataURL(e.target.files[0]);
     }
   };
-
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
+  const fieldsMapped = [
+    {
+      label: "First Name",
+      name: "firstName",
+      type: "text",
+      value: personInformation.firstName,
+      error: errObject.firstName,
+      helperText: errObject.firstName ? "Please enter alphabetical characters" : "",
+      mandatory: true,
+    },
+    {
+      label: "Middle Name",
+      name: "middle_name",
+      type: "text",
+      value: personInformation.middle_name,
+      error: errObject.middle_name,
+      helperText: errObject.middle_name ? "Please enter alphabetical characters" : "",
+      mandatory: true,
+    },
+    {
+      label: "Last Name",
+      name: "lastName",
+      type: "text",
+      value: personInformation.lastName,
+      error: errObject.lastName,
+      helperText: errObject.lastName ? "Please enter alphabetical characters" : "",
+      mandatory: true,
+    },
+    {
+      label: "DOB",
+      name: "dateOfBirth",
+      type: "date",
+      value: personInformation.dateOfBirth,
+      error: errObject.dateOfBirth,
+      helperText: errObject.dateOfBirth ? "Please enter a valid date" : "",
+      mandatory: true,
+    },
+    {
+      label: "Age",
+      name: "age",
+      type: "number",
+      value: personInformation.age,
+      error: errObject.age,
+      helperText: errObject.age ? "Please enter 2 digit value" : "",
+      mandatory: true,
+    },
+    {
+      label: "Source of Income",
+      name: "sourceOfIncome",
+      type: "text",
+      value: personInformation.sourceOfIncome,
+      error: errObject.sourceOfIncome,
+      helperText: errObject.sourceOfIncome ? errText.alpabetical : "",
+      mandatory: false,
+    },
+    {
+      label: "Monthly Income",
+      name: "monthlyIncome",
+      type: "number",
+      value: personInformation.monthlyIncome,
+      error: errObject.monthlyIncome,
+      helperText: errObject.monthlyIncome ? errText.numerical : "",
+      mandatory: false,
+    },
+    {
+      label: "Monthly Family Income",
+      name: "monthlyFamilyIncome",
+      type: "number",
+      value: personInformation.monthlyFamilyIncome,
+      error: errObject.monthlyFamilyIncome,
+      helperText: errObject.monthlyFamilyIncome ? errText.numerical : "",
+      mandatory: false,
+      onChange: handleChange,
+    },
+  ]
   return (
     <>
+     <SnackToast
+        onClose={handleCloseToast}
+        openSnack={err.openSnack}
+        message={err.errMsg}
+        severity={err.severity}
+      />
       <Box width={"90%"} margin={"13vh auto 0 auto"}>
         <Button
           onClick={() => navigate("/applicant/customers")}
@@ -235,7 +534,7 @@ const CustomerForm = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
-                {/* <Grid item xs={2} sm={7}>
+                <Grid item xs={2} sm={7}>
                   <Box ml={"auto"}>
                     <Input
                       type="file"
@@ -265,215 +564,233 @@ const CustomerForm = () => {
                       />
                     </Grid>
                   )}
-                </Grid> */}
+                </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Title</InputLabel>
-                    <Select
+                     {/* <FormControl fullWidth> */}
+                    <InputValidation
+                      type="select"
                       value={personInformation.title}
-                      onChange={handleChange}
                       name="title"
                       label="Title"
-                    >
-                      <MenuItem value="md">MD</MenuItem>
-                      <MenuItem value="ms">MS</MenuItem>
-                      <MenuItem value="miss">Miss</MenuItem>
-                      <MenuItem value="mrs">Mrs</MenuItem>
-                      <MenuItem value="mr.">Mr.</MenuItem>
-                    </Select>
-                  </FormControl>
+                      setPersonalInformation={setPersonalInformation}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.title}
+                      helperText={errObject.title ? errText.alpabetical : ""}
+                      mandatory={false}
+                      fullWidth={true}
+                      selectOptions={[
+                        { value: "ms", label: "MS" },
+                        { value: "miss", label: "Miss" },
+                        { value: "mrs", label: "Mrs" },
+                        { value: "mr.", label: "Mr" },
+                      ]}
+                    />
+                     {/* </FormControl> */}
                 </Grid>
+
+                {fieldsMapped.map((item) => {
+                  return (
+                    <Grid item xs={12} sm={6}>
+                      <InputValidation
+                        type={item.type}
+                        label={item.label}
+                        fullWidth={true}
+                        value={item.value}
+                        name={item.name}
+                        setPersonalInformation={setPersonalInformation}
+                        setErrObject={setErrObject}
+                        errObject={errObject}
+                        error={item.error}
+                        helperText={item.helperText}
+                        mandatory={item.mandatory}
+                      />
+                    </Grid>
+                  );
+                })}
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="First Name"
-                    fullWidth
-                    value={personInformation.firstName}
-                    onChange={handleChange}
-                    name="firstName"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Middle Name"
-                    fullWidth
-                    value={personInformation.middle_name}
-                    onChange={handleChange}
-                    name="middle_name"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Last Name"
-                    fullWidth
-                    value={personInformation.lastName}
-                    onChange={handleChange}
-                    name="lastName"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="date"
-                    label="Date of Birth"
-                    fullWidth
-                    value={personInformation.dateOfBirth}
-                    onChange={handleChange}
-                    name="dateOfBirth"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Age"
-                    fullWidth
-                    value={personInformation.age}
-                    onChange={handleChange}
-                    name="age"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Source of Income"
-                    fullWidth
-                    value={personInformation.sourceOfIncome}
-                    onChange={handleChange}
-                    name="sourceOfIncome"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Monthly Income"
-                    fullWidth
-                    value={personInformation.monthlyIncome}
-                    onChange={handleChange}
-                    name="monthlyIncome"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Monthly Family Income"
-                    fullWidth
-                    value={personInformation.monthlyFamilyIncome}
-                    onChange={handleChange}
-                    name="monthlyFamilyIncome"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Residence Ownership</InputLabel>
-                    {/* TODO:  */}
-                    <Select
+                     {/* <FormControl fullWidth> */}
+                    <InputValidation
+                      type="select"
                       value={personInformation.residenceOwnership}
-                      onChange={handleChange}
                       name="residenceOwnership"
                       label="Residence Ownership"
-                    >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
+                      setPersonalInformation={setPersonalInformation}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.residenceOwnership}
+                      helperText={
+                        errObject.residenceOwnership ? errText.alpabetical : ""
+                      }
+                      mandatory={false}
+                      fullWidth={true}
+                      selectOptions={[
+                        { value: "yes", label: "Yes" },
+                        { value: "no", label: "No" },
+                      ]}
+                    />
+                     {/* </FormControl> */}
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Agricultural Land</InputLabel>
-                    <Select
+                     {/* <FormControl fullWidth> */}
+                    <InputValidation
+                      type="select"
                       value={personInformation.agriculturalLand}
-                      onChange={handleChange}
                       name="agriculturalLand"
                       label="Agricultural Land"
-                    >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
+                      setPersonalInformation={setPersonalInformation}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.agriculturalLand}
+                      helperText={
+                        errObject.agriculturalLand ? errText.alpabetical : ""
+                      }
+                      mandatory={false}
+                      fullWidth={true}
+                      selectOptions={[
+                        { value: "yes", label: "Yes" },
+                        { value: "no", label: "No" },
+                      ]}
+                    />
+                     {/* </FormControl> */}
                 </Grid>
+                {personInformation.agriculturalLand === "yes" && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <InputValidation
+                        type="number"
+                        label="Tentative Value of Total Agricultural Land"
+                        value={personInformation.valueOfAgriculturalLand}
+                        name="valueOfAgriculturalLand"
+                        setPersonalInformation={setPersonalInformation}
+                        setErrObject={setErrObject}
+                        errObject={errObject}
+                        error={errObject.valueOfAgriculturalLand}
+                        helperText={
+                          errObject.valueOfAgriculturalLand
+                            ? errText.numerical
+                            : ""
+                        }
+                        mandatory={false}
+                        fullWidth={true}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <InputValidation
+                        type="number"
+                        label="Tentative Earnings from Agricultural Land"
+                        value={personInformation.earningsFromAgriculturalLand}
+                        name="earningsFromAgriculturalLand"
+                        setPersonalInformation={setPersonalInformation}
+                        setErrObject={setErrObject}
+                        errObject={errObject}
+                        error={errObject.earningsFromAgriculturalLand}
+                        helperText={
+                          errObject.earningsFromAgriculturalLand
+                            ? errText.numerical
+                            : ""
+                        }
+                        mandatory={false}
+                        fullWidth={true}
+                      />
+                    </Grid>
+                  </>
+                )}
+
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Tentative Value of Total Agricultural Land"
-                    fullWidth
-                    value={personInformation.valueOfAgriculturalLand}
-                    onChange={handleChange}
-                    name="valueOfAgriculturalLand"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    type="number"
-                    label="Tentative Earnings from Agricultural Land"
-                    fullWidth
-                    value={personInformation.earningsFromAgriculturalLand}
-                    onChange={handleChange}
-                    name="earningsFromAgriculturalLand"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Education Qualification</InputLabel>
-                    <Select
+                     {/* <FormControl fullWidth> */}
+                    <InputValidation
+                      type="select"
                       value={personInformation.educationQualification}
-                      onChange={handleChange}
                       name="educationQualification"
                       label="Education Qualification"
-                    >
-                      <MenuItem value="uneducated">Uneducated</MenuItem>
-                      <MenuItem value="below10th">Below 10th</MenuItem>
-                      <MenuItem value="secondary">Secondary</MenuItem>
-                      <MenuItem value="mtech">M.Tech</MenuItem>
-                      <MenuItem value="seniorsecondary">
-                        Senior Secondary
-                      </MenuItem>
-                      <MenuItem value="iti">ITI Technical Degree</MenuItem>
-                      <MenuItem value="graduation">Graduation</MenuItem>
-                      <MenuItem value="postgraduation">
-                        Post Graduation
-                      </MenuItem>
-                      {/* TODO: what should be the values selct hingi ya direct text filds */}
-                    </Select>
-                  </FormControl>
+                      setPersonalInformation={setPersonalInformation}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.educationQualification}
+                      helperText={
+                        errObject.educationQualification
+                          ? errText.alpabetical
+                          : ""
+                      }
+                      mandatory={false}
+                      fullWidth={true}
+                      selectOptions={[
+                        { label: "Uneducated", value: "uneducated" },
+                        { label: "Below 10th", value: "below10th" },
+                        { label: "Secondary", value: "secondary" },
+                        { label: "M.Tech", value: "mtech" },
+                        { label: "Senior Secondary", value: "seniorsecondary" },
+                        { label: "ITI Technical Degree", value: "iti" },
+                        { label: "Graduation", value: "graduation" },
+                        { label: "Post Graduation", value: "postgraduation" },
+                      ]}
+                    />
+                     {/* </FormControl> */}
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <InputValidation
                     type="number"
                     label="Number of Dependents"
-                    fullWidth
                     value={personInformation.numberOfDependents}
-                    onChange={handleChange}
                     name="numberOfDependents"
+                    setPersonalInformation={setPersonalInformation}
+                    setErrObject={setErrObject}
+                    errObject={errObject}
+                    error={errObject.numberOfDependents}
+                    helperText={
+                      errObject.numberOfDependents ? errText.numerical : ""
+                    }
+                    mandatory={false}
+                    fullWidth={true}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Gender</InputLabel>
-                    <Select
-                      value={personInformation.gender}
-                      onChange={handleChange}
-                      name="gender"
-                      label="Gender"
-                    >
-                      <MenuItem value="male">Male</MenuItem>
-                      <MenuItem value="female">Female</MenuItem>
-                      <MenuItem value="other">Other</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <InputValidation
+                    type="select"
+                    label="Gender"
+                    value={personInformation.gender}
+                    name="gender"
+                    setPersonalInformation={setPersonalInformation}
+                    setErrObject={setErrObject}
+                    errObject={errObject}
+                    error={errObject.gender}
+                    helperText={errObject.gender ? errText.numerical : ""}
+                    mandatory={true}
+                    fullWidth={true}
+                    selectOptions={[
+                      { value: "male", label: "Male" },
+                      { value: "female", label: "Female" },
+                      { value: "other", label: "Other" },
+                    ]}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Customer Segment</InputLabel>
-                    <Select
-                      value={personInformation.customerSegment}
-                      onChange={handleChange}
-                      name="customerSegment"
+                     {/* <FormControl fullWidth> */}
+                    <InputValidation
+                      type="select"
                       label="Customer Segment"
-                    >
-                      {/* TODO: values or kya ?? */}
-                      <MenuItem value="self_employee">
-                        Self-Employment Professional
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
+                      value={personInformation.customerSegment}
+                      name="customerSegment"
+                      setPersonalInformation={setPersonalInformation}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.customerSegment}
+                      helperText={
+                        errObject.customerSegment ? errText.alpabetical : ""
+                      }
+                      mandatory={false}
+                      fullWidth={true}
+                      selectOptions={[
+                        {
+                          value: "self_employee",
+                          label: "Self-Employment Professional",
+                        },
+                        // Add other options here if needed
+                      ]}
+                    />
+                     {/* </FormControl> */}
                 </Grid>
               </Grid>
             </AccordionDetails>
@@ -494,232 +811,48 @@ const CustomerForm = () => {
                 Current Address
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Address Line 1"
-                    fullWidth
-                    value={addressFields.current.addressLine1}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          addressLine1: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Address Line 2"
-                    fullWidth
-                    value={addressFields.current.addressLine2}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          addressLine2: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Address Line 3"
-                    fullWidth
-                    value={addressFields.current.addressLine3}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          addressLine3: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="State"
-                    fullWidth
-                    value={addressFields.current.state}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          state: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="District"
-                    fullWidth
-                    value={addressFields.current.district}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          district: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="City"
-                    fullWidth
-                    value={addressFields.current.city}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: { ...prevState.current, city: e.target.value },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Tehsil/Taluka"
-                    fullWidth
-                    value={addressFields.current.tehsilOrTaluka}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          tehsilOrTaluka: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Pin Code"
-                    fullWidth
-                    value={addressFields.current.pinCode}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          pinCode: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Landmark"
-                    fullWidth
-                    value={addressFields.current.landmark}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          landmark: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Residence Status</InputLabel>
-                    <Select
-                      value={addressFields.current.residenceStatus}
-                      onChange={(e) =>
-                        setAddressFields((prevState) => ({
-                          ...prevState,
-                          current: {
-                            ...prevState.current,
-                            residenceStatus: e.target.value,
-                          },
-                        }))
+                {Object.keys(addressFields.current).map((field) => (
+                  <Grid item xs={12} sm={6}>
+                    <InputValidation
+                      fieldState="address"
+                      section={"current"}
+                      key={field}
+                      type={
+                        field === "pincode" || field.includes("number")
+                          ? "number"
+                          : field === "residence_state" ||
+                            field === "residence_type"
+                          ? "select"
+                          : "text"
                       }
-                      label="Residence Status"
-                    >
-                      <MenuItem value="owned">Owned</MenuItem>
-                      <MenuItem value="rented">Rented</MenuItem>
-                      <MenuItem value="parented">Parented</MenuItem>
-                      <MenuItem value="spouseOwned">Spouse Owned</MenuItem>
-                      <MenuItem value="company">Company</MenuItem>
-                      <MenuItem value="govtProvided">Govt Provided</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Residence Type</InputLabel>
-                    <Select
-                      value={addressFields.current.residenceType}
-                      onChange={(e) =>
-                        setAddressFields((prevState) => ({
-                          ...prevState,
-                          current: {
-                            ...prevState.current,
-                            residenceType: e.target.value,
-                          },
-                        }))
+                      label={capitalize(field)}
+                      value={addressFields.current[field]}
+                      name={field}
+                      setAddressFields={setAddressFields}
+                      setErrObject={setErrObject}
+                      errObject={errObject}
+                      error={errObject.current[field]}
+                      helperText={
+                        errObject.current[field]
+                          ? field === "pincode"
+                            ? errText.pinCode
+                            : field === "distance_from_branch"
+                            ? errText.alphaNumeric
+                            : errText.alpabetical
+                          : ""
                       }
-                      label="Residence Type"
-                    >
-                      <MenuItem value="bungalow">Bungalow</MenuItem>
-                      <MenuItem value="independentHouse">
-                        Independent House
-                      </MenuItem>
-                      <MenuItem value="flat">Flat</MenuItem>
-                      <MenuItem value="slum">Slum</MenuItem>
-                      <MenuItem value="chawl">Chawl</MenuItem>
-                      <MenuItem value="kuchaHouse">Kucha House</MenuItem>
-                      <MenuItem value="others">Others (Specify)</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Stability at Residence"
-                    fullWidth
-                    value={addressFields.current.stabilityAtResidence}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          stabilityAtResidence: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Distance from Branch"
-                    fullWidth
-                    value={addressFields.current.distanceFromBranch}
-                    onChange={(e) =>
-                      setAddressFields((prevState) => ({
-                        ...prevState,
-                        current: {
-                          ...prevState.current,
-                          distanceFromBranch: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </Grid>
+                      fullWidth={true}
+                      selectOptions={
+                        field === "residence_state"
+                          ? residenceStateOptions
+                          : field === "residence_type"
+                          ? residenceTypeOptions
+                          : []
+                      }
+                      mandatory={false}
+                    />
+                  </Grid>
+                ))}
               </Grid>
             </AccordionDetails>
             <AccordionDetails>
@@ -732,143 +865,54 @@ const CustomerForm = () => {
                   variant="outlined"
                   style={{ marginBottom: 10 }}
                 >
-                  Same as Current Address
+                  {permanentAddressSameAsCurrent
+                    ? "Change Permanent Address"
+                    : "Same as Current Address"}
                 </Button>
                 <Grid container spacing={2}>
                   {/* Add permanent address fields here */}
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Address Line 1"
-                      value={addressFields.permanent.addressLine1}
-                      onChange={handlePermanentAddressChange("addressLine1")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Address Line 2"
-                      value={addressFields.permanent.addressLine2}
-                      onChange={handlePermanentAddressChange("addressLine2")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Address Line 3"
-                      value={addressFields.permanent.addressLine3}
-                      onChange={handlePermanentAddressChange("addressLine3")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent State"
-                      value={addressFields.permanent.state}
-                      onChange={handlePermanentAddressChange("state")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent District"
-                      value={addressFields.permanent.district}
-                      onChange={handlePermanentAddressChange("district")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent City"
-                      value={addressFields.permanent.city}
-                      onChange={handlePermanentAddressChange("city")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Tehsil/Taluka"
-                      value={addressFields.permanent.tehsilOrTaluka}
-                      onChange={handlePermanentAddressChange("tehsilOrTaluka")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Pin Code"
-                      value={addressFields.permanent.pinCode}
-                      onChange={handlePermanentAddressChange("pinCode")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Permanent Landmark"
-                      value={addressFields.permanent.landmark}
-                      onChange={handlePermanentAddressChange("landmark")}
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Permanent Residence Status</InputLabel>
-                      <Select
-                        onChange={handlePermanentAddressChange(
-                          "residenceStatus"
-                        )}
-                        value={addressFields.permanent.residenceStatus}
-                        defaultValue=""
-                        label="Permanent Residence Status"
-                      >
-                        <MenuItem value="owned">Owned</MenuItem>
-                        <MenuItem value="rented">Rented</MenuItem>
-                        <MenuItem value="parented">Parented</MenuItem>
-                        <MenuItem value="spouseOwned">Spouse Owned</MenuItem>
-                        <MenuItem value="company">Company</MenuItem>
-                        <MenuItem value="govtProvided">Govt Provided</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Permanent Residence Type</InputLabel>
-                      <Select
-                        onChange={handlePermanentAddressChange("residenceType")}
-                        value={addressFields.permanent.residenceType}
-                        defaultValue=""
-                        label="Permanent Residence Type"
-                      >
-                        <MenuItem value="bungalow">Bungalow</MenuItem>
-                        <MenuItem value="independentHouse">
-                          Independent House
-                        </MenuItem>
-                        <MenuItem value="flat">Flat</MenuItem>
-                        <MenuItem value="slum">Slum</MenuItem>
-                        <MenuItem value="chawl">Chawl</MenuItem>
-                        <MenuItem value="kuchaHouse">Kucha House</MenuItem>
-                        <MenuItem value="others">Others (Specify)</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      onChange={handlePermanentAddressChange(
-                        "stabilityAtResidence"
-                      )}
-                      value={addressFields.permanent.stabilityAtResidence}
-                      label="Permanent Stability at Residence"
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      onChange={handlePermanentAddressChange(
-                        "distanceFromBranch"
-                      )}
-                      value={addressFields.permanent.distanceFromBranch}
-                      label="Permanent Distance from Branch"
-                      fullWidth
-                    />
-                  </Grid>
+                  {Object.keys(addressFields.current).map((field) => (
+                    <Grid item xs={12} sm={6}>
+                      <InputValidation
+                        fieldState="address"
+                        section={"permanent"}
+                        key={field}
+                        type={
+                          field === "pincode" || field.includes("number")
+                            ? "number"
+                            : field === "residence_state" ||
+                              field === "residence_type"
+                            ? "select"
+                            : "text"
+                        }
+                        label={capitalize(field)}
+                        value={addressFields.permanent[field]}
+                        name={field}
+                        setAddressFields={setAddressFields}
+                        setErrObject={setErrObject}
+                        errObject={errObject}
+                        error={errObject.permanent[field]}
+                        helperText={
+                          errObject.permanent[field]
+                            ? field === "pincode"
+                              ? errText.pinCode
+                              : field === "distance_from_branch"
+                              ? errText.alphaNumeric
+                              : errText.alpabetical
+                            : ""
+                        }
+                        fullWidth={true}
+                        selectOptions={
+                          field === "residence_state"
+                            ? residenceStateOptions
+                            : field === "residence_type"
+                            ? residenceTypeOptions
+                            : []
+                        }
+                        mandatory={false}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
               </Box>
             </AccordionDetails>
@@ -877,6 +921,7 @@ const CustomerForm = () => {
         </form>
         <Box display={"flex"} alignSelf={"flex-end"}>
           <Button
+            disabled={hasErrors(errObject)}
             type="submit"
             variant="contained"
             color="primary"
