@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { ArrowBack } from "@mui/icons-material";
-import { Button, TextField, Typography, Divider, Box } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Divider,
+  Box,
+  MenuItem,
+  FormControl,
+  Select,
+  InputLabel,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {fetchLoanDataThunk, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+import {fetchLoanDataThunk, removeLoan, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
 import SnackToast from "../components/Snackbar";
 import { StyledTypography, logFormData } from "../components/Common";
 
@@ -21,6 +31,9 @@ const LoanDetails = () => {
       fetchLoanDataApi();
     }
     fetchData();
+    return () => {
+      dispatch(removeLoan({ payload: {}, type: "removeLoan" }));
+    };
   }, []);
 
   const[isRemarks,setIsRemarks]=useState(false)
@@ -76,48 +89,7 @@ const LoanDetails = () => {
       tax_amount: "",
       total_amount: "",
     },
-    // preEmi: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // carePACIInsurance: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospitalCare: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospicashChola: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // gpaHospicashABHI: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // sblHDFCLifeCreditProtectPlus: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
-    // abhiGroupCIInsurance: {
-    //   applicable_rate: "",
-    //   charge_amount: "",
-    //   tax_amount: "",
-    //   total_amount: "",
-    // },
+   
   });
 
   const setErrState = (loading, errMsg, openSnack, severity) => {
@@ -164,8 +136,8 @@ const LoanDetails = () => {
       }
       
       if (data && data.length > 0) {
-        handleExtractFormValues(data[data.length-1]);
-        setErrState(false, message, true, "success");
+        handleExtractFormValues(data[data.length-1]);//TODO: must be 0 index later
+        setErrState(false, "Fetched successfully", true, "success");
       }
     } catch (error) {
       setErrState(false, "", false, "success");
@@ -224,9 +196,13 @@ const LoanDetails = () => {
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
       <SnackToast
+        onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
@@ -255,15 +231,24 @@ const LoanDetails = () => {
             setFormValues({ ...formValues, product_type: e.target.value })
           }
         />
-        <TextField
-          label="Transaction type"
-          fullWidth
-          margin="normal"
-          value={formValues.transaction_type}
-          onChange={(e) =>
-            setFormValues({ ...formValues, transaction_type: e.target.value })
-          }
-        />
+        <FormControl fullWidth>
+          <InputLabel>Transaction type</InputLabel>
+          <Select
+            label="Transaction type"
+           
+            value={formValues.transaction_type}
+            onChange={(e) =>
+              setFormValues({ ...formValues, transaction_type: e.target.value })
+            }
+            margin="normal"
+          >
+            <MenuItem value="purchase">Purchase</MenuItem>
+            <MenuItem value="construction">Refinance</MenuItem>
+            <MenuItem value="refinance">Construction</MenuItem>
+           
+          </Select>
+        </FormControl>
+
         <TextField
           label="Case tag"
           fullWidth
@@ -274,6 +259,7 @@ const LoanDetails = () => {
           }
         />
         <TextField
+          type="number"
           label="Applied loan amount"
           fullWidth
           margin="normal"
@@ -325,6 +311,7 @@ const LoanDetails = () => {
           margin="normal"
         />
         <TextField
+          type="number"
           value={formValues.processing_fees.charge_amount}
           onChange={(e) =>
             setFormValues({
@@ -355,6 +342,7 @@ const LoanDetails = () => {
           margin="normal"
         />
         <TextField
+          type="number"
           value={formValues.processing_fees.total_amount}
           onChange={(e) =>
             setFormValues({
@@ -392,6 +380,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.charge_amount}
@@ -422,6 +411,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.total_amount}
@@ -459,6 +449,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.charge_amount}
@@ -489,6 +480,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.total_amount}
@@ -525,6 +517,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.charge_amount}
@@ -555,6 +548,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.total_amount}
@@ -591,6 +585,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.charge_amount}
@@ -621,6 +616,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.total_amount}
@@ -657,6 +653,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.charge_amount}
@@ -687,6 +684,7 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          type="number"
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.total_amount}
@@ -715,7 +713,7 @@ const LoanDetails = () => {
             })
           }
         />
-       {isRemarks ? (
+        {isRemarks ? (
           <TextField
             label="Remarks"
             fullWidth

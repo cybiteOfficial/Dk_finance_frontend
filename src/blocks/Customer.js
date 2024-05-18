@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { StyledTypography } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
-import {fetchCustomersByApplicantIdDataThunk,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
+import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fileForwardedThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
 
 // Import JSON data using require()
 const jsonData = require("../mocks/customers.json");
@@ -15,7 +15,7 @@ const jsonData = require("../mocks/customers.json");
 export const Customers = () => {
   const token = useSelector((state) => state.authReducer.access_token);
   const { appId } = useSelector((state) => state.authReducer);
-  const { customerDetails} = useSelector((state) => state.dashboardReducer);
+  const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
@@ -58,15 +58,55 @@ export const Customers = () => {
       "educationQualification": "",
       "numberOfDependents": "",
       "gender": "",
-      "customerSegment": ""
+      "customerSegment": "",
+     
     }
-    
-    dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
+    const address =  {
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
+      state: "",
+      district: "",
+      city: "",
+      tehsil_or_taluka: "",
+      pincode: "",
+      landmark: "",
+      residence_state: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
+    }
+    const data ={
+      customer_data:item,
+      current_address:address,
+      permanent_address:address
+    }
+    dispatch(setCustomer({selectedCustomer:{item,data},type:"setCustomer"}));
     navigate("/applicant/customer/details");
   };
   
   const editForm = (item) => {
-    dispatch(setCustomer({selectedCustomer:item,type:"setCustomer"}));
+    const address =  {
+      address_line_1: "",
+      address_line_2: "",
+      address_line_3: "",
+      state: "",
+      district: "",
+      city: "",
+      tehsil_or_taluka: "",
+      pincode: "",
+      landmark: "",
+      residenceState: "",
+      residence_type: "",
+      stability_at_residence: "",
+      distance_from_branch: "",
+    }
+    const data ={
+      customer_data:{item},
+      current_address:address,
+      permanent_address:address
+    }
+    dispatch(setCustomer({selectedCustomer:{item,data},type:"setCustomer"}));
     navigate("/applicant/customer/details");
   };
 
@@ -82,7 +122,8 @@ export const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => getCustomersApi();
     fetchCustomers();
-  }, [page]);
+   
+  }, [page]); 
 
   const getCustomersApi = async () => {
     
@@ -106,9 +147,50 @@ export const Customers = () => {
       console.error('error: ', error);
     }
   };
+
+  
+  const updateStatusDataApi = async () => {
+    const bodyFormData = new FormData();
+    bodyFormData.append("applications_ids", JSON.stringify([appId]));
+    const payload = { bodyFormData, token };
+    try {
+      setErrState(true, "", false, "");
+      const response = await dispatch(fileForwardedThunk(payload));
+      const { error, message, code } = response.payload;
+      if (code) {
+        return setErrState(
+          false,
+          response.payload.response.data.message,
+          true,
+          "error"
+        );
+      }else{
+        getApplicantsApi();
+        setErrState(false, message, true, "success");
+      }
+     
+    } catch (error) {
+     
+      setErrState(false, "", false, "success");
+      console.error("error: ", error);
+    }
+  };
+
+  const getApplicantsApi = async () => {
+    setErrState(true, "", false, "");
+    const payload = { application_id: appId, token }; 
+    try {
+      await dispatch(fetchApplicantDataThunk(payload));
+    } catch (error) {}
+  };
+
+  const handleCloseToast = () => {
+    setErrState(false, "", false, ""); // Resetting the error state to close the toast
+  };
   return (
     <>
-     <SnackToast
+      <SnackToast
+        onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
@@ -129,10 +211,16 @@ export const Customers = () => {
           </StyledTypography>
 
           <Button
+            disabled={applicantData[0]?.status === "cluster"}
+            onClick={updateStatusDataApi}
             variant="outlined"
             style={{ marginBottom: 20, marginLeft: "auto" }}
           >
-            Forwarded to DM
+            {applicantData[0]?.status === "md_phase"
+              ? "Approve"
+              : applicantData[0]?.status === "cluster"
+              ? "Approved"
+              : "Forward"}
           </Button>
         </Box>
 
@@ -145,37 +233,61 @@ export const Customers = () => {
               gap: "1rem",
             }}
           >
-            <Button  style={{backgroundColor:theme.palette.primary.main, color:theme.palette.white.main}} onClick={() => handleNavigate("/applicant/loan")}>
+            <Button
+              style={{
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.white.main,
+              }}
+              onClick={() => handleNavigate("/applicant/loan")}
+            >
               Loan Details
             </Button>
             <Button
-              style={{backgroundColor:theme.palette.primary.main, color:theme.palette.white.main}} onClick={() => handleNavigate("/applicant/document/uploads")}
+              style={{
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.white.main,
+              }}
+              onClick={() => handleNavigate("/applicant/document/uploads")}
             >
               Document Upload
             </Button>
             <Button
-              style={{backgroundColor:theme.palette.primary.main, color:theme.palette.white.main}} onClick={() => handleNavigate("/applicant/photographs/uploads")}
+              style={{
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.white.main,
+              }}
+              onClick={() => handleNavigate("/applicant/photographs/uploads")}
             >
               Photograph Upload
             </Button>
-            <Button style={{backgroundColor:theme.palette.primary.main, color:theme.palette.white.main}} onClick={() => handleNavigate("/applicant/collateral")}>
+            <Button
+              style={{
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.white.main,
+              }}
+              onClick={() => handleNavigate("/applicant/collateral")}
+            >
               Collateral Details
             </Button>
             <Button
-              style={{backgroundColor:theme.palette.primary.main, color:theme.palette.white.main}} onClick={() => handleNavigate("/applicant/customer/application")}
+              style={{
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.white.main,
+              }}
+              onClick={() => handleNavigate("/applicant/customer/application")}
             >
               Customer Application Form
             </Button>
           </div>
         </Box>
-        <Box >
-        <Button
-          onClick={addForm}
-          variant="outlined"
-          style={{ marginBottom: 20 }}
-        >
-          Add Customer
-        </Button>
+        <Box>
+          <Button
+            onClick={addForm}
+            variant="outlined"
+            style={{ marginBottom: 20 }}
+          >
+            Add Customer
+          </Button>
         </Box>
       </Box>
 
@@ -206,61 +318,71 @@ export const Customers = () => {
             <Typography variant="subtitle1">Name</Typography>
           </Grid>
           <Grid item xs={2}>
+            <Typography  variant="subtitle1">
+              Role
+            </Typography>
+          </Grid>
+          <Grid item xs={2}>
             <Typography variant="subtitle1">KYC</Typography>
           </Grid>
         </Grid>
         <div>
-          {customerDetails && customerDetails.length>0 && customerDetails?.map((item, index) => (
-            <Grid
-              key={item.uuid}
-              container
-              style={{
-                padding: 10,
-                backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
-                display: "flex",
-                justifyContent: "space-around",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#f0f0f0")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  index % 2 === 0 ? "#f9f9f9" : "#ffffff")
-              }
-              onClick={() => editForm(item)}
-            >
-              <Grid item xs={2}>
-                <Typography variant="body1">{item?.cif_id}</Typography>
+          {customerDetails &&
+            customerDetails.length > 0 &&
+            customerDetails?.map((item, index) => (
+              <Grid
+                key={item.uuid}
+                container
+                style={{
+                  padding: 10,
+                  backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
+                  display: "flex",
+                  justifyContent: "space-around",
+                  alignItems: "center",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    index % 2 === 0 ? "#f9f9f9" : "#ffffff")
+                }
+                onClick={() => editForm(item)}
+              >
+                <Grid item xs={2}>
+                  <Typography variant="body1">{item?.cif_id}</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body1">
+                    {item?.firstName} {item?.lastName}
+                  </Typography>
+                </Grid>
+                <Grid item xs={2}>
+                <Typography  variant="subtitle1" style={{textTransform:"capitalize"}}>
+                 {item.role}
+                  </Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  {/* TODO: need kyc in response */}
+                  <Chip label={"Verified"} color={"primary"} />
+                </Grid>
               </Grid>
-              <Grid item xs={2}>
-                <Typography variant="body1">{item?.firstName} {item?.lastName}</Typography>
-              </Grid>
-
-              <Grid item xs={2}>
-                {/* TODO: need kyc in response */}
-                <Chip
-                  label={ "Verified" }
-                  color={ "primary"}
-                />
-              </Grid>
-            </Grid>
-          ))}
+            ))}
         </div>
       </Paper>
 
       <Box width={"90%"} margin={"auto"}>
-          <Stack spacing={2}>
-            <Pagination
-              style={{ margin: "0 0 2rem auto" }}
-              count={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              color="secondary"
-            />
-          </Stack>
-        </Box>
+        <Stack spacing={2}>
+          <Pagination
+            style={{ margin: "0 0 2rem auto" }}
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="secondary"
+          />
+        </Stack>
+      </Box>
     </>
   );
 };

@@ -6,9 +6,12 @@ import mockCustomers from "../../../mocks/customers.json";
 // Define your base API URL
 const baseURL = "http://15.206.203.204/api/v1";
 const getAllAplicants = "/applicants/";
-const updateCustomer = "/customers";
+const updateCustomer = "/customers";  
 const  getLoanEndpoint = "/loan_details";
 const uploadDocument ="/upload_document";
+const getCollateral = "/collateral_details"
+const getCafDetail = "/caf_detail"
+const updateStatus = '/update_status'
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -24,6 +27,7 @@ export const simpleHeaders = (token)=>{
   };
 }
 
+
 export const formHeaders = (token)=>{
   return {
     headers: {
@@ -36,10 +40,11 @@ export const formHeaders = (token)=>{
 export const dashboardAPI = {
   // Function to fetch
   fetchApplicantDataApi: async (payload) => {
-    console.log("payloaddash: ", payload);
+
     try {
       // Make a GET request to fetch user by ID
-      const url = `${baseURL}${getAllAplicants}?page=${payload.page}`;
+      const getUrl = payload.application_id ? `${baseURL}${getAllAplicants}?application_id=${payload.application_id}`:`${baseURL}${getAllAplicants}?page=${payload.page}`;
+      const url = getUrl
       const response = await axios.get(`${url}`, simpleHeaders(payload.token));
 
       // Return the response data
@@ -50,8 +55,19 @@ export const dashboardAPI = {
     }
   },
 
+  fetchCustomerByApplicantIdDataApi: async (payload) => {
+    const { customer_id, token } = payload;
+    try {
+      const url = `${baseURL}${updateCustomer}?customer_id=${customer_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
   fetchCustomersByApplicantIdDataApi: async (payload) => {
-    const { application_id, token,page } = payload;
+    const { application_id, token, page } = payload;
     try {
       const url = `${baseURL}${updateCustomer}?application_id=${application_id}&page=${page}`;
       const response = await api.get(`${url}`, simpleHeaders(token));
@@ -62,8 +78,20 @@ export const dashboardAPI = {
     }
   },
 
+  fetchAllCustomersByApplicantIdDataApi: async (payload) => {
+    const { application_id, token } = payload;
+    try {
+      const url = `${baseURL}${updateCustomer}?application_id=${application_id}&is_all=True`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+
   fetchLoanDataApi: async (payload) => {
-    const {application_id,token} = payload
+    const { application_id, token } = payload;
     try {
       // Make a GET request to fetch user by ID
       const url = `${baseURL}${getLoanEndpoint}?application_id=${application_id}`;
@@ -74,57 +102,71 @@ export const dashboardAPI = {
       // If an error occurs, throw it or handle it as needed
     }
   },
+
   fetchDocumentDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${uploadDocument}?application_id=${application_id}&document_type=other`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchPhotographDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${uploadDocument}?application_id=${application_id}&document_type=photos`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchCollateralDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getCollateral}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   fetchCafDataApi: async (payload) => {
+    const { application_id, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.get(`/users/${payload}`);
-      // Return the response data
+      const url = `${baseURL}${getCafDetail}?application_id=${application_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
 
   //update apis
   updateCustomerDataApi: async (payload) => {
     const { bodyFormData, token, cif_id } = payload;
+    let response;
     try {
-     
-      const response = await api.put(
-        `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
-        bodyFormData,
-        formHeaders(token)
-      );
+      if (cif_id) {
+        response = await api.put(
+          `${baseURL}${updateCustomer}?customer_id=${cif_id}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      } else {
+        response = await api.post(
+          `${baseURL}${updateCustomer}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      }
+
       // Return the response data
       return response.data;
     } catch (error) {
@@ -147,12 +189,27 @@ export const dashboardAPI = {
     }
   },
 
+  fileForwardedDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
+    try {
+      const response = await api.post(
+        `${baseURL}${updateStatus}`,
+        bodyFormData,
+        formHeaders(token)
+      );
+      // Return the response data
+      return response.data;
+    } catch (error) {
+      // If an error occurs, throw it or handle it as needed
+    }
+  },
+
   updateDocumentDataApi: async (payload) => {
-    const {formData,token} = payload
+    const { bodyFormData, token } = payload;
     try {
       const response = await api.post(
         `${baseURL}${uploadDocument}`,
-        formData,
+        bodyFormData,
         formHeaders(token)
       );
       // Return the response data
@@ -163,9 +220,13 @@ export const dashboardAPI = {
   },
 
   updatePhotographDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${uploadDocument}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
@@ -174,23 +235,32 @@ export const dashboardAPI = {
   },
 
   updateCollateralDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${getCollateral}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
   updateCafDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
     try {
-      // Make a GET request to fetch user by ID
-      const response = await api.post(`${baseURL}`, payload, formHeaders);
+      const response = await api.post(
+        `${baseURL}${getCafDetail}`,
+        bodyFormData,
+        formHeaders(token)
+      );
       // Return the response data
       return response.data;
     } catch (error) {
-      // If an error occurs, throw it or handle it as needed
+      return error;
     }
   },
 };
+
