@@ -234,6 +234,7 @@ export const Customers = () => {
             }}
           >
             <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.white.main,
@@ -243,6 +244,7 @@ export const Customers = () => {
               Loan Details
             </Button>
             <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.white.main,
@@ -252,6 +254,7 @@ export const Customers = () => {
               Document Upload
             </Button>
             <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.white.main,
@@ -261,6 +264,7 @@ export const Customers = () => {
               Photograph Upload
             </Button>
             <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.white.main,
@@ -270,6 +274,7 @@ export const Customers = () => {
               Collateral Details
             </Button>
             <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.white.main,
