@@ -33,6 +33,7 @@ const Collateral = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+
     async function fetchData() {
       fetchCollateralDataApi();
     }
@@ -480,7 +481,12 @@ const Collateral = () => {
             onChange={handleInputChange}
           />
         )}
-        <Button variant="contained" fullWidth onClick={handleSave}>
+        <Button
+          disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+          variant="contained"
+          fullWidth
+          onClick={handleSave}
+        >
           Save
         </Button>
       </Box>

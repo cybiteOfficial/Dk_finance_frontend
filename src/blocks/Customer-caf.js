@@ -273,7 +273,9 @@ const CustomerCaf = () => {
             rows={4}
             margin="normal"
           />
-
+ <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
           {extra_data.map((pair, index) => (
             <Grid container spacing={2} key={index}>
               <Grid item xs={6}>
@@ -301,9 +303,7 @@ const CustomerCaf = () => {
             </Grid>
           ))}
 
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+         
           {isRemarks && (
             <TextField
               label="Remarks"
@@ -315,6 +315,7 @@ const CustomerCaf = () => {
             />
           )}
           <Button
+           disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
             type="submit"

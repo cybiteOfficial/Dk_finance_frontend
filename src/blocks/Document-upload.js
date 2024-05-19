@@ -343,6 +343,7 @@ useEffect(()=>{
           )}
          
           <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             type="submit"
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"

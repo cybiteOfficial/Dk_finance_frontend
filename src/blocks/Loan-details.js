@@ -730,6 +730,7 @@ const LoanDetails = () => {
         ) : null}
         <Box display={"flex"} alignSelf={"flex-end"}>
           <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             type="submit"
             variant="contained"
             color="primary"
