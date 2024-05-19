@@ -3,7 +3,7 @@ import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAppId } from "../redux/reducers/auth/auth-reducer";
-import  {fetchApplicantDataThunk,  removeApplicant, setApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
+import  {fetchApplicantDataThunk,  removeApplicant, removeStore, setApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
 import {
   Search,
@@ -19,7 +19,7 @@ import {
   Pagination,Stack
 } from "@mui/material";
 import { theme } from "../theme";
-import { CommonChip, StyledTypography} from "../components/Common";
+import { CommonChip, StyledTypography, checkTokenExpired} from "../components/Common";
 
 import DashedImg from "../assets/images/dashed.png";
 const useStyles = makeStyles((theme) => ({
@@ -136,18 +136,28 @@ const DashboardPage = () => {
   const getApplicantsApi = async (event) => {
     setErrState(true, "", false, "");
     const payload = {token, page}
+    
     try {
       const response = await dispatch(fetchApplicantDataThunk(payload));
-       // where is err and msg
-      const { results,count } = response.payload;
-      if (results && results.length > 0) {
+
+      // where is err and msg
+      const { results, count, code, message } = response.payload;
+      if (code) {
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
+        );
+      } else if (results && results.length > 0) {
         const totalPages = Math.ceil(count / itemsPerPage);
-        setTotalPages(totalPages)
+        setTotalPages(totalPages);
         setErrState(false, "Fetched successfully.", true, "success");
       }
     } catch (error) {
-      const { message } = error;
-      setErrState(false, message, true, "error");
+      console.error("error: ", error);
     }
   };
 

@@ -10,6 +10,7 @@ import {
   MenuList,
   ListItemIcon,
   ListItemText,
+  Box,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -18,6 +19,9 @@ import { logout } from "../redux/reducers/auth/auth-reducer";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/images/dk_finance_logo.png";
+
+import { removeStore } from "../redux/reducers/dashboard/dashboard-reducer";
+import { theme } from "../theme";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -28,10 +32,11 @@ export const Header = () => {
 
   // Define your custom styles with theme
   const CustomAppBar = styled(AppBar)(({ theme }) => ({
-    backgroundColor:  theme.palette.white.main,
+    backgroundColor: theme.palette.white.main,
     color: isLoggedIn ? theme.palette.primary.main : theme.palette.white.main,
-    position:"absolute",
-    top:0
+    position: "absolute",
+    top: 0,
+   
   }));
 
   const handleClick = (event) => {
@@ -46,32 +51,39 @@ export const Header = () => {
     // Add your logout logic here
     handleClose(); // Close the menu after logout
     dispatch(logout());
+    dispatch(removeStore());
     navigate("/");
   };
 
   return (
-    <CustomAppBar >
-      <Toolbar style={{height:"10vh"}}>
-        <img src={Logo} width={"199px"} height={"64px"} />
-        {/* {isLoggedIn && (
+    <Box style={{
+      backgroundColor: theme.palette.white.main,
+      color: isLoggedIn ? theme.palette.primary.main : theme.palette.white.main,
+      position: "absolute",
+      top: 0,
+      width:"100%"
+    }} >
+      <Toolbar style={{ height: "10vh" , display:"flex", justifyContent:"space-between"}}>
+        <Box>
+          {" "}
+          <img src={Logo} width={"199px"} height={"64px"} />
+        </Box>
+
+        {isLoggedIn && (
           <>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ flexGrow: 1, textAlign: "center", fontWeight: "bold" }}
-            >
-              Dashboard
-            </Typography>
-            <IconButton
-              size="large"
-              edge="end"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleClick}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
+            <Box>
+              <IconButton
+                size="large"
+                edge="end"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleClick}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
@@ -95,8 +107,8 @@ export const Header = () => {
               </MenuList>
             </Menu>
           </>
-        )} */}
+        )}
       </Toolbar>
-    </CustomAppBar>
+     </Box >
   );
 };

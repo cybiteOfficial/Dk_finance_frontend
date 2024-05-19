@@ -37,6 +37,10 @@ const InputValidation = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+     // Validate if the value is a number and not negative
+     if (type === "number" && parseInt(value) < 0) {
+      return; // Prevent negative values
+    }
     if (fieldState === "address") {
       setAddressFields((prevState) => ({
         ...prevState,
@@ -102,7 +106,11 @@ const InputValidation = ({
       }
     }
   };
-
+  const handleKeyPress = (event) => {
+    if (event.key === '-') {
+      event.preventDefault();
+    }
+  };
   return type === "select" ? (
     <>
       <InputLabel>{label} {mandatory && <span style={{color:"#d32f2f"}}>*</span>}</InputLabel>
@@ -153,6 +161,7 @@ const InputValidation = ({
         }}
         name={name}
         onBlur={handleBlur}
+        onKeyPress={type === "number" ? handleKeyPress : undefined}
         error={error}
         helperText={
           error

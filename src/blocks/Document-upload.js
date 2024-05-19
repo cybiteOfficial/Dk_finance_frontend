@@ -16,10 +16,11 @@ import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import {
   fetchDocumentDataThunk,
+  removeStore,
   updateDocumentDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
-import { extractFileName, logFormData } from "../components/Common";
+import { checkTokenExpired, extractFileName, logFormData } from "../components/Common";
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
@@ -41,7 +42,8 @@ const DocumentUpload = () => {
 
 
   const [keyValuePairs, setKeyValuePairs] = useState([]);
-  const[isRemarks,setIsRemarks]=useState(false)
+  const[isRemarks,setIsRemarks]=useState(false);
+  const[files,setFiles]=useState([]);
   const [loadingStates, setLoadingStates] = useState();
 
   const [data, setData] = useState({
@@ -58,7 +60,9 @@ const DocumentUpload = () => {
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
-
+useEffect(()=>{
+  console.log("files",files);
+},[files])
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
@@ -66,15 +70,17 @@ const DocumentUpload = () => {
 
   const handleTextFieldChange = (index, value, key) => {
     const updatedPairs = [...keyValuePairs];
+    const attachMents = [...files];
     if (key === "document_name") {
       updatedPairs[index].document_name = value;
     } else if (key === "document_id") {
       updatedPairs[index].document_id = value;
     } else if (key === "file") {
       updatedPairs[index].fileName = value?.name;
-      updatedPairs[index].file = value;
+      attachMents[index] = value;
     }
     setKeyValuePairs(updatedPairs);
+    setFiles(attachMents);
   };
 
   const addKeyValuePair = () => {
@@ -90,8 +96,11 @@ const DocumentUpload = () => {
 
   const handleDeleteKeyValuePair = (index) => {
     const updatedPairs = [...keyValuePairs];
+    const attachMents = [...files];
     updatedPairs.splice(index, 1);
+    attachMents.splice(index, 1);
     setKeyValuePairs(updatedPairs);
+    setFiles(attachMents)
   };
 
   const handleExtractFormValues = (dataObject) => {
@@ -120,11 +129,13 @@ const DocumentUpload = () => {
       const response = await dispatch(fetchDocumentDataThunk(payload));
       const { data, error, message,code } = response.payload;
       if (code) {
-        return setErrState(
-          false,
-          response.payload.response.data.message,
-          true,
-          "error"
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
         );
       } else if (error) {
         return setErrState(false, message, true, "error");
@@ -152,21 +163,17 @@ const DocumentUpload = () => {
         return {
           document_name: item.document_name,
           document_id: item.document_id,
-          file: item.file,
         };
       });
-    
+   
+   
       const bodyFormData = new FormData();
-
+      bodyFormData.append("documents", JSON.stringify(modifiedKeyValuePairs));
       bodyFormData.append("document_type", "other");
-      bodyFormData.append("applicant_id", appId);
-
-      // modifiedKeyValuePairs.forEach((item,index)=>{
-      //   bodyFormData.append(`document_name${index}`, item.document_name)
-      //   bodyFormData.append(`document_id${index}`, item.document_id)
-      //   bodyFormData.append(`file${index}`, item.file)
-      // })
-      bodyFormData.append("documents", modifiedKeyValuePairs);
+      files.forEach((file) => {
+        bodyFormData.append('file', file);
+      });
+      bodyFormData.append("application_id", appId);
      
 
       logFormData(bodyFormData);
@@ -176,11 +183,13 @@ const DocumentUpload = () => {
 
         const { error, message, code } = response.payload;
         if (code) {
-          return setErrState(
-            false,
-            response.payload.response.data.message,
-            true,
-            "error"
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
           );
         } else if (error) {
           return setErrState(false, message, true, "error");
@@ -222,19 +231,14 @@ const DocumentUpload = () => {
         <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
           Application ID: {appId}
         </Typography>
+    
 
         <Typography variant="h5">Document Upload</Typography>
         <form>
-        <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            margin="normal"
-            name="description"
-            value={data.description}
-            onChange={handleInputChange}
-          />
+        <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
+       
           {keyValuePairs.map((pair, indexer) => (
             <Grid
               container
@@ -317,7 +321,16 @@ const DocumentUpload = () => {
             </Grid>
           ))}
        
-
+       <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            margin="normal"
+            name="description"
+            value={data.description}
+            onChange={handleInputChange}
+          />
           {isRemarks && (
             <TextField
               label="Remarks"
@@ -328,9 +341,7 @@ const DocumentUpload = () => {
               onChange={handleInputChange}
             />
           )}
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+         
           <Button
             type="submit"
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}

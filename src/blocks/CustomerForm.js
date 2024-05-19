@@ -64,6 +64,21 @@ const fieldsToExtract = [
   "description",
   "comment",
 ];
+const excludedFields = [
+  "profile_photo",
+  "created_at",
+  "updated_at",
+  "uuid",
+  "cif_id",
+  "applicant",
+  "current_address",
+  "permanent_address",
+  "description",
+  "comment",
+  "is_current",
+  "is_permanent",
+  "customer"
+];
 const residenceStateOptions = [
   { value: "owned", label: "Owned" },
   { value: "rented", label: "Rented" },
@@ -811,7 +826,8 @@ const CustomerForm = () => {
                 Current Address
               </Typography>
               <Grid container spacing={2}>
-                {Object.keys(addressFields.current).map((field) => (
+                {Object.keys(addressFields.current).filter(field => !excludedFields.includes(field)).map((field) => (
+                  
                   <Grid item xs={12} sm={6}>
                     <InputValidation
                       fieldState="address"
@@ -871,7 +887,7 @@ const CustomerForm = () => {
                 </Button>
                 <Grid container spacing={2}>
                   {/* Add permanent address fields here */}
-                  {Object.keys(addressFields.current).map((field) => (
+                  {Object.keys(addressFields.current).filter(field => !excludedFields.includes(field)).map((field) => (
                     <Grid item xs={12} sm={6}>
                       <InputValidation
                         fieldState="address"

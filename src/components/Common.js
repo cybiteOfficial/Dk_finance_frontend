@@ -9,6 +9,18 @@ export const errText = {
   alphaNumeric: "Please enter alphanumeric characters",
 };
 
+export const checkTokenExpired = (message, response,setErrState,dispatch,removeStore,navigate) => {
+  if (message === "Request failed with status code 401") {
+    setErrState(false, "Token expired, please log in again.", true, "error");
+    return setTimeout(() => {
+      dispatch(removeStore({}));
+      navigate("/");
+    }, 500);
+  } else {
+    setErrState(false, response.payload.response.data.message, true, "error");
+  }
+};
+
 export const capitalize = (str) => {
   return str.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 };

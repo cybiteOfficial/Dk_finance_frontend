@@ -6,8 +6,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
-import { extractFileName, logFormData } from "../components/Common";
-import { fetchPhotographDataThunk, updateDocumentDataThunk, updatePhotographDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import { checkTokenExpired, extractFileName, logFormData } from "../components/Common";
+import { fetchPhotographDataThunk, removeStore, updateDocumentDataThunk, updatePhotographDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
 
 const PhotoUpload = () => {
   const navigate = useNavigate();
@@ -64,7 +64,9 @@ const PhotoUpload = () => {
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  
+  useEffect(()=>{
+console.log("files",files);
+  },[files])
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
@@ -89,11 +91,13 @@ const PhotoUpload = () => {
       const response = await dispatch(fetchPhotographDataThunk(payload));
       const { data, error, message,code } = response.payload;
       if (code) {
-        return setErrState(
-          false,
-          response.payload.response.data.message,
-          true,
-          "error"
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
         );
       } else if (error) {
         return setErrState(false, message, true, "error");
@@ -121,8 +125,10 @@ const PhotoUpload = () => {
       const bodyFormData = new FormData();
 
       bodyFormData.append("document_type", "photos");
-      bodyFormData.append("applicant_id", appId);
-      bodyFormData.append("documents", files);
+      bodyFormData.append("application_id", appId);
+      files.forEach((file) => {
+        bodyFormData.append('file', file);
+      });
 
       logFormData(bodyFormData);
       const payload = { bodyFormData, token };
@@ -131,11 +137,13 @@ const PhotoUpload = () => {
 
         const { error, message, code } = response.payload;
         if (code) {
-          return setErrState(
-            false,
-            response.payload.response.data.message,
-            true,
-            "error"
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
           );
         } else if (error) {
           return setErrState(false, message, true, "error");
@@ -235,7 +243,7 @@ const PhotoUpload = () => {
                     label="Uploaded File"
                     margin="normal"
                     name="uploadedFile"
-                    value={item?.name}
+                    value={item?.name || item?.file}
                   />
                 </Grid>
                 <Grid item xs={2}>

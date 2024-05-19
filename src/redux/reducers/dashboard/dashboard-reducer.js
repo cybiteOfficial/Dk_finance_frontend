@@ -177,7 +177,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
     },
 
-    removeStore(state) {
+    removeStore(state,action) {
       state.applicantData = [];
       state.customerDetails = [];
       state.loanDetails = [];
@@ -187,6 +187,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
       state.selectedCustomer = "";
       state.selectedCustomerData = "";
+      state.allCustomers=[]
     },
   },
   extraReducers: (builder) => {
