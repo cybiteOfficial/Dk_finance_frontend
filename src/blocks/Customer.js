@@ -211,7 +211,10 @@ export const Customers = () => {
           </StyledTypography>
 
           <Button
-            disabled={applicantData[0]?.status === "cluster"}
+            disabled={
+              applicantData[0]?.status === "cluster" ||
+              process.env.REACT_APP_DISABLED === "TRUE"
+            }
             onClick={updateStatusDataApi}
             variant="outlined"
             style={{ marginBottom: 20, marginLeft: "auto" }}
@@ -234,50 +237,80 @@ export const Customers = () => {
             }}
           >
             <Button
-            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+              disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.white.main,
+                backgroundColor:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.12)"
+                    : theme.palette.primary.main,
+                color:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.26)"
+                    : theme.palette.white.main,
               }}
               onClick={() => handleNavigate("/applicant/loan")}
             >
               Loan Details
             </Button>
             <Button
-            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+              disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.white.main,
+                backgroundColor:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.12)"
+                    : theme.palette.primary.main,
+                color:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.26)"
+                    : theme.palette.white.main,
               }}
               onClick={() => handleNavigate("/applicant/document/uploads")}
             >
               Document Upload
             </Button>
             <Button
-            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+              disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.white.main,
+                backgroundColor:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.12)"
+                    : theme.palette.primary.main,
+                color:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.26)"
+                    : theme.palette.white.main,
               }}
               onClick={() => handleNavigate("/applicant/photographs/uploads")}
             >
               Photograph Upload
             </Button>
             <Button
-            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+              disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.white.main,
+                backgroundColor:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.12)"
+                    : theme.palette.primary.main,
+                color:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.26)"
+                    : theme.palette.white.main,
               }}
               onClick={() => handleNavigate("/applicant/collateral")}
             >
               Collateral Details
             </Button>
             <Button
-            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+              disabled={process.env.REACT_APP_DISABLED === "TRUE"}
               style={{
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.white.main,
+                backgroundColor:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.12)"
+                    : theme.palette.primary.main,
+                color:
+                  process.env.REACT_APP_DISABLED === "TRUE"
+                    ? "rgba(0, 0, 0, 0.26)"
+                    : theme.palette.white.main,
               }}
               onClick={() => handleNavigate("/applicant/customer/application")}
             >
@@ -287,7 +320,6 @@ export const Customers = () => {
         </Box>
         <Box>
           <Button
-          
             onClick={addForm}
             variant="outlined"
             style={{ marginBottom: 20 }}
@@ -324,9 +356,7 @@ export const Customers = () => {
             <Typography variant="subtitle1">Name</Typography>
           </Grid>
           <Grid item xs={2}>
-            <Typography  variant="subtitle1">
-              Role
-            </Typography>
+            <Typography variant="subtitle1">Role</Typography>
           </Grid>
           <Grid item xs={2}>
             <Typography variant="subtitle1">KYC</Typography>
@@ -365,8 +395,11 @@ export const Customers = () => {
                   </Typography>
                 </Grid>
                 <Grid item xs={2}>
-                <Typography  variant="subtitle1" style={{textTransform:"capitalize"}}>
-                 {item.role}
+                  <Typography
+                    variant="subtitle1"
+                    style={{ textTransform: "capitalize" }}
+                  >
+                    {item.role}
                   </Typography>
                 </Grid>
                 <Grid item xs={2}>

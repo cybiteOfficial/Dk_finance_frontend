@@ -19,7 +19,9 @@ const InputValidation = ({
   setAddressFields,
 }) => {
   const [touched, setTouched] = useState(false);
-
+  const today = new Date();
+  const maxDate = today.toISOString().split("T")[0];
+  const minDate = "1900-01-01";
   useEffect(() => {
     if (touched && label === "Gender" && value === "") {
       setErrObject((prevState) => ({
@@ -35,11 +37,32 @@ const InputValidation = ({
     }
   };
 
+  const handleInput = (event) => {
+    const inputDate = event.target.value;
+    const selectedDate = new Date(inputDate);
+    const isBeforeMinDate = selectedDate < new Date(minDate);
+    const isAfterMaxDate = selectedDate > today;
+
+    if (isAfterMaxDate) {
+      event.preventDefault();
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-     // Validate if the value is a number and not negative
-     if (type === "number" && parseInt(value) < 0) {
+    // Validate if the value is a number and not negative
+    if (type === "number" && parseInt(value) < 0) {
       return; // Prevent negative values
+    }
+    if (type === "date" && label === "DOB") {
+      const selectedDate = new Date(value);
+      const isBeforeMinDate = selectedDate < new Date(minDate);
+      const isAfterMaxDate = selectedDate > today;
+
+      if ( isAfterMaxDate) {
+        e.preventDefault();
+        return; // Prevent updating state if date is out of range
+      }
     }
     if (fieldState === "address") {
       setAddressFields((prevState) => ({
@@ -72,6 +95,9 @@ const InputValidation = ({
         isError = !/^\d{6}$/.test(value);
       } else if (type === "number") {
         isError = parseInt(value) < 0;
+      } else if (type === "date" && label === "DOB") {
+        const selectedDate = new Date(value);
+        isError = selectedDate > today || isNaN(selectedDate.getTime()) || selectedDate < new Date(minDate);
       }
     }
     if (fieldState === "address") {
@@ -107,13 +133,15 @@ const InputValidation = ({
     }
   };
   const handleKeyPress = (event) => {
-    if (event.key === '-') {
+    if (event.key === "-") {
       event.preventDefault();
     }
   };
   return type === "select" ? (
     <>
-      <InputLabel>{label} {mandatory && <span style={{color:"#d32f2f"}}>*</span>}</InputLabel>
+      <InputLabel>
+        {label} {mandatory && <span style={{ color: "#d32f2f" }}>*</span>}
+      </InputLabel>
       <TextField
         select
         // label={label}
@@ -144,7 +172,9 @@ const InputValidation = ({
     </>
   ) : (
     <>
-      <InputLabel>{label} {mandatory && <span style={{color:"#d32f2f"}}>*</span>}</InputLabel>
+      <InputLabel>
+        {label} {mandatory && <span style={{ color: "#d32f2f" }}>*</span>}
+      </InputLabel>
       <TextField
         type={type}
         InputProps={{
@@ -154,6 +184,9 @@ const InputValidation = ({
         }}
         // label={label}
         fullWidth={fullWidth}
+        inputProps={
+          type === "date" && label === "DOB" ? { min: minDate, max: maxDate } : {}
+        }
         value={value}
         onChange={(e) => handleChange(e)}
         InputLabelProps={{
@@ -161,6 +194,7 @@ const InputValidation = ({
         }}
         name={name}
         onBlur={handleBlur}
+        onInput={type === "date" ? handleInput : undefined}
         onKeyPress={type === "number" ? handleKeyPress : undefined}
         error={error}
         helperText={

@@ -464,7 +464,7 @@ const CustomerForm = () => {
       type: "date",
       value: personInformation.dateOfBirth,
       error: errObject.dateOfBirth,
-      helperText: errObject.dateOfBirth ? "Please enter a valid date" : "",
+      helperText: errObject.dateOfBirth ? "Date should be b/w 1900 & current year" : "",
       mandatory: true,
     },
     {
