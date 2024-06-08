@@ -28,7 +28,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
 
   const [loggedInUser, setLoggedInUser] = useState({
-    email: "",
+    username: "",
     password: "",
   });
   const [err, setErr] = useState({
@@ -87,12 +87,12 @@ export const LoginPage = () => {
   return (
     <>
       <SnackToast
-      onClose={handleCloseToast}
+        onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
       />
-      
+
       <Grid
         container
         style={{
@@ -198,14 +198,14 @@ export const LoginPage = () => {
                         color={theme.palette.primary.main}
                         weight={500}
                       >
-                        Email
+                        Username
                       </StyledTypography>
                       <StyledTextField
                         variant="outlined"
                         required
                         fullWidth
-                        id="email"
-                        name="email"
+                        id="username"
+                        name="username"
                         onChange={handleLoginChange}
                       />
                     </Box>
