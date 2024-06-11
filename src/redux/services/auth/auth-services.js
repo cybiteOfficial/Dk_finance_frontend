@@ -14,12 +14,15 @@ export const authAPI = {
   // Function to fetch user by ID
   loginUserApi: async (payload) => {
     try {
-     
-      const response = await axios.post(`${baseURL}/auth/signin`, {...payload}, {
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-      });
+      const response = await axios.post(
+        `${baseURL}/auth/signin`,
+        { ...payload },
+        {
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+        }
+      );
       // const data = {
       //   Error: false,
       //   data: {
@@ -37,7 +40,7 @@ export const authAPI = {
       //   Error: true,
       //   message: "Invalid credentials",
       // };
-      return error
+      return error;
     }
   },
   // Add more functions for other user-related operations if needed
