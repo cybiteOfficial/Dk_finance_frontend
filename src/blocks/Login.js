@@ -88,12 +88,12 @@ export const LoginPage = () => {
   return (
     <>
       <SnackToast
-      onClose={handleCloseToast}
+        onClose={handleCloseToast}
         openSnack={err.openSnack}
         message={err.errMsg}
         severity={err.severity}
       />
-      
+
       <Grid
         container
         style={{
@@ -199,7 +199,7 @@ export const LoginPage = () => {
                         color={theme.palette.primary.main}
                         weight={500}
                       >
-                        username
+                        Username
                       </StyledTypography>
                       <StyledTextField
                         variant="outlined"
