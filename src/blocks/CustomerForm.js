@@ -6,20 +6,16 @@ import {
   AccordionSummary,
   Box,
   Button,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
-  TextField,
   Typography,
   Divider,
   Input,
-  InputAdornment
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 
-import { ArrowBack, ExpandLess, ExpandMore,Star } from "@mui/icons-material";
+import { ArrowBack, ExpandLess, ExpandMore, Star } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -30,7 +26,12 @@ import {
   removeCustomerData,
   updateCustomerDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
-import { capitalize, errText, hasErrors, logFormData } from "../components/Common";
+import {
+  capitalize,
+  errText,
+  hasErrors,
+  logFormData,
+} from "../components/Common";
 import InputValidation from "../components/InputValidation";
 import SnackToast from "../components/Snackbar";
 
@@ -60,9 +61,9 @@ const fieldsToExtract = [
   "applicant",
   "current_address",
   "permanent_address",
-  "applicant",
   "description",
   "comment",
+  "role",
 ];
 const excludedFields = [
   "profile_photo",
@@ -77,7 +78,7 @@ const excludedFields = [
   "comment",
   "is_current",
   "is_permanent",
-  "customer"
+  "customer",
 ];
 const residenceStateOptions = [
   { value: "owned", label: "Owned" },
@@ -88,7 +89,7 @@ const residenceStateOptions = [
   { value: "govtProvided", label: "Govt Provided" },
 ];
 
-const  residenceTypeOptions  =[
+const residenceTypeOptions = [
   { value: "independentHouse", label: "Independent House" },
   { value: "flat", label: "Flat" },
   { value: "slum", label: "Slum" },
@@ -170,6 +171,8 @@ const CustomerForm = () => {
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
 
+  const [role, setRole] = useState(personInformation.role);
+
   // State for cropped image
   const [croppedImage, setCroppedImage] = useState(
     selectedCustomer?.profile_photo
@@ -187,10 +190,6 @@ const CustomerForm = () => {
   });
 
   useEffect(() => {
-    console.log("errObject", errObject);
-  }, [errObject]);
-
-  useEffect(() => {
     if (permanentAddressSameAsCurrent) {
       setAddressFields((prevState) => ({
         ...prevState,
@@ -198,25 +197,25 @@ const CustomerForm = () => {
           ...prevState.current,
         },
       }));
-        // Copy errors for permanent address fields
-    setErrObject((prevState) => ({
-      ...prevState,
-      permanent: {
-        address_line_1: prevState.current.address_line_1,
-        address_line_2: prevState.current.address_line_2,
-        address_line_3: prevState.current.address_line_3,
-        state: prevState.current.state,
-        district: prevState.current.district,
-        city: prevState.current.city,
-        tehsil_or_taluka: prevState.current.tehsil_or_taluka,
-        pincode: prevState.current.pincode,
-        landmark: prevState.current.landmark,
-        residence_state: prevState.current.residence_state,
-        residence_type: prevState.current.residence_type,
-        stability_at_residence: prevState.current.stability_at_residence,
-        distance_from_branch: prevState.current.distance_from_branch,
-      },
-    }));
+      // Copy errors for permanent address fields
+      setErrObject((prevState) => ({
+        ...prevState,
+        permanent: {
+          address_line_1: prevState.current.address_line_1,
+          address_line_2: prevState.current.address_line_2,
+          address_line_3: prevState.current.address_line_3,
+          state: prevState.current.state,
+          district: prevState.current.district,
+          city: prevState.current.city,
+          tehsil_or_taluka: prevState.current.tehsil_or_taluka,
+          pincode: prevState.current.pincode,
+          landmark: prevState.current.landmark,
+          residence_state: prevState.current.residence_state,
+          residence_type: prevState.current.residence_type,
+          stability_at_residence: prevState.current.stability_at_residence,
+          distance_from_branch: prevState.current.distance_from_branch,
+        },
+      }));
     } else
       setAddressFields((prevState) => ({
         ...prevState,
@@ -417,11 +416,10 @@ const CustomerForm = () => {
       delete addressFields.permanent.is_current;
       delete addressFields.permanent.is_permanent;
       delete addressFields.permanent.customer;
-      personInformation.role =
-        customerDetails.length === 0 ? "applicant" : "co_applicant";
     }
 
     const bodyFormData = new FormData();
+    personInformation.role = role;
     bodyFormData.append("profile_photo", personInformation.profile_photo);
 
     const customer_data = { ...personInformation, application_id: appId };
@@ -464,6 +462,13 @@ const CustomerForm = () => {
   const handlePermanentAddressSameAsCurrent = () => {
     setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
   };
+
+  const handleRoleChange = (event, newRole) => {
+    if (newRole !== null) {
+      setRole(newRole);
+    }
+  };
+
   const handlePermanentAddressChange = (fieldName) => (event) => {
     const { value } = event.target;
     setAddressFields((prevState) => ({
@@ -605,6 +610,27 @@ const CustomerForm = () => {
       </Box>
 
       <Paper style={{ width: "90%", padding: 20, margin: "auto" }}>
+        <Box
+          display="flex"
+          flexDirection="row"
+          alignItems="center"
+          gap={"1rem"}
+          mb={1}
+        >
+          <ToggleButtonGroup
+            value={role}
+            exclusive
+            onChange={handleRoleChange}
+            aria-label="user role"
+          >
+            <ToggleButton value="applicant" aria-label="applicant">
+              Applicant
+            </ToggleButton>
+            <ToggleButton value="co_applicant" aria-label="co-applicant">
+              Co-Applicant
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <form onSubmit={handlePersonalSubmit}>
           <Accordion style={{ marginBottom: 20 }}>
             <AccordionSummary
@@ -925,7 +951,7 @@ const CustomerForm = () => {
                               : field === "distance_from_branch"
                               ? errText.alphaNumeric
                               : field === "address_line_1" ||
-                                field === "address_line_2"||
+                                field === "address_line_2" ||
                                 field === "address_line_3"
                               ? errText.validAddress
                               : field === "state" || field === "city"

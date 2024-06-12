@@ -146,6 +146,8 @@ const InputValidation = ({
       event.preventDefault();
     }
   };
+
+
   return type === "select" ? (
     <>
       <InputLabel>
@@ -203,6 +205,7 @@ const InputValidation = ({
         }}
         name={name}
         onBlur={handleBlur}
+        onFocus={(e) => e.target.addEventListener("wheel", function (e) { e.preventDefault() }, { passive: false })}
         onInput={type === "date" ? handleInput : undefined}
         onKeyPress={type === "number" ? handleKeyPress : undefined}
         error={error}
