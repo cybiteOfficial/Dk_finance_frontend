@@ -220,7 +220,7 @@ export const Customers = () => {
             style={{ marginBottom: 20, marginLeft: "auto" }}
           >
             {applicantData[0]?.status === "md_phase"
-              ? "Approve"
+              ? "Sanction"
               : applicantData[0]?.status === "cluster"
               ? "Approved"
               : "Forward"}
@@ -358,9 +358,7 @@ export const Customers = () => {
           <Grid item xs={2}>
             <Typography variant="subtitle1">Role</Typography>
           </Grid>
-          <Grid item xs={2}>
-            <Typography variant="subtitle1">KYC</Typography>
-          </Grid>
+        
         </Grid>
         <div>
           {customerDetails &&
@@ -402,10 +400,7 @@ export const Customers = () => {
                     {item.role}
                   </Typography>
                 </Grid>
-                <Grid item xs={2}>
-                  {/* TODO: need kyc in response */}
-                  <Chip label={"Verified"} color={"primary"} />
-                </Grid>
+                
               </Grid>
             ))}
         </div>

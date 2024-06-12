@@ -52,7 +52,9 @@ const InputValidation = ({
     const { name, value } = e.target;
     // Validate if the value is a number and not negative
     if (type === "number" && parseInt(value) < 0) {
-      return; // Prevent negative values
+      if (!/^\d*$/.test(value)) {
+        return;
+      }
     }
     if (type === "date" && label === "DOB") {
       const selectedDate = new Date(value);
@@ -85,10 +87,13 @@ const InputValidation = ({
       isError = true;
     } else {
       if (type === "text") {
-        isError =
-          name === "distance_from_branch"
-            ? !/^[a-zA-Z0-9 ]*$/.test(value)
-            : !/^[a-zA-Z ]*$/.test(value);
+        if (name === "address_line_1" || name === "address_line_2" || name === "address_line_3") {
+          isError = !/^[a-zA-Z0-9\s.,'/-]*$/.test(value);
+        } else if (name === "distance_from_branch") {
+          isError = !/^[a-zA-Z0-9 ]*$/.test(value);
+        } else {
+          isError = !/^[a-zA-Z ]*$/.test(value);
+        }
       } else if (type === "number" && label === "Age") {
         isError = !/^\d{2}$/.test(value);
       } else if (type === "number" && name === "pincode") {
@@ -97,13 +102,17 @@ const InputValidation = ({
         isError = parseInt(value) < 0;
       } else if (type === "date" && label === "DOB") {
         const selectedDate = new Date(value);
-        isError = selectedDate > today || isNaN(selectedDate.getTime()) || selectedDate < new Date(minDate);
+        isError =
+          selectedDate > today ||
+          isNaN(selectedDate.getTime()) ||
+          selectedDate < new Date(minDate);
       }
     }
     if (fieldState === "address") {
       setErrObject((prevState) => ({
         ...prevState,
         [section]: {
+          ...prevState[section],
           [name]: isError,
         },
       }));
@@ -121,7 +130,7 @@ const InputValidation = ({
           ...prevState,
           [section]: {
             ...prevState[section],
-            [name]: false,
+            [name]: true,
           },
         }));
       } else {
@@ -133,7 +142,7 @@ const InputValidation = ({
     }
   };
   const handleKeyPress = (event) => {
-    if (event.key === "-") {
+    if (type === "number" && (event.key < '0' || event.key > '9')) {
       event.preventDefault();
     }
   };
