@@ -220,6 +220,15 @@ const CustomerCaf = () => {
         <form onSubmit={handleSubmit}>
           <TextField
            type="number"
+           onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
             fullWidth
             label="Tentative Amount"
             name="tentative_amt"
@@ -282,7 +291,7 @@ const CustomerCaf = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document name"
+                  label="Field Name"
                   value={pair.key}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "key")
@@ -293,7 +302,7 @@ const CustomerCaf = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document ID"
+                  label="Value"
                   value={pair.value}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "value")

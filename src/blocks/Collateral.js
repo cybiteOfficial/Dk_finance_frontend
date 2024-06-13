@@ -417,6 +417,15 @@ const Collateral = () => {
 
         <TextField
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           label="Estimated Property Value"
           fullWidth
           margin="normal"

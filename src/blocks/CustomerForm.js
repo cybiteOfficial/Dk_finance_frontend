@@ -323,8 +323,8 @@ const CustomerForm = () => {
     // Check if any mandatory fields are empty
     const mandatoryFields = [
       "firstName",
-      "middle_name",
-      "lastName",
+    
+    
       "dateOfBirth",
       "age",
       "gender",
@@ -526,10 +526,8 @@ const CustomerForm = () => {
       type: "text",
       value: personInformation.lastName,
       error: errObject.lastName,
-      helperText: errObject.lastName
-        ? "Please enter alphabetical characters"
-        : "",
-      mandatory: true,
+      helperText: errObject.lastName ? errText.alphabetical : "",
+      mandatory: false,
     },
     {
       label: "DOB",

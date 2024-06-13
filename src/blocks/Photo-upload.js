@@ -32,7 +32,8 @@ const PhotoUpload = () => {
     comment:""
   })
   const[isRemarks,setIsRemarks]=useState(false)
-  const [files,setFiles]= useState([])
+  const [files,setFiles]= useState([]);
+  const [prevfiles,setPrevFiles]= useState([])
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -56,6 +57,8 @@ const PhotoUpload = () => {
 
   const handleTextFieldChange = (e) => {
     if (e.target.files[0]) {
+      const objectURL = URL.createObjectURL(e.target.files[0]);
+      setPrevFiles([...prevfiles,objectURL])
       setFiles([...files, e.target.files[0]]);
     }
   };
@@ -64,9 +67,7 @@ const PhotoUpload = () => {
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  useEffect(()=>{
-console.log("files",files);
-  },[files])
+
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
@@ -238,12 +239,10 @@ console.log("files",files);
                 }}
               >
                 <Grid item xs={10}>
-                  <TextField
-                    fullWidth
-                    label="Uploaded File"
-                    margin="normal"
-                    name="uploadedFile"
-                    value={item?.name || item?.file}
+                <img
+                    src={prevfiles[index]}
+                    alt="Preview"
+                    style={{ width: "200px", height: "100px" }}
                   />
                 </Grid>
                 <Grid item xs={2}>

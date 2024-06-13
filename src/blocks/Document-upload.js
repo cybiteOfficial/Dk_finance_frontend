@@ -351,7 +351,7 @@ const DocumentUpload = () => {
                 /> */}
               
                   <img
-                    src={pair.filePreview || pair.fileName}
+                    src={pair.filePreview}
                     alt="Preview"
                     style={{ width: "200px", height: "100px" }}
                   />

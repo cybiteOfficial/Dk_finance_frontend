@@ -221,12 +221,16 @@ const DashboardPage = () => {
                     Application ID
                   </StyledTypography>
                 </Grid>
-                {/* <Grid item xs={2}>
+                <Grid item xs={2}>
                   <StyledTypography variant="body2" weight={600}>
-                    Name
+                    Ro name
                   </StyledTypography>
-                </Grid> */}
-              
+                </Grid>
+                <Grid item xs={2}>
+                  <StyledTypography variant="body2" weight={600}>
+                    Employee ID
+                  </StyledTypography>
+                </Grid>
                 <Grid
                   item
                   xs={2}
@@ -262,11 +266,16 @@ const DashboardPage = () => {
                           </StyledTypography>
                         </Grid>
 
-                        {/* <Grid item xs={2}>
+                        <Grid item xs={2}>
                           <StyledTypography variant="body2" weight={600}>
-                            {item.lead}
+                            {item.ro_name}
                           </StyledTypography>
-                        </Grid> */}
+                        </Grid>
+                        <Grid item xs={2}>
+                          <StyledTypography variant="body2" weight={600}>
+                            {item.employee_id}
+                          </StyledTypography>
+                        </Grid>
                       
                         <Grid
                           item
