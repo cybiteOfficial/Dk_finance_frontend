@@ -205,15 +205,27 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    const { bodyFormData, token } = payload;
+    const { bodyFormData, token ,api} = payload;
+   
     try {
-      const response = await api.post(
-        `${baseURL}${uploadDocument}`,
-        bodyFormData,
-        formHeaders(token)
-      );
-      // Return the response data
+      if (api === "post") {
+        var response = await axios.post(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        return response.data;
+      } else if (api === "put") {
+        var response = await axios.put(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      } else {
+        return;
+      }
       return response.data;
+      // Return the response data
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
     }

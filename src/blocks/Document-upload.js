@@ -40,8 +40,9 @@ const DocumentUpload = () => {
   const {appId} = useSelector((state) => state.authReducer);
   const dashboardReducer = useSelector((state) => state.dashboardReducer);
 
-
+  const [prevkeyValuePairs, setprevKeyValuePairs] = useState([]);
   const [keyValuePairs, setKeyValuePairs] = useState([]);
+  const [updateItem,setUpdateItem] = useState([])
   const[isRemarks,setIsRemarks]=useState(false);
   const[files,setFiles]=useState([]);
   const [loadingStates, setLoadingStates] = useState();
@@ -60,9 +61,7 @@ const DocumentUpload = () => {
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
-useEffect(()=>{
-  console.log("files",files);
-},[files])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
@@ -71,16 +70,63 @@ useEffect(()=>{
   const handleTextFieldChange = (index, value, key) => {
     const updatedPairs = [...keyValuePairs];
     const attachMents = [...files];
+    const uuid = updatedPairs[index].uuid; // Get the UUID from keyValuePairs
+
+    // Find the updateItem entry for the given UUID
+    let updateItems = [...updateItem];
+    let updateItemIndex = updateItems.findIndex((item) => item.uuid === uuid);
+    if (updateItemIndex === -1) {
+      updateItems.push({ uuid });
+      updateItemIndex = updateItems.length - 1;
+    }
+
+    // Update keyValuePairs and track changes
     if (key === "document_name") {
       updatedPairs[index].document_name = value;
+      if (prevkeyValuePairs[index]?.document_name !== value) {
+        updateItems[updateItemIndex].document_name = value;
+        updateItems[updateItemIndex].file_updated = false;
+      } else {
+        delete updateItems[updateItemIndex].document_name;
+      }
     } else if (key === "document_id") {
       updatedPairs[index].document_id = value;
+      if (prevkeyValuePairs[index]?.document_id !== value) {
+        updateItems[updateItemIndex].document_id = value;
+        updateItems[updateItemIndex].file_updated = false;
+      } else {
+        delete updateItems[updateItemIndex].document_id;
+      }
     } else if (key === "file") {
       updatedPairs[index].fileName = value?.name;
       attachMents[index] = value;
+
+      // Check if the file selection is the same as the previous one
+      if (value?.name === prevkeyValuePairs[index]?.fileName) {
+        updateItems[updateItemIndex].file_updated = false;
+      } else {
+        updatedPairs[index].fileName = value?.name; // Update fileName in keyValuePairs
+        attachMents[index] = value; // Update attachments
+        updateItems[updateItemIndex].file_updated = true;
+      }
+      // Handle image preview using createObjectURL
+      if (value && value.type.startsWith('image/')) {
+        const objectURL = URL.createObjectURL(value);
+        updatedPairs[index].filePreview = objectURL;
+        console.log('Object URL:', objectURL); // Logging the URL
+      } else {
+        updatedPairs[index].filePreview = '';
+      }
     }
+
+    // Remove the updateItem if it only contains the uuid and no changes
+    if (Object.keys(updateItems[updateItemIndex]).length === 1) {
+      updateItems.splice(updateItemIndex, 1);
+    }
+
     setKeyValuePairs(updatedPairs);
     setFiles(attachMents);
+    setUpdateItem(updateItems);
   };
 
   const addKeyValuePair = () => {
@@ -94,18 +140,21 @@ useEffect(()=>{
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  const handleDeleteKeyValuePair = (index) => {
+  const handleDeleteKeyValuePair = (index,uuid) => {
     const updatedPairs = [...keyValuePairs];
     const attachMents = [...files];
     updatedPairs.splice(index, 1);
     attachMents.splice(index, 1);
     setKeyValuePairs(updatedPairs);
-    setFiles(attachMents)
+    setFiles(attachMents);
+    const deleteUpdatedItem = updateItem.filter((item) => item.uuid !== uuid);
+    setUpdateItem(deleteUpdatedItem);
   };
 
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
+        uuid: item.uuid,
         document_name: item.document_name,
         document_id: item.document_id,
         file: item.file,
@@ -120,6 +169,8 @@ useEffect(()=>{
 
     setData(data);
     setKeyValuePairs(keyValuePairs);
+    const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    setprevKeyValuePairs(deepCopyKeyValuePairs);
   };
 
   const fetchDocumentDataApi = async () => {
@@ -165,21 +216,29 @@ useEffect(()=>{
           document_id: item.document_id,
         };
       });
-   
-   
+    const isNew =  prevkeyValuePairs.length < keyValuePairs.length
+  
+    const api = updateItem.length > 0  && isNew===false? "put": isNew && "post"
+
       const bodyFormData = new FormData();
-      bodyFormData.append("documents", JSON.stringify(modifiedKeyValuePairs));
+      bodyFormData.append(
+        "documents",
+        updateItem.length > 0
+          ? JSON.stringify(updateItem)
+          : JSON.stringify(modifiedKeyValuePairs)
+      );
       bodyFormData.append("document_type", "other");
       files.forEach((file) => {
-        bodyFormData.append('file', file);
+        bodyFormData.append("file", file);
       });
       bodyFormData.append("application_id", appId);
      
 
       logFormData(bodyFormData);
-      const payload = { bodyFormData, token };
+      const payload = { bodyFormData, token,api };
       try {
         const response = await dispatch(updateDocumentDataThunk(payload));
+       
 
         const { error, message, code } = response.payload;
         if (code) {
@@ -192,17 +251,21 @@ useEffect(()=>{
             navigate
           );
         } else if (error) {
+          setUpdateItem([])
           return setErrState(false, message, true, "error");
         } else {
           setIsRemarks(false);
           setErrState(false, message, true, "success");
-          // navigate("/applicant/customers");
+          setUpdateItem([])
+          navigate("/applicant/customers");
         }
       } catch (error) {
+        setUpdateItem([])
         setIsRemarks(false);
         console.error("error: ", error);
-      }
+      } 
     } else {
+    
       setErrState(false, "Please add a remark", true, "warning");
       setIsRemarks(true);
       return;
@@ -231,14 +294,13 @@ useEffect(()=>{
         <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
           Application ID: {appId}
         </Typography>
-    
 
         <Typography variant="h5">Document Upload</Typography>
         <form>
-        <Button variant="contained" type="button" onClick={addKeyValuePair}>
+          <Button variant="contained" type="button" onClick={addKeyValuePair}>
             Add More
           </Button>
-       
+
           {keyValuePairs.map((pair, indexer) => (
             <Grid
               container
@@ -279,19 +341,27 @@ useEffect(()=>{
                   }
                 />
               </Grid>
-              <Grid item xs={2}>
-                <TextField
+              <Grid item xs={3}>
+                {/* <TextField
                   fullWidth
                   label="Uploaded File"
                   margin="normal"
                   name="uploadedFile"
                   value={pair.fileName}
-                />
+                /> */}
+              
+                  <img
+                    src={pair.filePreview || pair.fileName}
+                    alt="Preview"
+                    style={{ width: "200px", height: "100px" }}
+                  />
+              
               </Grid>
               <Grid item xs={2}>
                 <Box ml={"auto"}>
                   <Input
                     type="file"
+                       accept="image/*"
                     onChange={(e) =>
                       handleTextFieldChange(indexer, e.target.files[0], "file")
                     }
@@ -313,15 +383,17 @@ useEffect(()=>{
               </Grid>
 
               <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
-                <IconButton onClick={() => handleDeleteKeyValuePair(indexer)}>
+                <IconButton
+                  onClick={() => handleDeleteKeyValuePair(indexer, pair.uuid)}
+                >
                   <DeleteIcon />
                   {loadingStates === indexer && <CircularProgress />}
                 </IconButton>
               </Grid>
             </Grid>
           ))}
-       
-       <TextField
+
+          <TextField
             label="Description"
             fullWidth
             multiline
@@ -341,7 +413,7 @@ useEffect(()=>{
               onChange={handleInputChange}
             />
           )}
-         
+
           <Button
             disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             type="submit"
