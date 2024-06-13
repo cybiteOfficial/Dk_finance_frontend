@@ -210,7 +210,7 @@ export const Customers = () => {
             Application ID: {appId}
           </StyledTypography>
 
-          <Button
+        {customerDetails.length > 0 &&  <Button
             disabled={
               applicantData[0]?.status === "cluster" ||
               process.env.REACT_APP_DISABLED === "TRUE"
@@ -223,8 +223,8 @@ export const Customers = () => {
               ? "Sanction"
               : applicantData[0]?.status === "cluster"
               ? "Approved"
-              : "Forward"}
-          </Button>
+              :  "Forward" }
+          </Button>}
         </Box>
 
         <Box>
