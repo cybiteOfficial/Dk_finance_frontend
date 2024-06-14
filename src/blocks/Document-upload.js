@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import {
+  deleteDocumentDataThunk,
   fetchDocumentDataThunk,
   removeStore,
   updateDocumentDataThunk,
@@ -140,7 +141,7 @@ const DocumentUpload = () => {
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  const handleDeleteKeyValuePair = (index,uuid) => {
+  const handleDeleteKeyValuePair = (index, uuid) => {
     const updatedPairs = [...keyValuePairs];
     const attachMents = [...files];
     updatedPairs.splice(index, 1);
@@ -149,6 +150,7 @@ const DocumentUpload = () => {
     setFiles(attachMents);
     const deleteUpdatedItem = updateItem.filter((item) => item.uuid !== uuid);
     setUpdateItem(deleteUpdatedItem);
+    handleDeleteApi(uuid);
   };
 
   const handleExtractFormValues = (dataObject) => {
@@ -172,6 +174,40 @@ const DocumentUpload = () => {
     const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
     setprevKeyValuePairs(deepCopyKeyValuePairs);
   };
+   
+  const handleDeleteApi = async (uuid) => {
+    if (uuid) {
+      setLoadingStates(true);
+      const bodyFormData = new FormData();
+      bodyFormData.append("document_uuid", uuid);
+      const payload = { bodyFormData, token };
+   
+      try {
+        const response = await dispatch(deleteDocumentDataThunk(payload));
+
+        const { error, message, code } = response.payload;
+        if (code) {
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
+          );
+        } else if (error) {
+          setLoadingStates(false);
+          return setErrState(false, message, true, "error");
+        } else {
+          setLoadingStates(false);
+          setErrState(false, message, true, "success");
+        }
+      } catch (error) {
+        setLoadingStates(false);
+        console.error("error: ", error);
+      }
+    }
+  }; 
 
   const fetchDocumentDataApi = async () => {
     const payload = {application_id:appId,token, document_type:"other"}
@@ -297,9 +333,17 @@ const DocumentUpload = () => {
 
         <Typography variant="h5">Document Upload</Typography>
         <form>
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+        <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            margin="normal"
+            name="description"
+            value={data.description}
+            onChange={handleInputChange}
+          />
+          
 
           {keyValuePairs.map((pair, indexer) => (
             <Grid
@@ -387,22 +431,15 @@ const DocumentUpload = () => {
                   onClick={() => handleDeleteKeyValuePair(indexer, pair.uuid)}
                 >
                   <DeleteIcon />
-                  {loadingStates === indexer && <CircularProgress />}
+                  {loadingStates  && <CircularProgress />}
                 </IconButton>
               </Grid>
             </Grid>
           ))}
-
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            margin="normal"
-            name="description"
-            value={data.description}
-            onChange={handleInputChange}
-          />
+<Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
+         
           {isRemarks && (
             <TextField
               label="Remarks"

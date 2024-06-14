@@ -231,6 +231,26 @@ export const dashboardAPI = {
     }
   },
 
+  deleteDocumentDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
+   
+    try {
+      
+      const response = await axios.delete(
+        `${baseURL}${uploadDocument}`,
+        {
+          data: bodyFormData,
+          headers: formHeaders(token).headers
+        }
+      );
+     
+      return response.data;
+      // Return the response data
+    } catch (error) {
+      // If an error occurs, throw it or handle it as needed
+    }
+  },
+
   updatePhotographDataApi: async (payload) => {
     const { bodyFormData, token } = payload;
     try {

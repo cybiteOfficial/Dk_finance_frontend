@@ -119,6 +119,13 @@ export const updateDocumentDataThunk = createAsyncThunk(
     return response;
   }
 );
+export const deleteDocumentDataThunk = createAsyncThunk(
+  "/deleteDocumentData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.deleteDocumentDataApi(payload);
+    return response;
+  }
+);
 export const updatePhotographDataThunk = createAsyncThunk(
   "/updatePhotographData",
   async (payload, thunkAPI) => {
