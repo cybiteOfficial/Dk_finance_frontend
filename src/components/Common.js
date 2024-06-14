@@ -2,11 +2,24 @@ import { Typography, styled, Chip, TextField } from "@mui/material";
 import { theme } from "../theme";
 
 export const errText = {
-  alpabetical: "Please enter alphabetical characters",
+  alphabetical: "Please enter alphabetical characters",
   numerical: "Please enter numerical character",
   twoDigit: "Please enter 2 digit value",
   pinCode: "Invalid pincode format",
   alphaNumeric: "Please enter alphanumeric characters",
+  validAddress : "Invalid address format"
+};
+
+export const checkTokenExpired = (message, response,setErrState,dispatch,removeStore,navigate) => {
+  if (message === "Request failed with status code 401") {
+    setErrState(false, "Token expired, please log in again.", true, "error");
+    return setTimeout(() => {
+      dispatch(removeStore({}));
+      navigate("/");
+    }, 500);
+  } else {
+    setErrState(false, response.payload.response.data.message, true, "error");
+  }
 };
 
 export const capitalize = (str) => {

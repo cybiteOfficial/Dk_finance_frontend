@@ -4,7 +4,7 @@
 import axios from "axios";
 import mockCustomers from "../../../mocks/customers.json";
 // Define your base API URL
-const baseURL = "http://15.206.203.204/api/v1";
+const baseURL = "http://13.232.141.127/api/v1";
 const getAllAplicants = "/applicants/";
 const updateCustomer = "/customers";  
 const  getLoanEndpoint = "/loan_details";
@@ -205,15 +205,47 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    const { bodyFormData, token } = payload;
+    const { bodyFormData, token ,api} = payload;
+   
     try {
-      const response = await api.post(
-        `${baseURL}${uploadDocument}`,
-        bodyFormData,
-        formHeaders(token)
-      );
-      // Return the response data
+      if (api === "post") {
+        var response = await axios.post(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        return response.data;
+      } else if (api === "put") {
+        var response = await axios.put(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      } else {
+        return;
+      }
       return response.data;
+      // Return the response data
+    } catch (error) {
+      // If an error occurs, throw it or handle it as needed
+    }
+  },
+
+  deleteDocumentDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
+   
+    try {
+      
+      const response = await axios.delete(
+        `${baseURL}${uploadDocument}`,
+        {
+          data: bodyFormData,
+          headers: formHeaders(token).headers
+        }
+      );
+     
+      return response.data;
+      // Return the response data
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
     }

@@ -33,6 +33,7 @@ const Collateral = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+
     async function fetchData() {
       fetchCollateralDataApi();
     }
@@ -416,6 +417,15 @@ const Collateral = () => {
 
         <TextField
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           label="Estimated Property Value"
           fullWidth
           margin="normal"
@@ -480,7 +490,12 @@ const Collateral = () => {
             onChange={handleInputChange}
           />
         )}
-        <Button variant="contained" fullWidth onClick={handleSave}>
+        <Button
+          disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+          variant="contained"
+          fullWidth
+          onClick={handleSave}
+        >
           Save
         </Button>
       </Box>

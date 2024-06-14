@@ -1,13 +1,13 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowBack } from "@mui/icons-material";
-import { Button, Box, Typography, Grid, TextField, Input,IconButton } from "@mui/material";
+import { Button, Box, Typography, Grid, TextField, Input, IconButton, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
-import { extractFileName, logFormData } from "../components/Common";
-import { fetchPhotographDataThunk, updateDocumentDataThunk, updatePhotographDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import { checkTokenExpired, extractFileName, logFormData } from "../components/Common";
+import { deleteDocumentDataThunk, fetchPhotographDataThunk, removeStore, updateDocumentDataThunk, updatePhotographDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
 
 const PhotoUpload = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const PhotoUpload = () => {
 
   useEffect(() => {
     async function fetchData() {
-     fetchPhotographDataApi()
+      fetchPhotographDataApi();
     }
     fetchData();
     return () => {
@@ -24,38 +24,49 @@ const PhotoUpload = () => {
   }, []);
 
   const token = useSelector((state) => state.authReducer.access_token);
-  const {appId} = useSelector((state) => state.authReducer);
+  const { appId } = useSelector((state) => state.authReducer);
   const dashboardReducer = useSelector((state) => state.dashboardReducer);
 
-  const [data,setData]=useState({
-    description:"",
-    comment:""
-  })
-  const[isRemarks,setIsRemarks]=useState(false)
-  const [files,setFiles]= useState([])
+  const [data, setData] = useState({
+    description: "",
+    comment: ""
+  });
+  const [isRemarks, setIsRemarks] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [prevFiles, setPrevFiles] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
     openSnack: false,
     severity: "",
   });
+  const [prevKeyValuePairs, setPrevKeyValuePairs] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
   };
+
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
 
-  const handleDeleteKeyValuePair = (index) => {
+  const handleDeleteKeyValuePair = (index, uuid) => {
     const updatedPairs = [...files];
+    const updatedPrevFiles = [...prevFiles];
     updatedPairs.splice(index, 1);
+    updatedPrevFiles.splice(index, 1);
     setFiles(updatedPairs);
+    setPrevFiles(updatedPrevFiles);
+    handleDeleteApi(uuid);
   };
 
   const handleTextFieldChange = (e) => {
     if (e.target.files[0]) {
+      const objectURL = URL.createObjectURL(e.target.files[0]);
+      setPrevFiles([...prevFiles, objectURL]);
       setFiles([...files, e.target.files[0]]);
     }
   };
@@ -64,11 +75,11 @@ const PhotoUpload = () => {
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
         file: extractFileName(item.file),
+        uuid: item.uuid
       };
     });
 
@@ -79,26 +90,63 @@ const PhotoUpload = () => {
 
     setData(data);
     setFiles(keyValuePairs);
+    const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    setPrevKeyValuePairs(deepCopyKeyValuePairs);
   };
 
+  const handleDeleteApi = async (uuid) => {
+    if (uuid) {
+      setLoadingStates(true);
+      const bodyFormData = new FormData();
+      bodyFormData.append("document_uuid", uuid);
+      const payload = { bodyFormData, token };
+
+      try {
+        const response = await dispatch(deleteDocumentDataThunk(payload));
+
+        const { error, message, code } = response.payload;
+        if (code) {
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
+          );
+        } else if (error) {
+          setLoadingStates(false);
+          return setErrState(false, message, true, "error");
+        } else {
+          setLoadingStates(false);
+          setErrState(false, message, true, "success");
+        }
+      } catch (error) {
+        setLoadingStates(false);
+        console.error("error: ", error);
+      }
+    }
+  };
 
   const fetchPhotographDataApi = async () => {
-    const payload = {application_id:appId,token}
+    const payload = { application_id: appId, token };
     try {
       setErrState(true, "", false, "");
       const response = await dispatch(fetchPhotographDataThunk(payload));
-      const { data, error, message,code } = response.payload;
+      const { data, error, message, code } = response.payload;
       if (code) {
-        return setErrState(
-          false,
-          response.payload.response.data.message,
-          true,
-          "error"
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
         );
       } else if (error) {
         return setErrState(false, message, true, "error");
       }
-      
+
       if (data && data.length > 0) {
         handleExtractFormValues(data);
         setErrState(false, "", false, "success");
@@ -112,41 +160,51 @@ const PhotoUpload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isRemarks) {
-      if (!data.comment.trim()) {
+      if (!data?.comment.trim()) {
         setErrState(false, "Please add a remark", true, "warning");
         return;
       }
 
-
+      const prevLength = prevKeyValuePairs.length;
+      const currentLength = files.length;
       const bodyFormData = new FormData();
+      if (currentLength > prevLength) {
+        const newItems = files.slice(prevLength);
+        bodyFormData.append("document_type", "photos");
+        bodyFormData.append("application_id", appId);
+        newItems.forEach((item, index) => {
+          const file = files[prevLength + index]; // Get the corresponding file
+          if (file) {
+            bodyFormData.append('file', file);
+          }
+        });
 
-      bodyFormData.append("document_type", "photos");
-      bodyFormData.append("applicant_id", appId);
-      bodyFormData.append("documents", files);
+        logFormData(bodyFormData);
+        const payload = { bodyFormData, token };
+        try {
+          const response = await dispatch(updatePhotographDataThunk(payload));
 
-      logFormData(bodyFormData);
-      const payload = { bodyFormData, token };
-      try {
-        const response = await dispatch(updatePhotographDataThunk(payload));
-
-        const { error, message, code } = response.payload;
-        if (code) {
-          return setErrState(
-            false,
-            response.payload.response.data.message,
-            true,
-            "error"
-          );
-        } else if (error) {
-          return setErrState(false, message, true, "error");
-        } else {
+          const { error, message, code } = response.payload;
+          if (code) {
+            checkTokenExpired(
+              message,
+              response,
+              setErrState,
+              dispatch,
+              removeStore,
+              navigate
+            );
+          } else if (error) {
+            return setErrState(false, message, true, "error");
+          } else {
+            setIsRemarks(false);
+            setErrState(false, message, true, "success");
+            // navigate("/applicant/customers");
+          }
+        } catch (error) {
           setIsRemarks(false);
-          setErrState(false, message, true, "success");
-          // navigate("/applicant/customers");
+          console.error("error: ", error);
         }
-      } catch (error) {
-        setIsRemarks(false);
-        console.error("error: ", error);
       }
     } else {
       setErrState(false, "Please add a remark", true, "warning");
@@ -154,6 +212,7 @@ const PhotoUpload = () => {
       return;
     }
   };
+
   const handleCloseToast = () => {
     setErrState(false, "", false, ""); // Resetting the error state to close the toast
   };
@@ -193,8 +252,8 @@ const PhotoUpload = () => {
               <Box ml={"auto"}>
                 <Input
                   type="file"
-                  accept="image/*"
-                  onChange={(e) => handleTextFieldChange(e)}
+                  accept="image/*,application/pdf"
+                  onChange={handleTextFieldChange}
                   style={{ display: "none" }}
                   id="file"
                 />
@@ -224,23 +283,27 @@ const PhotoUpload = () => {
               <Grid
                 item
                 xs={3}
+                key={index}
                 style={{
                   display: "flex",
                   alignItems: "center",
                 }}
               >
                 <Grid item xs={10}>
-                  <TextField
-                    fullWidth
-                    label="Uploaded File"
-                    margin="normal"
-                    name="uploadedFile"
-                    value={item?.name}
-                  />
+                  {typeof item === "string" ? (
+                    <Typography>{item}</Typography>
+                  ) : (
+                    <img
+                      src={prevFiles[index]}
+                      alt={"preview"}
+                      style={{ width: "200px", height: "100px" }}
+                    />
+                  )}
                 </Grid>
                 <Grid item xs={2}>
-                  <IconButton onClick={() => handleDeleteKeyValuePair(index)}>
+                  <IconButton onClick={() => handleDeleteKeyValuePair(index, item.uuid)}>
                     <DeleteIcon />
+                    {loadingStates && <CircularProgress />}
                   </IconButton>
                 </Grid>
               </Grid>
@@ -268,6 +331,7 @@ const PhotoUpload = () => {
             />
           )}
           <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
             type="submit"
@@ -279,6 +343,6 @@ const PhotoUpload = () => {
       </Box>
     </>
   );
-}
+};
 
-export default PhotoUpload
+export default PhotoUpload;

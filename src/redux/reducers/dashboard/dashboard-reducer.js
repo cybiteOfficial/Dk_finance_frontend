@@ -119,6 +119,13 @@ export const updateDocumentDataThunk = createAsyncThunk(
     return response;
   }
 );
+export const deleteDocumentDataThunk = createAsyncThunk(
+  "/deleteDocumentData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.deleteDocumentDataApi(payload);
+    return response;
+  }
+);
 export const updatePhotographDataThunk = createAsyncThunk(
   "/updatePhotographData",
   async (payload, thunkAPI) => {
@@ -177,7 +184,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
     },
 
-    removeStore(state) {
+    removeStore(state,action) {
       state.applicantData = [];
       state.customerDetails = [];
       state.loanDetails = [];
@@ -187,6 +194,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
       state.selectedCustomer = "";
       state.selectedCustomerData = "";
+      state.allCustomers=[]
     },
   },
   extraReducers: (builder) => {
