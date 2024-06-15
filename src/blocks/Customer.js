@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Typography, Box, Button, Paper, Grid,  Pagination,Stack } from "@mui/material";
-import Chip from "@mui/material/Chip";
+import PDFGenerator from '../components/PDFgenerator'; // Adjust path as necessary
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { StyledTypography } from "../components/Common";
+import {pdf } from '@react-pdf/renderer';
+import { StyledTypography, pdfData } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
-import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fileForwardedThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
+import { saveAs } from "file-saver";
+import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fetchPdfDataThunk,fileForwardedThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
+import MyDocument from "../components/MyDocument";
 
 // Import JSON data using require()
 const jsonData = require("../mocks/customers.json");
@@ -15,7 +18,7 @@ const jsonData = require("../mocks/customers.json");
 export const Customers = () => {
   const token = useSelector((state) => state.authReducer.access_token);
   const { appId } = useSelector((state) => state.authReducer);
-  const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
+  const { customerDetails,applicantData,pdfDetails} = useSelector((state) => state.dashboardReducer);
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
@@ -148,31 +151,59 @@ export const Customers = () => {
     }
   };
 
+  const downloadPdf = async () => {
+    const fileName = "loan.pdf";
+    const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
+    saveAs(blob, fileName);
+  };
   
   const updateStatusDataApi = async () => {
-    const bodyFormData = new FormData();
-    bodyFormData.append("applications_ids", JSON.stringify([appId]));
-    const payload = { bodyFormData, token };
-    try {
-      setErrState(true, "", false, "");
-      const response = await dispatch(fileForwardedThunk(payload));
-      const { error, message, code } = response.payload;
-      if (code) {
-        return setErrState(
-          false,
-          response.payload.response.data.message,
-          true,
-          "error"
-        );
-      }else{
-        getApplicantsApi();
-        setErrState(false, message, true, "success");
+    if (applicantData[0]?.status === "cluster") {
+   
+   
+      const payload = { appId, token };
+      try {
+        setErrState(true, "", false, "");
+        const response = await dispatch(fetchPdfDataThunk(payload));
+        const { error, message, code } = response.payload;
+        if (code) {
+          return setErrState(
+            false,
+            response.payload.response.data.message,
+            true,
+            "error"
+          );
+        } else {
+          downloadPdf();
+          setErrState(false, message, true, "success");
+        }
+      } catch (error) {
+        setErrState(false, "", false, "success");
+        console.error("error: ", error);
       }
-     
-    } catch (error) {
-     
-      setErrState(false, "", false, "success");
-      console.error("error: ", error);
+    } else {
+      const bodyFormData = new FormData();
+      bodyFormData.append("applications_ids", JSON.stringify([appId]));
+      const payload = { bodyFormData, token };
+      try {
+        setErrState(true, "", false, "");
+        const response = await dispatch(fileForwardedThunk(payload));
+        const { error, message, code } = response.payload;
+        if (code) {
+          return setErrState(
+            false,
+            response.payload.response.data.message,
+            true,
+            "error"
+          );
+        } else {
+          getApplicantsApi();
+          setErrState(false, message, true, "success");
+        }
+      } catch (error) {
+        setErrState(false, "", false, "success");
+        console.error("error: ", error);
+      }
     }
   };
 
@@ -187,6 +218,9 @@ export const Customers = () => {
   const handleCloseToast = () => {
     setErrState(false, "", false, ""); // Resetting the error state to close the toast
   };
+
+
+
   return (
     <>
       <SnackToast
@@ -209,22 +243,34 @@ export const Customers = () => {
           <StyledTypography variant="subtitle1" weight={700}>
             Application ID: {appId}
           </StyledTypography>
+          {applicantData[0]?.status === "sanctioned" && (
+            <PDFGenerator data={pdfData} />
+          )}
 
-        {customerDetails.length > 0 &&  <Button
-            disabled={
-              applicantData[0]?.status === "cluster" ||
-              process.env.REACT_APP_DISABLED === "TRUE"
-            }
-            onClick={updateStatusDataApi}
-            variant="outlined"
-            style={{ marginBottom: 20, marginLeft: "auto" }}
-          >
-            {applicantData[0]?.status === "md_phase"
-              ? "Sanction"
-              : applicantData[0]?.status === "cluster"
-              ? "Approved"
-              :  "Forward" }
-          </Button>}
+          {customerDetails.length > 0 && (
+            <Button
+              disabled={
+                applicantData[0]?.status === "sanctioned" || err.loading || process.env.REACT_APP_DISABLED === "TRUE"
+              }
+              onClick={updateStatusDataApi}
+              variant="outlined"
+              style={{ marginBottom: 20, marginLeft: "auto" }}
+            >
+              {applicantData[0]?.status === "ro_phase"
+                ? "Move to DO"
+                : applicantData[0]?.status === "do_phase"
+                ? "Move to Technical Officer"
+                : applicantData[0]?.status === "technicalofficer"
+                ? "Move to Branch Manager"
+                : applicantData[0]?.status === "bm_phase"
+                ? "Move to Credit Manager"
+                : applicantData[0]?.status === "cluster"
+                ? "Sanction"
+                : applicantData[0]?.status === "sanctioned"
+                ? "Sanctioned"
+                : ""}
+            </Button>
+          )}
         </Box>
 
         <Box>
@@ -358,7 +404,6 @@ export const Customers = () => {
           <Grid item xs={2}>
             <Typography variant="subtitle1">Role</Typography>
           </Grid>
-        
         </Grid>
         <div>
           {customerDetails &&
@@ -400,7 +445,6 @@ export const Customers = () => {
                     {item.role}
                   </Typography>
                 </Grid>
-                
               </Grid>
             ))}
         </div>

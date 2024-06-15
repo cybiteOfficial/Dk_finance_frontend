@@ -11,7 +11,8 @@ const  getLoanEndpoint = "/loan_details";
 const uploadDocument ="/upload_document";
 const getCollateral = "/collateral_details"
 const getCafDetail = "/caf_detail"
-const updateStatus = '/update_status'
+const updateStatus = '/update_status';
+const printDocument="/print_document"
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -59,6 +60,17 @@ export const dashboardAPI = {
     const { customer_id, token } = payload;
     try {
       const url = `${baseURL}${updateCustomer}?customer_id=${customer_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+  fetchPdfDataApi: async (payload) => {
+    const { appId, token } = payload;
+    try {
+      const url = `${baseURL}${printDocument}?application_id=${appId}`;
       const response = await api.get(`${url}`, simpleHeaders(token));
 
       return response.data;
