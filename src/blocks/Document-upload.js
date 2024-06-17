@@ -52,6 +52,10 @@ const DocumentUpload = () => {
     description: "",
     comment: "",
   });
+  const [prevData, setPrevData] = useState({
+    description: "",
+    comment: "",
+  });
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -86,7 +90,7 @@ const DocumentUpload = () => {
       updatedPairs[index].document_name = value;
       if (prevkeyValuePairs[index]?.document_name !== value) {
         updateItems[updateItemIndex].document_name = value;
-        updateItems[updateItemIndex].file_updated = false;
+        updateItems[updateItemIndex].file_updated = "false";
       } else {
         delete updateItems[updateItemIndex].document_name;
       }
@@ -94,7 +98,7 @@ const DocumentUpload = () => {
       updatedPairs[index].document_id = value;
       if (prevkeyValuePairs[index]?.document_id !== value) {
         updateItems[updateItemIndex].document_id = value;
-        updateItems[updateItemIndex].file_updated = false;
+        updateItems[updateItemIndex].file_updated = "false";
       } else {
         delete updateItems[updateItemIndex].document_id;
       }
@@ -104,11 +108,11 @@ const DocumentUpload = () => {
 
       // Check if the file selection is the same as the previous one
       if (value?.name === prevkeyValuePairs[index]?.fileName) {
-        updateItems[updateItemIndex].file_updated = false;
+        updateItems[updateItemIndex].file_updated = "false";
       } else {
         updatedPairs[index].fileName = value?.name; // Update fileName in keyValuePairs
         attachMents[index] = value; // Update attachments
-        updateItems[updateItemIndex].file_updated = true;
+        updateItems[updateItemIndex].file_updated = "true";
       }
       // Handle image preview using createObjectURL
       if (value && value.type.startsWith('image/')) {
@@ -172,7 +176,9 @@ const DocumentUpload = () => {
     setData(data);
     setKeyValuePairs(keyValuePairs);
     const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    const deepCopyData = JSON.stringify(data);
     setprevKeyValuePairs(deepCopyKeyValuePairs);
+    setPrevData(deepCopyData)
   };
    
   const handleDeleteApi = async (uuid) => {
@@ -241,7 +247,7 @@ const DocumentUpload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isRemarks) {
-      if (!data.comment.trim()) {
+      if (!data.comment?.trim()) {
         setErrState(false, "Please add a remark", true, "warning");
         return;
       }
@@ -254,13 +260,21 @@ const DocumentUpload = () => {
       });
     const isNew =  prevkeyValuePairs.length < keyValuePairs.length
   
-    const api = updateItem.length > 0  && isNew===false? "put": isNew && "post"
+    var api = updateItem.length > 0  && isNew===false? "put": isNew && "post";
 
-      const bodyFormData = new FormData();
+    let filteredData;
+    if (api === "post") {
+      filteredData = updateItem.map(({ file_updated, ...rest }) => rest);
+    } else {
+      filteredData = updateItem;
+    }
+
+    const bodyFormData = new FormData();
+    if (api === "put" || api === "post") {
       bodyFormData.append(
         "documents",
         updateItem.length > 0
-          ? JSON.stringify(updateItem)
+          ? JSON.stringify(filteredData)
           : JSON.stringify(modifiedKeyValuePairs)
       );
       bodyFormData.append("document_type", "other");
@@ -268,9 +282,31 @@ const DocumentUpload = () => {
         bodyFormData.append("file", file);
       });
       bodyFormData.append("application_id", appId);
-     
+      bodyFormData.append("comment", data.comment);
+      bodyFormData.append("description", data.description);
+    } 
+    // else if (api === false) {
+    //   console.log("false");
+    //   if(data.comment==="" || data.description===""){
+    //     bodyFormData.append("application_id", appId);
+    //     bodyFormData.append("comment", data.comment);
+    //     bodyFormData.append("description", data.description);
+    //     api="post"
+    //   }else{
+    //     if (
+    //       data.comment !== prevData.comment ||
+    //       data.description !== prevData.description
+    //     ) {
+    //       api = "put";
+    //     } else {
+    //       api = "";
+    //     }
+    //   }
+    // }
+      
 
       logFormData(bodyFormData);
+
       const payload = { bodyFormData, token,api };
       try {
         const response = await dispatch(updateDocumentDataThunk(payload));
@@ -287,7 +323,7 @@ const DocumentUpload = () => {
             navigate
           );
         } else if (error) {
-          setUpdateItem([])
+        
           return setErrState(false, message, true, "error");
         } else {
           setIsRemarks(false);
@@ -296,7 +332,7 @@ const DocumentUpload = () => {
           navigate("/applicant/customers");
         }
       } catch (error) {
-        setUpdateItem([])
+        
         setIsRemarks(false);
         console.error("error: ", error);
       } 

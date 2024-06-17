@@ -217,6 +217,7 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
+    console.log('payload: ', payload);
     const { bodyFormData, token ,api} = payload;
    
     try {

@@ -78,7 +78,7 @@ const PhotoUpload = () => {
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
-        file: extractFileName(item.file),
+        file: item.file,
         uuid: item.uuid
       };
     });
@@ -92,6 +92,7 @@ const PhotoUpload = () => {
     setFiles(keyValuePairs);
     const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
     setPrevKeyValuePairs(deepCopyKeyValuePairs);
+    setPrevFiles(deepCopyKeyValuePairs);
   };
 
   const handleDeleteApi = async (uuid) => {
@@ -171,6 +172,8 @@ const PhotoUpload = () => {
       if (currentLength > prevLength) {
         const newItems = files.slice(prevLength);
         bodyFormData.append("document_type", "photos");
+        bodyFormData.append("description", data.description);
+        bodyFormData.append("comment", data.comment);
         bodyFormData.append("application_id", appId);
         newItems.forEach((item, index) => {
           const file = files[prevLength + index]; // Get the corresponding file
@@ -279,8 +282,10 @@ const PhotoUpload = () => {
               gap: "1rem",
             }}
           >
-            {files?.map((item, index) => (
-              <Grid
+            {files?.map((item, index) => {
+             
+              return (
+                <Grid
                 item
                 xs={3}
                 key={index}
@@ -290,8 +295,12 @@ const PhotoUpload = () => {
                 }}
               >
                 <Grid item xs={10}>
-                  {typeof item === "string" ? (
-                    <Typography>{item}</Typography>
+                  {typeof item.file === "string" ? (
+                    <img
+                      src={item.file}
+                      alt={"preview"}
+                      style={{ width: "200px", height: "100px" }}
+                    />
                   ) : (
                     <img
                       src={prevFiles[index]}
@@ -301,13 +310,16 @@ const PhotoUpload = () => {
                   )}
                 </Grid>
                 <Grid item xs={2}>
-                  <IconButton onClick={() => handleDeleteKeyValuePair(index, item.uuid)}>
+                  <IconButton
+                    onClick={() => handleDeleteKeyValuePair(index, item.uuid)}
+                  >
                     <DeleteIcon />
                     {loadingStates && <CircularProgress />}
                   </IconButton>
                 </Grid>
               </Grid>
-            ))}
+              )
+            })}
           </Grid>
 
           <TextField

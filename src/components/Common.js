@@ -67,13 +67,21 @@ export const logFormData = (bodyFormData) => {
     console.log(`${key}: ${value}`);
   }
 };
-
+export const isImage = (file) => {
+  return (
+    file.endsWith(".png") ||
+    file.endsWith(".jpg") ||
+    file.endsWith(".jpeg") ||
+    file.endsWith(".gif")
+  );
+};
 export const extractFileName = (url) => {
   if (url) {
     const pathname = new URL(url).pathname;
 
     // Using string manipulation to extract the filename with extension
     const filenameWithExtension = pathname.split("/").pop();
+    console.log('filenameWithExtension: ', filenameWithExtension);
     return filenameWithExtension;
   } else {
     return "";
