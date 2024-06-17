@@ -189,6 +189,7 @@ const CustomerForm = () => {
     permanent: {},
   });
 
+
   useEffect(() => {
     if (permanentAddressSameAsCurrent) {
       setAddressFields((prevState) => ({

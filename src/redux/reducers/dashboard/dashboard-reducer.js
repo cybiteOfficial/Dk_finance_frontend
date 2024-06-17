@@ -13,6 +13,7 @@ const initialState = {
   allCustomers:[],
   selectedCustomer: {},
   selectedCustomerData: {},
+  pdfDetails:[]
 };
 
 export const fetchApplicantDataThunk = createAsyncThunk(
@@ -42,7 +43,15 @@ export const fetchCustomersByApplicantIdDataThunk = createAsyncThunk(
     return response;
   }
 );
-
+export const fetchPdfDataThunk = createAsyncThunk(
+  "/fetchPdfData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.fetchPdfDataApi(
+      payload
+    );
+    return response;
+  }
+);
 export const fetchAllCustomersByApplicantIdDataThunk = createAsyncThunk(
   "/fetchAllCustomersByApplicantIdData",
   async (payload, thunkAPI) => {
@@ -259,6 +268,9 @@ const dashboardSlice = createSlice({
     });
     builder.addCase(fetchPhotographDataThunk.fulfilled, (state, action) => {
       state.photographDetails = action.payload.data;
+    });
+    builder.addCase(fetchPdfDataThunk.fulfilled, (state, action) => {
+      state.pdfDetails = action.payload.data;
     });
   },
 });

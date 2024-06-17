@@ -31,6 +31,10 @@ const PhotoUpload = () => {
     description: "",
     comment: ""
   });
+  const [prevData, setPrevData] = useState({
+    description: "",
+    comment: "",
+  });
   const [isRemarks, setIsRemarks] = useState(false);
   const [files, setFiles] = useState([]);
   const [prevFiles, setPrevFiles] = useState([]);
@@ -78,7 +82,7 @@ const PhotoUpload = () => {
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
-        file: extractFileName(item.file),
+        file: item.file,
         uuid: item.uuid
       };
     });
@@ -91,7 +95,10 @@ const PhotoUpload = () => {
     setData(data);
     setFiles(keyValuePairs);
     const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    const deepCopyData ={...data}
     setPrevKeyValuePairs(deepCopyKeyValuePairs);
+    setPrevFiles(deepCopyKeyValuePairs);
+    setPrevData(deepCopyData)
   };
 
   const handleDeleteApi = async (uuid) => {
@@ -164,47 +171,61 @@ const PhotoUpload = () => {
         setErrState(false, "Please add a remark", true, "warning");
         return;
       }
-
+      let api;
+      const isOnlyDescriptionOrCommentChanged =
+        data.comment !== prevData.comment ||
+        
+        data.description !== prevData.description;
+     
       const prevLength = prevKeyValuePairs.length;
       const currentLength = files.length;
+
       const bodyFormData = new FormData();
       if (currentLength > prevLength) {
         const newItems = files.slice(prevLength);
         bodyFormData.append("document_type", "photos");
+        bodyFormData.append("description", data.description);
+        bodyFormData.append("comment", data.comment);
         bodyFormData.append("application_id", appId);
         newItems.forEach((item, index) => {
           const file = files[prevLength + index]; // Get the corresponding file
           if (file) {
-            bodyFormData.append('file', file);
+            bodyFormData.append("file", file);
           }
         });
 
-        logFormData(bodyFormData);
-        const payload = { bodyFormData, token };
-        try {
-          const response = await dispatch(updatePhotographDataThunk(payload));
+       api="post"
+      } else if (isOnlyDescriptionOrCommentChanged) {
+        bodyFormData.append("application_id", appId);
+        bodyFormData.append("comment", data.comment);
+        bodyFormData.append("description", data.description);
+        api = "put";
+      }
+      logFormData(bodyFormData);
+      const payload = { bodyFormData, token ,api};
+      try {
+        const response = await dispatch(updatePhotographDataThunk(payload));
 
-          const { error, message, code } = response.payload;
-          if (code) {
-            checkTokenExpired(
-              message,
-              response,
-              setErrState,
-              dispatch,
-              removeStore,
-              navigate
-            );
-          } else if (error) {
-            return setErrState(false, message, true, "error");
-          } else {
-            setIsRemarks(false);
-            setErrState(false, message, true, "success");
-            // navigate("/applicant/customers");
-          }
-        } catch (error) {
+        const { error, message, code } = response.payload;
+        if (code) {
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
+          );
+        } else if (error) {
+          return setErrState(false, message, true, "error");
+        } else {
           setIsRemarks(false);
-          console.error("error: ", error);
+          setErrState(false, message, true, "success");
+          // navigate("/applicant/customers");
         }
+      } catch (error) {
+        setIsRemarks(false);
+        console.error("error: ", error);
       }
     } else {
       setErrState(false, "Please add a remark", true, "warning");
@@ -271,6 +292,7 @@ const PhotoUpload = () => {
               </Box>
             </Grid>
           </Grid>
+          {loadingStates && <CircularProgress />}
           <Grid
             container
             style={{
@@ -279,8 +301,10 @@ const PhotoUpload = () => {
               gap: "1rem",
             }}
           >
-            {files?.map((item, index) => (
-              <Grid
+            {files?.map((item, index) => {
+             
+              return (
+                <Grid
                 item
                 xs={3}
                 key={index}
@@ -290,8 +314,12 @@ const PhotoUpload = () => {
                 }}
               >
                 <Grid item xs={10}>
-                  {typeof item === "string" ? (
-                    <Typography>{item}</Typography>
+                  {typeof item.file === "string" ? (
+                    <img
+                      src={item.file}
+                      alt={"preview"}
+                      style={{ width: "200px", height: "100px" }}
+                    />
                   ) : (
                     <img
                       src={prevFiles[index]}
@@ -301,13 +329,16 @@ const PhotoUpload = () => {
                   )}
                 </Grid>
                 <Grid item xs={2}>
-                  <IconButton onClick={() => handleDeleteKeyValuePair(index, item.uuid)}>
+                  <IconButton
+                    onClick={() => handleDeleteKeyValuePair(index, item.uuid)}
+                  >
                     <DeleteIcon />
-                    {loadingStates && <CircularProgress />}
+                    
                   </IconButton>
                 </Grid>
               </Grid>
-            ))}
+              )
+            })}
           </Grid>
 
           <TextField

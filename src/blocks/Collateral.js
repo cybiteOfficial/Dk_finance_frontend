@@ -11,10 +11,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
 
@@ -23,7 +24,7 @@ import {
   removeCollateral,
   updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
-import { logFormData } from "../components/Common";
+import { extractFileName, isImage, logFormData } from "../components/Common";
 
 const Collateral = () => {
   const token = useSelector((state) => state.authReducer.access_token);
@@ -100,6 +101,7 @@ const Collateral = () => {
         updatedFormValues[key] = "";
       }
     }
+   
     setCollateralDetails(updatedFormValues);
   };
 
@@ -438,18 +440,47 @@ const Collateral = () => {
             label="Document Name"
             margin="normal"
             name="documentName"
-            value={collateralDetails.documentName}
+            value={collateralDetails.documentName || extractFileName(collateralDetails.documentUpload)}
             onChange={handleInputChange}
             style={{ width: "33%" }}
           />
-          <TextField
-            label="Uploaded File"
-            margin="normal"
-            name="uploadedFile"
-            value={collateralDetails.uploadedFile}
-            onChange={handleInputChange}
-            style={{ width: "33%" }}
-          />
+
+          {typeof collateralDetails.documentUpload === "string" &&
+          isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <img
+              src={collateralDetails.documentUpload}
+              alt={"preview"}
+              style={{ width: "200px", height: "100px" }}
+            />
+          ) : typeof collateralDetails.documentUpload === "string" &&
+            !isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <div
+              style={{
+                border: "1px solid #ccc",
+                padding: "10px",
+                textAlign: "center",
+              }}
+            >
+              <p>{extractFileName(collateralDetails.documentUpload)}</p>
+              <IconButton
+                href={collateralDetails.documentUpload}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <GetAppIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <TextField
+              label="Uploaded File"
+              margin="normal"
+              name="uploadedFile"
+              value={collateralDetails.uploadedFile}
+              onChange={handleInputChange}
+              style={{ width: "33%" }}
+            />
+          )}
+
           <Box width={"33%"}>
             <Input
               type="file"

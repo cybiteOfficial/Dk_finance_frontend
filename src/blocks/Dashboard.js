@@ -268,12 +268,12 @@ const DashboardPage = () => {
 
                         <Grid item xs={2}>
                           <StyledTypography variant="body2" weight={600}>
-                            {item.ro_name}
+                            {item?.created_by.ro_name}
                           </StyledTypography>
                         </Grid>
                         <Grid item xs={2}>
                           <StyledTypography variant="body2" weight={600}>
-                            {item.employee_id}
+                            {item?.created_by.employee_id}
                           </StyledTypography>
                         </Grid>
                       
