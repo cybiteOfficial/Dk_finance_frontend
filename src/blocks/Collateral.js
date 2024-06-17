@@ -440,7 +440,7 @@ const Collateral = () => {
             label="Document Name"
             margin="normal"
             name="documentName"
-            value={collateralDetails.documentName}
+            value={collateralDetails.documentName || extractFileName(collateralDetails.documentUpload)}
             onChange={handleInputChange}
             style={{ width: "33%" }}
           />

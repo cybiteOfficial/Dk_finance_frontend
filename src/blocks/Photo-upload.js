@@ -31,6 +31,10 @@ const PhotoUpload = () => {
     description: "",
     comment: ""
   });
+  const [prevData, setPrevData] = useState({
+    description: "",
+    comment: "",
+  });
   const [isRemarks, setIsRemarks] = useState(false);
   const [files, setFiles] = useState([]);
   const [prevFiles, setPrevFiles] = useState([]);
@@ -91,8 +95,10 @@ const PhotoUpload = () => {
     setData(data);
     setFiles(keyValuePairs);
     const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    const deepCopyData ={...data}
     setPrevKeyValuePairs(deepCopyKeyValuePairs);
     setPrevFiles(deepCopyKeyValuePairs);
+    setPrevData(deepCopyData)
   };
 
   const handleDeleteApi = async (uuid) => {
@@ -165,9 +171,15 @@ const PhotoUpload = () => {
         setErrState(false, "Please add a remark", true, "warning");
         return;
       }
-
+      let api;
+      const isOnlyDescriptionOrCommentChanged =
+        data.comment !== prevData.comment ||
+        
+        data.description !== prevData.description;
+     
       const prevLength = prevKeyValuePairs.length;
       const currentLength = files.length;
+
       const bodyFormData = new FormData();
       if (currentLength > prevLength) {
         const newItems = files.slice(prevLength);
@@ -178,36 +190,42 @@ const PhotoUpload = () => {
         newItems.forEach((item, index) => {
           const file = files[prevLength + index]; // Get the corresponding file
           if (file) {
-            bodyFormData.append('file', file);
+            bodyFormData.append("file", file);
           }
         });
 
-        logFormData(bodyFormData);
-        const payload = { bodyFormData, token };
-        try {
-          const response = await dispatch(updatePhotographDataThunk(payload));
+       api="post"
+      } else if (isOnlyDescriptionOrCommentChanged) {
+        bodyFormData.append("application_id", appId);
+        bodyFormData.append("comment", data.comment);
+        bodyFormData.append("description", data.description);
+        api = "put";
+      }
+      logFormData(bodyFormData);
+      const payload = { bodyFormData, token ,api};
+      try {
+        const response = await dispatch(updatePhotographDataThunk(payload));
 
-          const { error, message, code } = response.payload;
-          if (code) {
-            checkTokenExpired(
-              message,
-              response,
-              setErrState,
-              dispatch,
-              removeStore,
-              navigate
-            );
-          } else if (error) {
-            return setErrState(false, message, true, "error");
-          } else {
-            setIsRemarks(false);
-            setErrState(false, message, true, "success");
-            // navigate("/applicant/customers");
-          }
-        } catch (error) {
+        const { error, message, code } = response.payload;
+        if (code) {
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
+          );
+        } else if (error) {
+          return setErrState(false, message, true, "error");
+        } else {
           setIsRemarks(false);
-          console.error("error: ", error);
+          setErrState(false, message, true, "success");
+          // navigate("/applicant/customers");
         }
+      } catch (error) {
+        setIsRemarks(false);
+        console.error("error: ", error);
       }
     } else {
       setErrState(false, "Please add a remark", true, "warning");
@@ -274,6 +292,7 @@ const PhotoUpload = () => {
               </Box>
             </Grid>
           </Grid>
+          {loadingStates && <CircularProgress />}
           <Grid
             container
             style={{
@@ -314,7 +333,7 @@ const PhotoUpload = () => {
                     onClick={() => handleDeleteKeyValuePair(index, item.uuid)}
                   >
                     <DeleteIcon />
-                    {loadingStates && <CircularProgress />}
+                    
                   </IconButton>
                 </Grid>
               </Grid>

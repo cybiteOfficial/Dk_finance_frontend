@@ -10,6 +10,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,7 +22,7 @@ import {
   updateDocumentDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
-import { checkTokenExpired, extractFileName, logFormData } from "../components/Common";
+import { checkTokenExpired, extractFileName, hasExtension, isImage, logFormData } from "../components/Common";
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ const DocumentUpload = () => {
       if (value && value.type.startsWith('image/')) {
         const objectURL = URL.createObjectURL(value);
         updatedPairs[index].filePreview = objectURL;
-        console.log('Object URL:', objectURL); // Logging the URL
+     
       } else {
         updatedPairs[index].filePreview = '';
       }
@@ -261,13 +262,17 @@ const DocumentUpload = () => {
     const isNew =  prevkeyValuePairs.length < keyValuePairs.length
   
     var api = updateItem.length > 0  && isNew===false? "put": isNew && "post";
-
+console.log("files",files);
     let filteredData;
     if (api === "post") {
       filteredData = updateItem.map(({ file_updated, ...rest }) => rest);
     } else {
       filteredData = updateItem;
     }
+    // Check if only description or comment has been altered
+    const isOnlyDescriptionOrCommentChanged =
+      data.comment !== prevData.comment ||
+      data.description !== prevData.description;
 
     const bodyFormData = new FormData();
     if (api === "put" || api === "post") {
@@ -284,26 +289,18 @@ const DocumentUpload = () => {
       bodyFormData.append("application_id", appId);
       bodyFormData.append("comment", data.comment);
       bodyFormData.append("description", data.description);
-    } 
-    // else if (api === false) {
-    //   console.log("false");
-    //   if(data.comment==="" || data.description===""){
-    //     bodyFormData.append("application_id", appId);
-    //     bodyFormData.append("comment", data.comment);
-    //     bodyFormData.append("description", data.description);
-    //     api="post"
-    //   }else{
-    //     if (
-    //       data.comment !== prevData.comment ||
-    //       data.description !== prevData.description
-    //     ) {
-    //       api = "put";
-    //     } else {
-    //       api = "";
-    //     }
-    //   }
-    // }
-      
+    } else if (isOnlyDescriptionOrCommentChanged) {
+      bodyFormData.append("application_id", appId);
+      bodyFormData.append("comment", data.comment);
+      bodyFormData.append("description", data.description);
+      api = "put";
+    }
+   
+      // If no changes detected, return with a warning
+    if (!api) {
+      setErrState(false, "No changes to save", true, "warning");
+      return;
+    }
 
       logFormData(bodyFormData);
 
@@ -327,6 +324,7 @@ const DocumentUpload = () => {
           return setErrState(false, message, true, "error");
         } else {
           setIsRemarks(false);
+          setFiles([])
           setErrState(false, message, true, "success");
           setUpdateItem([])
           navigate("/applicant/customers");
@@ -369,7 +367,7 @@ const DocumentUpload = () => {
 
         <Typography variant="h5">Document Upload</Typography>
         <form>
-        <TextField
+          <TextField
             label="Description"
             fullWidth
             multiline
@@ -379,103 +377,128 @@ const DocumentUpload = () => {
             value={data.description}
             onChange={handleInputChange}
           />
-          
-
-          {keyValuePairs.map((pair, indexer) => (
-            <Grid
-              container
-              spacing={2}
-              key={indexer}
-              style={{
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Grid item xs={2}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Document name"
-                  value={pair.document_name}
-                  onChange={(e) =>
-                    handleTextFieldChange(
-                      indexer,
-                      e.target.value,
-                      "document_name"
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={2}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Document ID"
-                  value={pair.document_id}
-                  onChange={(e) =>
-                    handleTextFieldChange(
-                      indexer,
-                      e.target.value,
-                      "document_id"
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                {/* <TextField
-                  fullWidth
-                  label="Uploaded File"
-                  margin="normal"
-                  name="uploadedFile"
-                  value={pair.fileName}
-                /> */}
-              
-                  <img
-                    src={pair.filePreview}
-                    alt="Preview"
-                    style={{ width: "200px", height: "100px" }}
-                  />
-              
-              </Grid>
-              <Grid item xs={2}>
-                <Box ml={"auto"}>
-                  <Input
-                    type="file"
-                       accept="image/*"
+ {loadingStates && <CircularProgress />}
+          {keyValuePairs.map((pair, indexer) => {
+           
+            return (
+              <Grid
+                container
+                spacing={2}
+                key={indexer}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Grid item xs={2}>
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Document name"
+                    value={pair.document_name}
                     onChange={(e) =>
-                      handleTextFieldChange(indexer, e.target.files[0], "file")
+                      handleTextFieldChange(
+                        indexer,
+                        e.target.value,
+                        "document_name"
+                      )
                     }
-                    style={{ display: "none" }}
-                    id={`file-input${indexer}`}
                   />
-                  <label htmlFor={`file-input${indexer}`}>
-                    <Button
-                      fullWidth
-                      style={{ margin: "16px 0 8px 0" }}
-                      variant="outlined"
-                      component="span"
-                      startIcon={<AttachFileIcon />}
+                </Grid>
+                <Grid item xs={2}>
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Document ID"
+                    value={pair.document_id}
+                    onChange={(e) =>
+                      handleTextFieldChange(
+                        indexer,
+                        e.target.value,
+                        "document_id"
+                      )
+                    }
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  {!pair.filePreview && typeof pair.file === "string" &&
+                  isImage(extractFileName(pair.file)) ? (
+                    <img
+                      src={pair.file}
+                      alt={"preview"}
+                      style={{ width: "200px", height: "100px" }}
+                    />
+                  ) : hasExtension(pair.file) &&
+                  !pair.filePreview && typeof pair.file === "string" &&
+                    !isImage(extractFileName(pair.file)) ? (
+                    <div
+                      style={{
+                        border: "1px solid #ccc",
+                        padding: "10px",
+                        textAlign: "center",
+                      }}
                     >
-                      Choose File
-                    </Button>
-                  </label>
-                </Box>
-              </Grid>
+                      <p>{extractFileName(pair.file)}</p>
+                      <IconButton
+                        href={pair.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <GetAppIcon />
+                      </IconButton>
+                    </div>
+                  ) :
+                  <img
+                  src={pair.filePreview}
+                  alt="preview"
+                  style={{ width: "200px", height: "100px" }}
+                />
+                   }
+                </Grid>
+                <Grid item xs={2}>
+                  <Box ml={"auto"}>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleTextFieldChange(
+                          indexer,
+                          e.target.files[0],
+                          "file"
+                        )
+                      }
+                      style={{ display: "none" }}
+                      id={`file-input${indexer}`}
+                    />
+                    <label htmlFor={`file-input${indexer}`}>
+                      <Button
+                        fullWidth
+                        style={{ margin: "16px 0 8px 0" }}
+                        variant="outlined"
+                        component="span"
+                        startIcon={<AttachFileIcon />}
+                      >
+                        Choose File
+                      </Button>
+                    </label>
+                  </Box>
+                </Grid>
 
-              <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
-                <IconButton
-                  onClick={() => handleDeleteKeyValuePair(indexer, pair.uuid)}
-                >
-                  <DeleteIcon />
-                  {loadingStates  && <CircularProgress />}
-                </IconButton>
+                <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
+                  <IconButton
+                    onClick={() => handleDeleteKeyValuePair(indexer, pair.uuid)}
+                  >
+                    <DeleteIcon />
+                    {/* {loadingStates && <CircularProgress />} */}
+                  </IconButton>
+                </Grid>
               </Grid>
-            </Grid>
-          ))}
-<Button variant="contained" type="button" onClick={addKeyValuePair}>
+            );
+          })}
+          <Button variant="contained" type="button" onClick={addKeyValuePair}>
             Add More
           </Button>
-         
+
           {isRemarks && (
             <TextField
               label="Remarks"

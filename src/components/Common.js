@@ -75,13 +75,18 @@ export const isImage = (file) => {
     file.endsWith(".gif")
   );
 };
+
+export const hasExtension = (url) => {
+  const urlParts = url.split('.');
+  return urlParts.length > 1 && urlParts[urlParts.length - 1].length > 0;
+};
 export const extractFileName = (url) => {
   if (url) {
     const pathname = new URL(url).pathname;
 
     // Using string manipulation to extract the filename with extension
     const filenameWithExtension = pathname.split("/").pop();
-    console.log('filenameWithExtension: ', filenameWithExtension);
+
     return filenameWithExtension;
   } else {
     return "";

@@ -41,11 +41,12 @@ export const formHeaders = (token)=>{
 export const dashboardAPI = {
   // Function to fetch
   fetchApplicantDataApi: async (payload) => {
-
     try {
       // Make a GET request to fetch user by ID
-      const getUrl = payload.application_id ? `${baseURL}${getAllAplicants}?application_id=${payload.application_id}`:`${baseURL}${getAllAplicants}?page=${payload.page}`;
-      const url = getUrl
+      const getUrl = payload.application_id
+        ? `${baseURL}${getAllAplicants}?application_id=${payload.application_id}`
+        : `${baseURL}${getAllAplicants}?page=${payload.page}`;
+      const url = getUrl;
       const response = await axios.get(`${url}`, simpleHeaders(payload.token));
 
       // Return the response data
@@ -217,9 +218,9 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    console.log('payload: ', payload);
-    const { bodyFormData, token ,api} = payload;
    
+    const { bodyFormData, token, api } = payload;
+
     try {
       if (api === "post") {
         var response = await axios.post(
@@ -246,17 +247,13 @@ export const dashboardAPI = {
 
   deleteDocumentDataApi: async (payload) => {
     const { bodyFormData, token } = payload;
-   
+
     try {
-      
-      const response = await axios.delete(
-        `${baseURL}${uploadDocument}`,
-        {
-          data: bodyFormData,
-          headers: formHeaders(token).headers
-        }
-      );
-     
+      const response = await axios.delete(`${baseURL}${uploadDocument}`, {
+        data: bodyFormData,
+        headers: formHeaders(token).headers,
+      });
+
       return response.data;
       // Return the response data
     } catch (error) {
@@ -265,15 +262,27 @@ export const dashboardAPI = {
   },
 
   updatePhotographDataApi: async (payload) => {
-    const { bodyFormData, token } = payload;
+    const { bodyFormData, token, api } = payload;
+
     try {
-      const response = await api.post(
-        `${baseURL}${uploadDocument}`,
-        bodyFormData,
-        formHeaders(token)
-      );
-      // Return the response data
-      return response.data;
+      let response;
+      if (api === "put") {
+        response = await axios.put(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        // Return the response data
+        return response.data;
+      } else if (api === "post") {
+        response = await axios.post(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        // Return the response data
+        return response.data;
+      }
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
     }
