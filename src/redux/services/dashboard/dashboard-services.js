@@ -219,10 +219,11 @@ export const dashboardAPI = {
 
   updateDocumentDataApi: async (payload) => {
    
-    const { bodyFormData, token, api } = payload;
-
+    
+const {api}=payload;
     try {
       if (api === "post") {
+        const { bodyFormData, token } = payload;
         var response = await axios.post(
           `${baseURL}${uploadDocument}`,
           bodyFormData,
@@ -230,8 +231,9 @@ export const dashboardAPI = {
         );
         return response.data;
       } else if (api === "put") {
-        var response = await axios.put(
-          `${baseURL}${uploadDocument}`,
+        const { bodyFormData, token,query } = payload;
+         response = await axios.put(
+         `${baseURL}${uploadDocument}?document_type=${query}`,
           bodyFormData,
           formHeaders(token)
         );

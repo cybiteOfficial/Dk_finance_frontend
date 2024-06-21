@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 const PDFGenerator = ({ data }) => {
   const downloadPdf = async () => {
     const fileName = "loan.pdf";
+    console.log(data)
     const blob = await pdf(<MyDocument data={data} />).toBlob();
     saveAs(blob, fileName);
   };

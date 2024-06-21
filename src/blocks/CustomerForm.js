@@ -465,6 +465,7 @@ const CustomerForm = () => {
   };
 
   const handleRoleChange = (event, newRole) => {
+    event.preventDefault()
     if (newRole !== null) {
       setRole(newRole);
     }

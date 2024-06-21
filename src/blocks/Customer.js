@@ -19,6 +19,7 @@ export const Customers = () => {
   const token = useSelector((state) => state.authReducer.access_token);
   const { appId } = useSelector((state) => state.authReducer);
   const { customerDetails,applicantData,pdfDetails} = useSelector((state) => state.dashboardReducer);
+ 
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
@@ -152,12 +153,14 @@ export const Customers = () => {
   };
 
   const downloadPdf = async () => {
+    console.log(pdfDetails)
     const fileName = "loan.pdf";
     const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
     saveAs(blob, fileName);
   };
   
   const updateStatusDataApi = async () => {
+    console.log(pdfDetails)
     if (applicantData[0]?.status === "cluster") {
    
    

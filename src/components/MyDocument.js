@@ -38,6 +38,8 @@ const styles = StyleSheet.create({
 });
 
 const MyDocument = ({data}) => (
+ 
+
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Loan Details Section */}
@@ -239,5 +241,6 @@ const MyDocument = ({data}) => (
       ))}
     </Page>
   </Document>
+ 
 );
 export default MyDocument
