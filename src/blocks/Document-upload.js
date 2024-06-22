@@ -303,8 +303,14 @@ console.log("files",files);
     }
 
       logFormData(bodyFormData);
+      let payload;
+      let query="other";
+if(api==='post'){
+       payload= { bodyFormData, token,api };}
+       else{
+        payload={bodyFormData, token,api ,query};
+       }
 
-      const payload = { bodyFormData, token,api };
       try {
         const response = await dispatch(updateDocumentDataThunk(payload));
        
