@@ -16,13 +16,23 @@ import MyDocument from "../components/MyDocument";
 const jsonData = require("../mocks/customers.json");
 
 export const Customers = () => {
+ 
   const token = useSelector((state) => state.authReducer.access_token);
   const { appId } = useSelector((state) => state.authReducer);
-  const { customerDetails,applicantData,pdfDetails} = useSelector((state) => state.dashboardReducer);
- 
+  const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
+
+  const { pdfDetails } = useSelector((state) => state.dashboardReducer);
+console.log(appId)
+  
+//  console.log(pdfDetails.loan_details)
   const navigate = useNavigate();
   const dispatch = useDispatch()
-
+  useEffect(() => {
+    if (appId && token) {
+      dispatch(fetchPdfDataThunk({ appId, token }));
+    }
+  }, [appId, token]);
+  console.log(pdfDetails)
   const [page, setPage] = useState(1); // State to manage current page
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
@@ -126,6 +136,7 @@ export const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => getCustomersApi();
     fetchCustomers();
+    
    
   }, [page]); 
 
@@ -187,7 +198,7 @@ export const Customers = () => {
     } else {
       const bodyFormData = new FormData();
       bodyFormData.append("applications_ids", JSON.stringify([appId]));
-      const payload = { bodyFormData, token };
+      const payload = { bodyFormData, token,appId };
       try {
         setErrState(true, "", false, "");
         const response = await dispatch(fileForwardedThunk(payload));
@@ -247,17 +258,17 @@ export const Customers = () => {
             Application ID: {appId}
           </StyledTypography>
           {applicantData[0]?.status === "sanctioned" && (
-            <PDFGenerator data={pdfData} />
+            <PDFGenerator data={pdfDetails} />
           )}
 
           {customerDetails.length > 0 && (
             <Button
               disabled={
                 applicantData[0]?.status === "sanctioned" || err.loading || process.env.REACT_APP_DISABLED === "TRUE"
-              }
+         || pdfDetails.loan_details.length ===0     }
               onClick={updateStatusDataApi}
               variant="outlined"
-              style={{ marginBottom: 20, marginLeft: "auto" }}
+              style={{ marginBottom:20, marginLeft: "auto" }}
             >
               {applicantData[0]?.status === "ro_phase"
                 ? "Move to DO"
