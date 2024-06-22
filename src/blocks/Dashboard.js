@@ -226,11 +226,7 @@ const DashboardPage = () => {
                     Ro name
                   </StyledTypography>
                 </Grid>
-                <Grid item xs={2}>
-                  <StyledTypography variant="body2" weight={600}>
-                    Employee ID
-                  </StyledTypography>
-                </Grid>
+               
                 <Grid
                   item
                   xs={2}
@@ -271,11 +267,7 @@ const DashboardPage = () => {
                             {item?.created_by.ro_name}
                           </StyledTypography>
                         </Grid>
-                        <Grid item xs={2}>
-                          <StyledTypography variant="body2" weight={600}>
-                            {item?.created_by.employee_id}
-                          </StyledTypography>
-                        </Grid>
+                       
                       
                         <Grid
                           item

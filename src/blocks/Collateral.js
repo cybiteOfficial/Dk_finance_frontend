@@ -213,14 +213,7 @@ const Collateral = () => {
 
         <Typography variant="h6">Collateral Details</Typography>
         <Divider style={{ marginBottom: 10 }} />
-        <TextField
-          label="Is existing collateral (YES/No)"
-          fullWidth
-          margin="normal"
-          name="isExisting"
-          value={collateralDetails.isExisting}
-          onChange={handleInputChange}
-        />
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Collateral Type</InputLabel>
           <Select
@@ -255,14 +248,20 @@ const Collateral = () => {
           value={collateralDetails.primarySecondary}
           onChange={handleInputChange}
         />
-        <TextField
-          label="Valuation Required (YES/No)"
-          fullWidth
-          margin="normal"
-          name="valuationRequired"
-          value={collateralDetails.valuationRequired}
-          onChange={handleInputChange}
-        />
+      
+
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Valuation Required</InputLabel>
+          <Select
+            value={collateralDetails.valuationRequired}
+            onChange={handleInputChange}
+            name="valuationRequired"
+            label="Collateral Type"
+          >
+            <MenuItem value="yes">Yes</MenuItem>
+            <MenuItem value="no">No</MenuItem>
+          </Select>
+        </FormControl>
 
         <TextField
           label="Relationship With Loan (Applicant Number)"
@@ -440,7 +439,10 @@ const Collateral = () => {
             label="Document Name"
             margin="normal"
             name="documentName"
-            value={collateralDetails.documentName || extractFileName(collateralDetails.documentUpload)}
+            value={
+              collateralDetails.documentName ||
+              extractFileName(collateralDetails.documentUpload)
+            }
             onChange={handleInputChange}
             style={{ width: "33%" }}
           />
