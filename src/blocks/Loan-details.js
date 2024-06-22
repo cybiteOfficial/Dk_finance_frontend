@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import InputValidation from "../components/InputValidation";
 import { ArrowBack } from "@mui/icons-material";
 import {
   Button,
@@ -13,18 +14,19 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {fetchLoanDataThunk, removeLoan, updateLoanDataThunk} from "../redux/reducers/dashboard/dashboard-reducer"
+import {
+  fetchLoanDataThunk,
+  removeLoan,
+  updateLoanDataThunk,
+} from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
 import { StyledTypography, logFormData } from "../components/Common";
 
-
-
 const LoanDetails = () => {
   const token = useSelector((state) => state.authReducer.access_token);
-  const {appId} = useSelector((state) => state.authReducer);
+  const { appId } = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
 
   useEffect(() => {
     async function fetchData() {
@@ -36,14 +38,14 @@ const LoanDetails = () => {
     };
   }, []);
 
-  const[isRemarks,setIsRemarks]=useState(false)
+  const [isRemarks, setIsRemarks] = useState(false);
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
     openSnack: false,
     severity: "",
   });
-  
+
   const [formValues, setFormValues] = useState({
     product_type: "",
     transaction_type: "",
@@ -89,7 +91,6 @@ const LoanDetails = () => {
       tax_amount: "",
       total_amount: "",
     },
-   
   });
 
   const setErrState = (loading, errMsg, openSnack, severity) => {
@@ -100,8 +101,51 @@ const LoanDetails = () => {
       severity,
     });
   };
-
- const handleExtractFormValues = (dataObject) => {
+  const [errors, setErrors] = useState({
+    applied_loan_amount: false,
+    applied_tenure: false,
+    applied_ROI: false,
+    description: false,
+    comment: false,
+    processing_fees: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+    valuation_charges: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+    legal_and_incidental_fee: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+    stamp_duty_applicable_rate: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+    rcu_charges_applicable_rate: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+    stamping_expenses_applicable_rate: {
+      applicable_rate: false,
+      charge_amount: false,
+      tax_amount: false,
+      total_amount: false,
+    },
+  });
+  
+  const handleExtractFormValues = (dataObject) => {
     const updatedFormValues = { ...formValues };
 
     for (const key in dataObject) {
@@ -115,18 +159,16 @@ const LoanDetails = () => {
       ) {
         // Handle nested objects separately
         updatedFormValues[key] = { ...formValues[key], ...dataObject[key] };
-      }
-     else {
+      } else {
         // Update other fields directly
         updatedFormValues[key] = dataObject[key];
       }
     }
-      setFormValues(updatedFormValues)
-    
+    setFormValues(updatedFormValues);
   };
 
   const fetchLoanDataApi = async () => {
-    const payload = {application_id:appId,token}
+    const payload = { application_id: appId, token };
     try {
       setErrState(true, "", false, "");
       const response = await dispatch(fetchLoanDataThunk(payload));
@@ -134,18 +176,45 @@ const LoanDetails = () => {
       if (error) {
         return setErrState(false, message, true, "error");
       }
-      
+
       if (data && data.length > 0) {
-        handleExtractFormValues(data[data.length-1]);//TODO: must be 0 index later
+        handleExtractFormValues(data[data.length - 1]); //TODO: must be 0 index later
         setErrState(false, "Fetched successfully", true, "success");
       }
     } catch (error) {
       setErrState(false, "", false, "success");
-      console.error('error: ', error);
+      console.error("error: ", error);
     }
   };
+const handleRoi=(e) =>{
+    if(e.target.value>999){
+      setErr({
+        loading: false,
+        errMsg: "Value must be less than 1000",
+        openSnack: true,
+        severity: "error",
+      })
+    }
+    else{
+      setErr({
+        loading: false,
+        errMsg: "Value must be less than 1000",
+        openSnack: false,
+        severity: "error",
+      })
+      }
+    
+      setFormValues({ ...formValues, applied_ROI: e.target.value })
+    }
 
   const handleLoanSubmit = async (e) => {
+    const errorObj = checkForErrors(formValues);
+    setErrors(errorObj);
+    if(hasErrors(errorObj)){
+      setIsRemarks(true);
+      setErrState(false,"please fill all required fields",true,"warning");
+    }
+  
     e.preventDefault();
     if (isRemarks) {
       // Check if the comment field is filled
@@ -170,6 +239,7 @@ const LoanDetails = () => {
       }
 
       bodyFormData.append("applicant_id", appId);
+     
       logFormData(bodyFormData);
       const payload = { bodyFormData, token };
       try {
@@ -192,7 +262,87 @@ const LoanDetails = () => {
       return;
     }
   };
+  const checkForErrors = (values) => {
+    const errors = {
+      applied_loan_amount: false,
+      applied_tenure: false,
+      applied_ROI: false,
+      description: false,
+      comment: false,
+      processing_fees: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+      valuation_charges: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+      legal_and_incidental_fee: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+      stamp_duty_applicable_rate: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+      rcu_charges_applicable_rate: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+      stamping_expenses_applicable_rate: {
+        applicable_rate: false,
+        charge_amount: false,
+        tax_amount: false,
+        total_amount: false,
+      },
+    };
+  
+    for (const [key, value] of Object.entries(values)) {
+      if (typeof value === 'object' && value !== null) {
+        for (const [nestedKey, nestedValue] of Object.entries(value)) {
+          if (nestedValue === "") {
+            errors[key][nestedKey] = true;
+          }
+        }
+      } else {
+        if (value === "") {
+          errors[key] = true;
+        }
+      }
+    }
+  
+    return errors;
+  };
+  
 
+ 
+
+  const hasErrors = (errorObj) => {
+    for (const key in errorObj) {
+      if (typeof errorObj[key] === 'object') {
+        for (const nestedKey in errorObj[key]) {
+          if (errorObj[key][nestedKey]) {
+            return true;
+          }
+        }
+      } else {
+        if (errorObj[key]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
   const handleGoBack = () => {
     navigate("/applicant/customers");
   };
@@ -222,20 +372,28 @@ const LoanDetails = () => {
         <Typography variant="h6">Loan Details</Typography>
         <Divider style={{ marginBottom: 10 }} />
 
-        <TextField
-          label="Product type (normal)"
-          fullWidth
-          margin="normal"
-          value={formValues.product_type}
-          onChange={(e) =>
-            setFormValues({ ...formValues, product_type: e.target.value })
-          }
-        />
-        <FormControl fullWidth>
+        <FormControl fullWidth required>
+          <InputLabel>Product type</InputLabel>
+          <Select
+          style={{marginBottom:"1rem"}}
+             label="Product type (normal)"
+             fullWidth
+             margin="normal"
+             value={formValues.product_type}
+             onChange={(e) =>
+               setFormValues({ ...formValues, product_type: e.target.value })
+             }
+          >
+            <MenuItem value="normal">normal</MenuItem>
+           
+          </Select>
+        </FormControl>
+      
+        <FormControl fullWidth required>
           <InputLabel>Transaction type</InputLabel>
           <Select
+          style={{marginBottom:"1rem"}}
             label="Transaction type"
-           
             value={formValues.transaction_type}
             onChange={(e) =>
               setFormValues({ ...formValues, transaction_type: e.target.value })
@@ -245,11 +403,13 @@ const LoanDetails = () => {
             <MenuItem value="purchase">Purchase</MenuItem>
             <MenuItem value="construction">Refinance</MenuItem>
             <MenuItem value="refinance">Construction</MenuItem>
-           
           </Select>
         </FormControl>
 
-        <TextField
+        <FormControl fullWidth required>
+          <InputLabel>Case tag</InputLabel>
+          <Select
+       
           label="Case tag"
           fullWidth
           margin="normal"
@@ -257,9 +417,23 @@ const LoanDetails = () => {
           onChange={(e) =>
             setFormValues({ ...formValues, case_tag: e.target.value })
           }
-        />
-        <TextField
+          >
+            <MenuItem value="normal">normal</MenuItem>
+           
+          </Select>
+        </FormControl>
+      
+        <TextField required
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           label="Applied loan amount"
           fullWidth
           margin="normal"
@@ -271,7 +445,7 @@ const LoanDetails = () => {
             })
           }
         />
-        <TextField
+        <TextField required
           label="Applied tenure"
           fullWidth
           margin="normal"
@@ -283,11 +457,11 @@ const LoanDetails = () => {
         <TextField
           label="Applied ROI"
           fullWidth
+          // error={error}
           margin="normal"
           value={formValues.applied_ROI}
-          onChange={(e) =>
-            setFormValues({ ...formValues, applied_ROI: e.target.value })
-          }
+          
+          onChange={handleRoi}
         />
 
         <Typography variant="h6" style={{ marginTop: 20 }}>
@@ -312,6 +486,15 @@ const LoanDetails = () => {
         />
         <TextField
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           value={formValues.processing_fees.charge_amount}
           onChange={(e) =>
             setFormValues({
@@ -338,11 +521,29 @@ const LoanDetails = () => {
             })
           }
           label="Tax amount"
+            onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
         />
         <TextField
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           value={formValues.processing_fees.total_amount}
           onChange={(e) =>
             setFormValues({
@@ -364,6 +565,7 @@ const LoanDetails = () => {
         <Divider style={{ marginBottom: 10 }} />
         {/* Charges type (Valuation charges) */}
         <TextField
+        error={errors.valuation_charges.applicable_rate}
           label="Applicable rate"
           fullWidth
           margin="normal"
@@ -379,8 +581,19 @@ const LoanDetails = () => {
           }
         />
         <TextField
+                error={errors.valuation_charges.charge_amount}
+
           label="Charge amount"
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.charge_amount}
@@ -396,6 +609,17 @@ const LoanDetails = () => {
         />
         <TextField
           label="Tax amount"
+          error={errors.valuation_charges.tax_amount}
+
+            onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.tax_amount}
@@ -411,7 +635,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          error={errors.valuation_charges.total_amount}
+
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.valuation_charges.total_amount}
@@ -434,6 +669,8 @@ const LoanDetails = () => {
         {/* Charges type (Legal and incidental fee) */}
         <TextField
           label="Applicable rate"
+          error={errors.legal_and_incidental_fee.applicable_rate}
+
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.applicable_rate}
@@ -449,7 +686,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          error={errors.legal_and_incidental_fee.charge_amount}
+
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.charge_amount}
@@ -465,6 +713,17 @@ const LoanDetails = () => {
         />
         <TextField
           label="Tax amount"
+          error={errors.legal_and_incidental_fee.tax_amount}
+
+            onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.tax_amount}
@@ -480,7 +739,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          error={errors.legal_and_incidental_fee.total_amount}
+
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.legal_and_incidental_fee.total_amount}
@@ -502,6 +772,8 @@ const LoanDetails = () => {
         {/* Charge type: Stamp Duty */}
         <TextField
           label="Applicable rate"
+          error={errors.stamp_duty_applicable_rate.applicable_rate}
+
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.applicable_rate}
@@ -517,7 +789,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Charge amount"
+          error={errors.stamp_duty_applicable_rate.charge_amount}
+
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.charge_amount}
@@ -533,6 +816,17 @@ const LoanDetails = () => {
         />
         <TextField
           label="Tax amount"
+          error={errors.stamp_duty_applicable_rate.tax_amount}
+
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.tax_amount}
@@ -548,7 +842,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Total amount"
+          error={errors.stamp_duty_applicable_rate.total_amount}
+
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.total_amount}
@@ -570,6 +875,8 @@ const LoanDetails = () => {
         {/* Charge type: Rcu Charges */}
         <TextField
           label="Applicable rate"
+          error={errors.rcu_charges_applicable_rate.applicable_rate}
+
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.applicable_rate}
@@ -586,6 +893,17 @@ const LoanDetails = () => {
         <TextField
           label="Charge amount"
           type="number"
+          error={errors.rcu_charges_applicable_rate.charge_amount}
+
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.charge_amount}
@@ -601,7 +919,18 @@ const LoanDetails = () => {
         />
         <TextField
           label="Tax amount"
+          error={errors.rcu_charges_applicable_rate.tax_amount}
+
           fullWidth
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.tax_amount}
           onChange={(e) =>
@@ -617,6 +946,17 @@ const LoanDetails = () => {
         <TextField
           label="Total amount"
           type="number"
+          error={errors.rcu_charges_applicable_rate.total_amount}
+
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.total_amount}
@@ -637,6 +977,7 @@ const LoanDetails = () => {
         <Divider style={{ marginBottom: 10 }} />
         {/* Charge type: Stampping expenses */}
         <TextField
+        error={errors.stamping_expenses_applicable_rate.applicable_rate}
           label="Applicable rate"
           fullWidth
           margin="normal"
@@ -654,6 +995,17 @@ const LoanDetails = () => {
         <TextField
           label="Charge amount"
           type="number"
+          error={errors.stamping_expenses_applicable_rate.charge_amount}
+
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.charge_amount}
@@ -668,6 +1020,7 @@ const LoanDetails = () => {
           }
         />
         <TextField
+         error={errors.stamping_expenses_applicable_rate.tax_amount}
           label="Tax amount"
           fullWidth
           margin="normal"
@@ -685,6 +1038,17 @@ const LoanDetails = () => {
         <TextField
           label="Total amount"
           type="number"
+          error={errors.stamping_expenses_applicable_rate.total_amount}
+
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           fullWidth
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.total_amount}
@@ -699,6 +1063,7 @@ const LoanDetails = () => {
           }
         />
         <TextField
+        error={errors.description}
           label="Description"
           fullWidth
           multiline
@@ -730,6 +1095,7 @@ const LoanDetails = () => {
         ) : null}
         <Box display={"flex"} alignSelf={"flex-end"}>
           <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             type="submit"
             variant="contained"
             color="primary"

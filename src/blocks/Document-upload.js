@@ -10,16 +10,19 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import {
+  deleteDocumentDataThunk,
   fetchDocumentDataThunk,
+  removeStore,
   updateDocumentDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
-import { extractFileName, logFormData } from "../components/Common";
+import { checkTokenExpired, extractFileName, hasExtension, isImage, logFormData } from "../components/Common";
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
@@ -39,12 +42,18 @@ const DocumentUpload = () => {
   const {appId} = useSelector((state) => state.authReducer);
   const dashboardReducer = useSelector((state) => state.dashboardReducer);
 
-
+  const [prevkeyValuePairs, setprevKeyValuePairs] = useState([]);
   const [keyValuePairs, setKeyValuePairs] = useState([]);
-  const[isRemarks,setIsRemarks]=useState(false)
+  const [updateItem,setUpdateItem] = useState([])
+  const[isRemarks,setIsRemarks]=useState(false);
+  const[files,setFiles]=useState([]);
   const [loadingStates, setLoadingStates] = useState();
 
   const [data, setData] = useState({
+    description: "",
+    comment: "",
+  });
+  const [prevData, setPrevData] = useState({
     description: "",
     comment: "",
   });
@@ -66,15 +75,64 @@ const DocumentUpload = () => {
 
   const handleTextFieldChange = (index, value, key) => {
     const updatedPairs = [...keyValuePairs];
+    const attachMents = [...files];
+    const uuid = updatedPairs[index].uuid; // Get the UUID from keyValuePairs
+
+    // Find the updateItem entry for the given UUID
+    let updateItems = [...updateItem];
+    let updateItemIndex = updateItems.findIndex((item) => item.uuid === uuid);
+    if (updateItemIndex === -1) {
+      updateItems.push({ uuid });
+      updateItemIndex = updateItems.length - 1;
+    }
+
+    // Update keyValuePairs and track changes
     if (key === "document_name") {
       updatedPairs[index].document_name = value;
+      if (prevkeyValuePairs[index]?.document_name !== value) {
+        updateItems[updateItemIndex].document_name = value;
+        updateItems[updateItemIndex].file_updated = "false";
+      } else {
+        delete updateItems[updateItemIndex].document_name;
+      }
     } else if (key === "document_id") {
       updatedPairs[index].document_id = value;
+      if (prevkeyValuePairs[index]?.document_id !== value) {
+        updateItems[updateItemIndex].document_id = value;
+        updateItems[updateItemIndex].file_updated = "false";
+      } else {
+        delete updateItems[updateItemIndex].document_id;
+      }
     } else if (key === "file") {
       updatedPairs[index].fileName = value?.name;
-      updatedPairs[index].file = value;
+      attachMents[index] = value;
+
+      // Check if the file selection is the same as the previous one
+      if (value?.name === prevkeyValuePairs[index]?.fileName) {
+        updateItems[updateItemIndex].file_updated = "false";
+      } else {
+        updatedPairs[index].fileName = value?.name; // Update fileName in keyValuePairs
+        attachMents[index] = value; // Update attachments
+        updateItems[updateItemIndex].file_updated = "true";
+      }
+      // Handle image preview using createObjectURL
+      if (value && value.type.startsWith('image/')) {
+        const objectURL = URL.createObjectURL(value);
+        updatedPairs[index].filePreview = objectURL;
+     
+      } else {
+        updatedPairs[index].filePreview = '';
+      }
     }
+
+    // Remove the updateItem if it only contains the uuid and no changes
+    if (Object.keys(updateItems[updateItemIndex]).length === 1) {
+      updateItems.splice(updateItemIndex, 1);
+    }
+
     setKeyValuePairs(updatedPairs);
+    setFiles(attachMents);
+    setUpdateItem(updateItems);
   };
 
   const addKeyValuePair = () => {
@@ -88,15 +146,22 @@ const DocumentUpload = () => {
     setErr({ loading, errMsg, openSnack, severity });
   };
 
-  const handleDeleteKeyValuePair = (index) => {
+  const handleDeleteKeyValuePair = (index, uuid) => {
     const updatedPairs = [...keyValuePairs];
+    const attachMents = [...files];
     updatedPairs.splice(index, 1);
+    attachMents.splice(index, 1);
     setKeyValuePairs(updatedPairs);
+    setFiles(attachMents);
+    const deleteUpdatedItem = updateItem.filter((item) => item.uuid !== uuid);
+    setUpdateItem(deleteUpdatedItem);
+    handleDeleteApi(uuid);
   };
 
   const handleExtractFormValues = (dataObject) => {
     const keyValuePairs = dataObject.map((item) => {
       return {
+        uuid: item.uuid,
         document_name: item.document_name,
         document_id: item.document_id,
         file: item.file,
@@ -111,7 +176,45 @@ const DocumentUpload = () => {
 
     setData(data);
     setKeyValuePairs(keyValuePairs);
+    const deepCopyKeyValuePairs = keyValuePairs.map((item) => ({ ...item }));
+    const deepCopyData = JSON.stringify(data);
+    setprevKeyValuePairs(deepCopyKeyValuePairs);
+    setPrevData(deepCopyData)
   };
+   
+  const handleDeleteApi = async (uuid) => {
+    if (uuid) {
+      setLoadingStates(true);
+      const bodyFormData = new FormData();
+      bodyFormData.append("document_uuid", uuid);
+      const payload = { bodyFormData, token };
+   
+      try {
+        const response = await dispatch(deleteDocumentDataThunk(payload));
+
+        const { error, message, code } = response.payload;
+        if (code) {
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
+          );
+        } else if (error) {
+          setLoadingStates(false);
+          return setErrState(false, message, true, "error");
+        } else {
+          setLoadingStates(false);
+          setErrState(false, message, true, "success");
+        }
+      } catch (error) {
+        setLoadingStates(false);
+        console.error("error: ", error);
+      }
+    }
+  }; 
 
   const fetchDocumentDataApi = async () => {
     const payload = {application_id:appId,token, document_type:"other"}
@@ -120,11 +223,13 @@ const DocumentUpload = () => {
       const response = await dispatch(fetchDocumentDataThunk(payload));
       const { data, error, message,code } = response.payload;
       if (code) {
-        return setErrState(
-          false,
-          response.payload.response.data.message,
-          true,
-          "error"
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
         );
       } else if (error) {
         return setErrState(false, message, true, "error");
@@ -143,7 +248,7 @@ const DocumentUpload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isRemarks) {
-      if (!data.comment.trim()) {
+      if (!data.comment?.trim()) {
         setErrState(false, "Please add a remark", true, "warning");
         return;
       }
@@ -152,48 +257,91 @@ const DocumentUpload = () => {
         return {
           document_name: item.document_name,
           document_id: item.document_id,
-          file: item.file,
         };
       });
-    
-      const bodyFormData = new FormData();
+    const isNew =  prevkeyValuePairs.length < keyValuePairs.length
+  
+    var api = updateItem.length > 0  && isNew===false? "put": isNew && "post";
+console.log("files",files);
+    let filteredData;
+    if (api === "post") {
+      filteredData = updateItem.map(({ file_updated, ...rest }) => rest);
+    } else {
+      filteredData = updateItem;
+    }
+    // Check if only description or comment has been altered
+    const isOnlyDescriptionOrCommentChanged =
+      data.comment !== prevData.comment ||
+      data.description !== prevData.description;
 
+    const bodyFormData = new FormData();
+    if (api === "put" || api === "post") {
+      bodyFormData.append(
+        "documents",
+        updateItem.length > 0
+          ? JSON.stringify(filteredData)
+          : JSON.stringify(modifiedKeyValuePairs)
+      );
       bodyFormData.append("document_type", "other");
-      bodyFormData.append("applicant_id", appId);
-
-      // modifiedKeyValuePairs.forEach((item,index)=>{
-      //   bodyFormData.append(`document_name${index}`, item.document_name)
-      //   bodyFormData.append(`document_id${index}`, item.document_id)
-      //   bodyFormData.append(`file${index}`, item.file)
-      // })
-      bodyFormData.append("documents", modifiedKeyValuePairs);
-     
+      files.forEach((file) => {
+        bodyFormData.append("file", file);
+      });
+      bodyFormData.append("application_id", appId);
+      bodyFormData.append("comment", data.comment);
+      bodyFormData.append("description", data.description);
+    } else if (isOnlyDescriptionOrCommentChanged) {
+      bodyFormData.append("application_id", appId);
+      bodyFormData.append("comment", data.comment);
+      bodyFormData.append("description", data.description);
+      api = "put";
+    }
+   
+      // If no changes detected, return with a warning
+    if (!api) {
+      setErrState(false, "No changes to save", true, "warning");
+      return;
+    }
 
       logFormData(bodyFormData);
-      const payload = { bodyFormData, token };
+      let payload;
+      let query="other";
+if(api==='post'){
+       payload= { bodyFormData, token,api };}
+       else{
+        payload={bodyFormData, token,api ,query};
+       }
+
       try {
         const response = await dispatch(updateDocumentDataThunk(payload));
+       
 
         const { error, message, code } = response.payload;
         if (code) {
-          return setErrState(
-            false,
-            response.payload.response.data.message,
-            true,
-            "error"
+          checkTokenExpired(
+            message,
+            response,
+            setErrState,
+            dispatch,
+            removeStore,
+            navigate
           );
         } else if (error) {
+        
           return setErrState(false, message, true, "error");
         } else {
           setIsRemarks(false);
+          setFiles([])
           setErrState(false, message, true, "success");
-          // navigate("/applicant/customers");
+          setUpdateItem([])
+          navigate("/applicant/customers");
         }
       } catch (error) {
+        
         setIsRemarks(false);
         console.error("error: ", error);
-      }
+      } 
     } else {
+    
       setErrState(false, "Please add a remark", true, "warning");
       setIsRemarks(true);
       return;
@@ -225,7 +373,7 @@ const DocumentUpload = () => {
 
         <Typography variant="h5">Document Upload</Typography>
         <form>
-        <TextField
+          <TextField
             label="Description"
             fullWidth
             multiline
@@ -235,88 +383,127 @@ const DocumentUpload = () => {
             value={data.description}
             onChange={handleInputChange}
           />
-          {keyValuePairs.map((pair, indexer) => (
-            <Grid
-              container
-              spacing={2}
-              key={indexer}
-              style={{
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Grid item xs={2}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Document name"
-                  value={pair.document_name}
-                  onChange={(e) =>
-                    handleTextFieldChange(
-                      indexer,
-                      e.target.value,
-                      "document_name"
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={2}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="Document ID"
-                  value={pair.document_id}
-                  onChange={(e) =>
-                    handleTextFieldChange(
-                      indexer,
-                      e.target.value,
-                      "document_id"
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={2}>
-                <TextField
-                  fullWidth
-                  label="Uploaded File"
-                  margin="normal"
-                  name="uploadedFile"
-                  value={pair.fileName}
-                />
-              </Grid>
-              <Grid item xs={2}>
-                <Box ml={"auto"}>
-                  <Input
-                    type="file"
+ {loadingStates && <CircularProgress />}
+          {keyValuePairs.map((pair, indexer) => {
+           
+            return (
+              <Grid
+                container
+                spacing={2}
+                key={indexer}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Grid item xs={2}>
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Document name"
+                    value={pair.document_name}
                     onChange={(e) =>
-                      handleTextFieldChange(indexer, e.target.files[0], "file")
+                      handleTextFieldChange(
+                        indexer,
+                        e.target.value,
+                        "document_name"
+                      )
                     }
-                    style={{ display: "none" }}
-                    id={`file-input${indexer}`}
                   />
-                  <label htmlFor={`file-input${indexer}`}>
-                    <Button
-                      fullWidth
-                      style={{ margin: "16px 0 8px 0" }}
-                      variant="outlined"
-                      component="span"
-                      startIcon={<AttachFileIcon />}
+                </Grid>
+                <Grid item xs={2}>
+                  <TextField
+                    margin="normal"
+                    fullWidth
+                    label="Document ID"
+                    value={pair.document_id}
+                    onChange={(e) =>
+                      handleTextFieldChange(
+                        indexer,
+                        e.target.value,
+                        "document_id"
+                      )
+                    }
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  {!pair.filePreview && typeof pair.file === "string" &&
+                  isImage(extractFileName(pair.file)) ? (
+                    <img
+                      src={pair.file}
+                      alt={"preview"}
+                      style={{ width: "200px", height: "100px" }}
+                    />
+                  ) : hasExtension(pair.file) &&
+                  !pair.filePreview && typeof pair.file === "string" &&
+                    !isImage(extractFileName(pair.file)) ? (
+                    <div
+                      style={{
+                        border: "1px solid #ccc",
+                        padding: "10px",
+                        textAlign: "center",
+                      }}
                     >
-                      Choose File
-                    </Button>
-                  </label>
-                </Box>
-              </Grid>
+                      <p>{extractFileName(pair.file)}</p>
+                      <IconButton
+                        href={pair.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <GetAppIcon />
+                      </IconButton>
+                    </div>
+                  ) :
+                  <img
+                  src={pair.filePreview}
+                  alt="preview"
+                  style={{ width: "200px", height: "100px" }}
+                />
+                   }
+                </Grid>
+                <Grid item xs={2}>
+                  <Box ml={"auto"}>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleTextFieldChange(
+                          indexer,
+                          e.target.files[0],
+                          "file"
+                        )
+                      }
+                      style={{ display: "none" }}
+                      id={`file-input${indexer}`}
+                    />
+                    <label htmlFor={`file-input${indexer}`}>
+                      <Button
+                        fullWidth
+                        style={{ margin: "16px 0 8px 0" }}
+                        variant="outlined"
+                        component="span"
+                        startIcon={<AttachFileIcon />}
+                      >
+                        Choose File
+                      </Button>
+                    </label>
+                  </Box>
+                </Grid>
 
-              <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
-                <IconButton onClick={() => handleDeleteKeyValuePair(indexer)}>
-                  <DeleteIcon />
-                  {loadingStates === indexer && <CircularProgress />}
-                </IconButton>
+                <Grid item xs={1} style={{ display: "flex", gap: "1rem" }}>
+                  <IconButton
+                    onClick={() => handleDeleteKeyValuePair(indexer, pair.uuid)}
+                  >
+                    <DeleteIcon />
+                    {/* {loadingStates && <CircularProgress />} */}
+                  </IconButton>
+                </Grid>
               </Grid>
-            </Grid>
-          ))}
-       
+            );
+          })}
+          <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
 
           {isRemarks && (
             <TextField
@@ -328,10 +515,9 @@ const DocumentUpload = () => {
               onChange={handleInputChange}
             />
           )}
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+
           <Button
+            disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             type="submit"
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
