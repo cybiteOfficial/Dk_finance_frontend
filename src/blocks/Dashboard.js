@@ -3,7 +3,7 @@ import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAppId } from "../redux/reducers/auth/auth-reducer";
-import  {fetchApplicantDataThunk,  removeApplicant, setApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
+import  {fetchApplicantDataThunk,  removeApplicant, removeStore, setApplicant} from "../redux/reducers/dashboard/dashboard-reducer";
 import SnackToast from "../components/Snackbar";
 import {
   Search,
@@ -19,7 +19,7 @@ import {
   Pagination,Stack
 } from "@mui/material";
 import { theme } from "../theme";
-import { CommonChip, StyledTypography} from "../components/Common";
+import { CommonChip, StyledTypography, checkTokenExpired} from "../components/Common";
 
 import DashedImg from "../assets/images/dashed.png";
 const useStyles = makeStyles((theme) => ({
@@ -81,7 +81,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const classes = useStyles();
-
+console.log(userInfo)
   // Inside your component
 
   const [page, setPage] = useState(1); // State to manage current page
@@ -136,18 +136,28 @@ const DashboardPage = () => {
   const getApplicantsApi = async (event) => {
     setErrState(true, "", false, "");
     const payload = {token, page}
+    
     try {
       const response = await dispatch(fetchApplicantDataThunk(payload));
-       // where is err and msg
-      const { results,count } = response.payload;
-      if (results && results.length > 0) {
+
+      // where is err and msg
+      const { results, count, code, message } = response.payload;
+      if (code) {
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
+        );
+      } else if (results && results.length > 0) {
         const totalPages = Math.ceil(count / itemsPerPage);
-        setTotalPages(totalPages)
+        setTotalPages(totalPages);
         setErrState(false, "Fetched successfully.", true, "success");
       }
     } catch (error) {
-      const { message } = error;
-      setErrState(false, message, true, "error");
+      console.error("error: ", error);
     }
   };
 
@@ -170,144 +180,135 @@ const DashboardPage = () => {
         backgroundColor={theme.palette.white.main}
         borderRadius={"16px"}
       >
-        <Grid container>
-          <Grid item xs={12}>
-            <Box p={"2rem"}>
-              <StyledTypography variant="subtitle1" weight={700}>
-                Applications
-              </StyledTypography>
-            </Box>
-          </Grid>
-          {/* <Grid item xs={12}>
-            <Box pl={"80px"}>
-              <StyledTextField
-                placeholder="Search"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-          </Grid> */}
-
-          <Grid item xs={12}>
-            <Box pl={"80px"} mt={"24px"}></Box>
-          </Grid>
-          <Grid item xs={12} sm={12}>
-            <Paper
-              style={{
-                width: "100%",
-                margin: "40px 0",
-                position: "relative",
-                borderRadius: "16px",
-              }}
-            >
-              <Grid container className={classes.appLicantHeader}>
-                <Grid item xs={2}>
-                  <StyledTypography variant="body2" weight={600}>
-                    Application ID
+       <Grid container>
+  <Grid item xs={12}>
+    <Box p={"2rem"}>
+      <StyledTypography variant="subtitle1" weight={700}>
+        Applications
+      </StyledTypography>
+    </Box>
+  </Grid>
+  {/* <Grid item xs={12}>
+    <Box pl={"80px"}>
+      <StyledTextField
+        placeholder="Search"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+      />
+    </Box>
+  </Grid> */}
+  <Grid item xs={12}>
+    <Box pl={"80px"} mt={"24px"}></Box>
+  </Grid>
+  <Grid item xs={12} sm={12}>
+    <Paper
+      style={{
+        width: "100%",
+        margin: "40px 0",
+        position: "relative",
+        borderRadius: "16px",
+      }}
+    >
+      <Grid container className={classes.appLicantHeader}>
+        <Grid item xs={4}>
+          <StyledTypography variant="body2" weight={600}>
+            Application ID
+          </StyledTypography>
+        </Grid>
+        {/* Add the new column header for RO Details */}
+        <Grid item xs={4}>
+          <StyledTypography variant="body2" weight={600}>
+            RO Details
+          </StyledTypography>
+        </Grid>
+        <Grid
+          item
+          xs={2}
+          style={{
+            display: "flex",
+            marginLeft: "auto",
+          }}
+        >
+          <Box>
+            <StyledTypography variant="body2" weight={600}>
+              Status
+            </StyledTypography>
+          </Box>
+        </Grid>
+      </Grid>
+      <Box style={{ overflowY: "scroll" }} height={"583px"}>
+        {userInfo &&
+          userInfo.length > 0 &&
+          userInfo.map((item, index) => (
+            <div key={item.application_id}>
+              <Grid
+                container
+                className={classes.appLicantRows}
+                onClick={() => showCustomer(item)}
+              >
+                <Grid item xs={4}>
+                  <StyledTypography
+                    variant="body2"
+                    capitalize="capitalize"
+                    weight={600}
+                  >
+                    #{item.application_id}
                   </StyledTypography>
                 </Grid>
-                {/* <Grid item xs={2}>
+                {/* Add the new data cell for RO Details */}
+                <Grid item xs={4}>
                   <StyledTypography variant="body2" weight={600}>
-                    Name
+                    {item.created_by.ro_name} {item.created_by.ro_name ? '-' : " "} {item.created_by.employee_id}
                   </StyledTypography>
-                </Grid> */}
-              
+                </Grid>
                 <Grid
                   item
                   xs={2}
                   style={{
                     display: "flex",
                     marginLeft: "auto",
+                    marginRight: "52px",
                   }}
                 >
                   <Box>
-                    <StyledTypography variant="body2" weight={600}>
-                      Status
-                    </StyledTypography>
+                    <CommonChip
+                      propFontSize={theme.typography.body2.fontSize}
+                      propFontWeight={theme.typography.fontWeightRegular}
+                      propColor={theme.palette.primary.main}
+                      propWidth={"160px"}
+                      propHeight={"40px"}
+                      propBorderRadius={"8px"}
+                      propBackgroundColor={theme.palette.lightSecondaryV3.main}
+                      textTransform={"capitalize"}
+                      label={item.status === "cluster" ? "Approved" : item.status}
+                    />
                   </Box>
                 </Grid>
               </Grid>
-              <Box style={{ overflowY: "scroll" }} height={"583px"}>
-                {userInfo &&
-                  userInfo.length > 0 &&
-                  userInfo?.map((item, index) => (
-                    <div key={item.application_id}>
-                      <Grid
-                        container
-                        className={classes.appLicantRows}
-                        onClick={() => showCustomer(item)}
-                      >
-                        <Grid item xs={2}>
-                          <StyledTypography
-                            variant="body2"
-                            capitalize="capitalize"
-                            weight={600}
-                          >
-                            #{item?.application_id}
-                          </StyledTypography>
-                        </Grid>
+              <img src={DashedImg} className={classes.dashedImg} />
+            </div>
+          ))}
+      </Box>
+    </Paper>
+  </Grid>
+</Grid>
 
-                        {/* <Grid item xs={2}>
-                          <StyledTypography variant="body2" weight={600}>
-                            {item.lead}
-                          </StyledTypography>
-                        </Grid> */}
-                      
-                        <Grid
-                          item
-                          xs={2}
-                          style={{
-                            display: "flex",
-                            marginLeft: "auto",
-                            marginRight: "52px",
-                          }}
-                        >
-                          <Box>
-                            <CommonChip
-                              propFontSize={theme.typography.body2.fontSize}
-                              propFontWeight={
-                                theme.typography.fontWeightRegular
-                              }
-                              propColor={
-                                //TODO: need statuses
-                                theme.palette.primary.main
-                              }
-                              propWidth={"160px"}
-                              propHeight={"40px"}
-                              propBorderRadius={"8px"}
-                              propBackgroundColor={
-                                theme.palette.lightSecondaryV3.main
-                              }
-                              textTransform={"capitalize"}
-                              label={item.status==="cluster" ? "Approved":item.status}
-                            />
-                          </Box>
-                        </Grid>
-                      </Grid>
-                      <img src={DashedImg} className={classes.dashedImg} />
-                    </div>
-                  ))}
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        <Box>
-          <Stack spacing={2}>
-            <Pagination
-              style={{ margin: "0 0 2rem auto" }}
-              count={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              color="secondary"
-            />
-          </Stack>
-        </Box>
+<Box>
+  <Stack spacing={2}>
+    <Pagination
+      style={{ margin: "0 0 2rem auto" }}
+      count={totalPages}
+      page={page}
+      onChange={handlePageChange}
+      color="secondary"
+    />
+  </Stack>
+</Box>
       </Box>
     </>
   );

@@ -13,6 +13,7 @@ const initialState = {
   allCustomers:[],
   selectedCustomer: {},
   selectedCustomerData: {},
+  pdfDetails:[]
 };
 
 export const fetchApplicantDataThunk = createAsyncThunk(
@@ -42,7 +43,15 @@ export const fetchCustomersByApplicantIdDataThunk = createAsyncThunk(
     return response;
   }
 );
-
+export const fetchPdfDataThunk = createAsyncThunk(
+  "/fetchPdfData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.fetchPdfDataApi(
+      payload
+    );
+    return response;
+  }
+);
 export const fetchAllCustomersByApplicantIdDataThunk = createAsyncThunk(
   "/fetchAllCustomersByApplicantIdData",
   async (payload, thunkAPI) => {
@@ -119,6 +128,13 @@ export const updateDocumentDataThunk = createAsyncThunk(
     return response;
   }
 );
+export const deleteDocumentDataThunk = createAsyncThunk(
+  "/deleteDocumentData",
+  async (payload, thunkAPI) => {
+    const response = await dashboardAPI.deleteDocumentDataApi(payload);
+    return response;
+  }
+);
 export const updatePhotographDataThunk = createAsyncThunk(
   "/updatePhotographData",
   async (payload, thunkAPI) => {
@@ -177,7 +193,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
     },
 
-    removeStore(state) {
+    removeStore(state,action) {
       state.applicantData = [];
       state.customerDetails = [];
       state.loanDetails = [];
@@ -187,6 +203,7 @@ const dashboardSlice = createSlice({
       state.photographDetails = [];
       state.selectedCustomer = "";
       state.selectedCustomerData = "";
+      state.allCustomers=[]
     },
   },
   extraReducers: (builder) => {
@@ -251,6 +268,9 @@ const dashboardSlice = createSlice({
     });
     builder.addCase(fetchPhotographDataThunk.fulfilled, (state, action) => {
       state.photographDetails = action.payload.data;
+    });
+    builder.addCase(fetchPdfDataThunk.fulfilled, (state, action) => {
+      state.pdfDetails = action.payload.data;
     });
   },
 });

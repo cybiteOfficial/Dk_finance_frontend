@@ -19,7 +19,9 @@ const InputValidation = ({
   setAddressFields,
 }) => {
   const [touched, setTouched] = useState(false);
-
+  const today = new Date();
+  const maxDate = today.toISOString().split("T")[0];
+  const minDate = "1900-01-01";
   useEffect(() => {
     if (touched && label === "Gender" && value === "") {
       setErrObject((prevState) => ({
@@ -35,8 +37,35 @@ const InputValidation = ({
     }
   };
 
+  const handleInput = (event) => {
+    const inputDate = event.target.value;
+    const selectedDate = new Date(inputDate);
+    const isBeforeMinDate = selectedDate < new Date(minDate);
+    const isAfterMaxDate = selectedDate > today;
+
+    if (isAfterMaxDate) {
+      event.preventDefault();
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Validate if the value is a number and not negative
+    if (type === "number" && parseInt(value) < 0) {
+      if (!/^\d*$/.test(value)) {
+        return;
+      }
+    }
+    if (type === "date" && label === "DOB") {
+      const selectedDate = new Date(value);
+      const isBeforeMinDate = selectedDate < new Date(minDate);
+      const isAfterMaxDate = selectedDate > today;
+
+      if ( isAfterMaxDate) {
+        e.preventDefault();
+        return; // Prevent updating state if date is out of range
+      }
+    }
     if (fieldState === "address") {
       setAddressFields((prevState) => ({
         ...prevState,
@@ -58,22 +87,32 @@ const InputValidation = ({
       isError = true;
     } else {
       if (type === "text") {
-        isError =
-          name === "distance_from_branch"
-            ? !/^[a-zA-Z0-9 ]*$/.test(value)
-            : !/^[a-zA-Z ]*$/.test(value);
+        if (name === "address_line_1" || name === "address_line_2" || name === "address_line_3") {
+          isError = !/^[a-zA-Z0-9\s.,'/-]*$/.test(value);
+        } else if (name === "distance_from_branch") {
+          isError = !/^[a-zA-Z0-9 ]*$/.test(value);
+        } else {
+          isError = !/^[a-zA-Z ]*$/.test(value);
+        }
       } else if (type === "number" && label === "Age") {
         isError = !/^\d{2}$/.test(value);
       } else if (type === "number" && name === "pincode") {
         isError = !/^\d{6}$/.test(value);
       } else if (type === "number") {
         isError = parseInt(value) < 0;
+      } else if (type === "date" && label === "DOB") {
+        const selectedDate = new Date(value);
+        isError =
+          selectedDate > today ||
+          isNaN(selectedDate.getTime()) ||
+          selectedDate < new Date(minDate);
       }
     }
     if (fieldState === "address") {
       setErrObject((prevState) => ({
         ...prevState,
         [section]: {
+          ...prevState[section],
           [name]: isError,
         },
       }));
@@ -91,7 +130,7 @@ const InputValidation = ({
           ...prevState,
           [section]: {
             ...prevState[section],
-            [name]: false,
+            [name]: true,
           },
         }));
       } else {
@@ -102,10 +141,18 @@ const InputValidation = ({
       }
     }
   };
+  const handleKeyPress = (event) => {
+    if (type === "number" && (event.key < '0' || event.key > '9')) {
+      event.preventDefault();
+    }
+  };
+
 
   return type === "select" ? (
     <>
-      <InputLabel>{label} {mandatory && <span style={{color:"#d32f2f"}}>*</span>}</InputLabel>
+      <InputLabel>
+        {label} {mandatory && <span style={{ color: "#d32f2f" }}>*</span>}
+      </InputLabel>
       <TextField
         select
         // label={label}
@@ -136,7 +183,9 @@ const InputValidation = ({
     </>
   ) : (
     <>
-      <InputLabel>{label} {mandatory && <span style={{color:"#d32f2f"}}>*</span>}</InputLabel>
+      <InputLabel>
+        {label} {mandatory && <span style={{ color: "#d32f2f" }}>*</span>}
+      </InputLabel>
       <TextField
         type={type}
         InputProps={{
@@ -146,6 +195,9 @@ const InputValidation = ({
         }}
         // label={label}
         fullWidth={fullWidth}
+        inputProps={
+          type === "date" && label === "DOB" ? { min: minDate, max: maxDate } : {}
+        }
         value={value}
         onChange={(e) => handleChange(e)}
         InputLabelProps={{
@@ -153,6 +205,9 @@ const InputValidation = ({
         }}
         name={name}
         onBlur={handleBlur}
+        onFocus={(e) => e.target.addEventListener("wheel", function (e) { e.preventDefault() }, { passive: false })}
+        onInput={type === "date" ? handleInput : undefined}
+        onKeyPress={type === "number" ? handleKeyPress : undefined}
         error={error}
         helperText={
           error

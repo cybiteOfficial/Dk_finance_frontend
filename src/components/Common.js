@@ -2,11 +2,24 @@ import { Typography, styled, Chip, TextField } from "@mui/material";
 import { theme } from "../theme";
 
 export const errText = {
-  alpabetical: "Please enter alphabetical characters",
+  alphabetical: "Please enter alphabetical characters",
   numerical: "Please enter numerical character",
   twoDigit: "Please enter 2 digit value",
   pinCode: "Invalid pincode format",
   alphaNumeric: "Please enter alphanumeric characters",
+  validAddress : "Invalid address format"
+};
+
+export const checkTokenExpired = (message, response,setErrState,dispatch,removeStore,navigate) => {
+  if (message === "Request failed with status code 401") {
+    setErrState(false, "Token expired, please log in again.", true, "error");
+    return setTimeout(() => {
+      dispatch(removeStore({}));
+      navigate("/");
+    }, 500);
+  } else {
+    setErrState(false, response.payload.response.data.message, true, "error");
+  }
 };
 
 export const capitalize = (str) => {
@@ -54,13 +67,26 @@ export const logFormData = (bodyFormData) => {
     console.log(`${key}: ${value}`);
   }
 };
+export const isImage = (file) => {
+  return (
+    file.endsWith(".png") ||
+    file.endsWith(".jpg") ||
+    file.endsWith(".jpeg") ||
+    file.endsWith(".gif")
+  );
+};
 
+export const hasExtension = (url) => {
+  const urlParts = url.split('.');
+  return urlParts.length > 1 && urlParts[urlParts.length - 1].length > 0;
+};
 export const extractFileName = (url) => {
   if (url) {
     const pathname = new URL(url).pathname;
 
     // Using string manipulation to extract the filename with extension
     const filenameWithExtension = pathname.split("/").pop();
+
     return filenameWithExtension;
   } else {
     return "";
@@ -134,7 +160,115 @@ export const sortingFilter = [
     color: theme.palette.primary.main,
   },
 ];
-
+export const pdfData = {
+  loan_details: [
+    {
+     
+      loan_id: "ln_37446823",
+      product_type: "normal",
+      transaction_type: "purchase",
+      case_tag: "normal",
+      applied_loan_amount: "133.00",
+      applied_tenure: 12,
+      applied_ROI: "12.00",
+      description: "test",
+      processing_fees: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      valuation_charges: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      legal_and_incidental_fee: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      stamp_duty_applicable_rate: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      rcu_charges_applicable_rate: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      stamping_expenses_applicable_rate: {
+        tax_amount: "",
+        total_amount: "",
+        charge_amount: "",
+        applicable_rate: "",
+      },
+      applicant: "app_63429322",
+      comment: "test",
+    },
+  ],
+  caf_details: [
+    {
+      uuid: "550dfbb6-20ee-4f73-bd51-c7854d55f3f9",
+      caf_id: "caf_90770823",
+      tentative_amt: 344.0,
+      placeOfPdAddress: "",
+      location: "",
+      extra_data: [
+        {
+          key: "aadhar",
+          value: "1234",
+        },
+      ],
+      description: "sasa",
+      pdWith: "cif_60278707",
+      applicant: "app_63429322",
+      comment: "ass",
+    },
+  ],
+  collateral_details: [
+    {
+      uuid: "2b3d2087-b01c-43dc-8629-8fa814eaf059",
+      
+      collateral_id: "cltrl_28060338",
+      collateralType: "automobile",
+      collateralName: "Masss",
+      primarySecondary: "",
+      valuationRequired: "edw",
+      relationshipWithLoan: "",
+      propertyOwner: "abc",
+      propertyCategory: "plot",
+      propertyType: "plot",
+      occupationStatus: "engineer",
+      propertyStatus: "good",
+      propertyTitle: "asdasd",
+      houseFlatShopNo: "2",
+      khasraPlotNo: "2",
+      locality: "indai",
+      village: "",
+      state: "Madhya Pradesh",
+      district: "",
+      city: "Indore",
+      taluka: "",
+      pincode: "453331",
+      landmark: "",
+      estimatedPropertyValue: null,
+      documentName: "",
+      documentUpload: "",
+      description: "testt",
+      isExisting: "",
+      applicant: "33ff435a-4336-44b1-b8d7-97bc96155e60",
+      comment: "remaek",
+    },
+  ],
+  document_details_other: [],
+  document_details_photos: [],
+};
 {
   /* <Grid item xs={12} sm={6}>
                   <InputValidation

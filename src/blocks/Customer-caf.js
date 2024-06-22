@@ -220,6 +220,15 @@ const CustomerCaf = () => {
         <form onSubmit={handleSubmit}>
           <TextField
            type="number"
+           onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
             fullWidth
             label="Tentative Amount"
             name="tentative_amt"
@@ -273,14 +282,16 @@ const CustomerCaf = () => {
             rows={4}
             margin="normal"
           />
-
+ <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
           {extra_data.map((pair, index) => (
             <Grid container spacing={2} key={index}>
               <Grid item xs={6}>
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document name"
+                  label="Field Name"
                   value={pair.key}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "key")
@@ -291,7 +302,7 @@ const CustomerCaf = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document ID"
+                  label="Value"
                   value={pair.value}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "value")
@@ -301,9 +312,7 @@ const CustomerCaf = () => {
             </Grid>
           ))}
 
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+         
           {isRemarks && (
             <TextField
               label="Remarks"
@@ -315,6 +324,7 @@ const CustomerCaf = () => {
             />
           )}
           <Button
+           disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
             type="submit"
