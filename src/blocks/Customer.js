@@ -22,7 +22,7 @@ export const Customers = () => {
   const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
 
   const { pdfDetails } = useSelector((state) => state.dashboardReducer);
-console.log(appId)
+
   
 //  console.log(pdfDetails.loan_details)
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ console.log(appId)
       dispatch(fetchPdfDataThunk({ appId, token }));
     }
   }, [appId, token]);
-  console.log(pdfDetails)
+
   const [page, setPage] = useState(1); // State to manage current page
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
@@ -164,14 +164,14 @@ console.log(appId)
   };
 
   const downloadPdf = async () => {
-    console.log(pdfDetails)
+
     const fileName = "loan.pdf";
     const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
     saveAs(blob, fileName);
   };
   
   const updateStatusDataApi = async () => {
-    console.log(pdfDetails)
+
     if (applicantData[0]?.status === "cluster") {
    
    
@@ -264,8 +264,8 @@ console.log(appId)
           {customerDetails.length > 0 && (
             <Button
               disabled={
-                applicantData[0]?.status === "sanctioned" || err.loading || process.env.REACT_APP_DISABLED === "TRUE"
-         || pdfDetails.loan_details.length ===0     }
+                applicantData[0]?.status === "sanctioned" || err.loading 
+         || pdfDetails.loan_details.length === 0     }
               onClick={updateStatusDataApi}
               variant="outlined"
               style={{ marginBottom:20, marginLeft: "auto" }}
