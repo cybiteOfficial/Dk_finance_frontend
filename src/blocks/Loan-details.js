@@ -211,12 +211,13 @@ const handleRoi=(e) =>{
     const errorObj = checkForErrors(formValues);
     setErrors(errorObj);
     if(hasErrors(errorObj)){
-      setIsRemarks(true);
+      // setIsRemarks(true);
       setErrState(false,"please fill all required fields",true,"warning");
+      return;
     }
   
     e.preventDefault();
-    if (isRemarks) {
+    if (isRemarks  ) {
       // Check if the comment field is filled
       if (!formValues.comment.trim()) {
         // If comment field is empty, show a warning toast
@@ -306,21 +307,25 @@ const handleRoi=(e) =>{
         total_amount: false,
       },
     };
-  
+
     for (const [key, value] of Object.entries(values)) {
       if (typeof value === 'object' && value !== null) {
-        for (const [nestedKey, nestedValue] of Object.entries(value)) {
-          if (nestedValue === "") {
-            errors[key][nestedKey] = true;
+          for (const [nestedKey, nestedValue] of Object.entries(value)) {
+              if (nestedValue === "") {
+                  errors[key][nestedKey] = true;
+              }
           }
-        }
       } else {
-        if (value === "") {
-          errors[key] = true;
-        }
+        console.log("descrip",key,value)
+          if (value === null) {
+            
+              errors[key] = true;
+          }
       }
-    }
-  
+  }
+
+
+
     return errors;
   };
   
@@ -424,6 +429,7 @@ const handleRoi=(e) =>{
         </FormControl>
       
         <TextField required
+        error={errors.applied_loan_amount}
           type="number"
           onFocus={(e) =>
             e.target.addEventListener(
@@ -446,6 +452,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField required
+        error={errors.applied_tenure}
           label="Applied tenure"
           fullWidth
           margin="normal"
@@ -455,6 +462,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        error={errors.applied_ROI}
           label="Applied ROI"
           fullWidth
           // error={error}
@@ -470,6 +478,7 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
 
         <TextField
+        error={errors.processing_fees.applicable_rate}
           value={formValues.processing_fees.applicable_rate}
           onChange={(e) =>
             setFormValues({
@@ -486,6 +495,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
+          error={errors.processing_fees.charge_amount}
           onFocus={(e) =>
             e.target.addEventListener(
               "wheel",
@@ -505,11 +515,13 @@ const handleRoi=(e) =>{
               },
             })
           }
-          label="Change amount"
+          label="Charge amount"
           fullWidth
           margin="normal"
         />
         <TextField
+                error={errors.processing_fees.tax_amount}
+
           value={formValues.processing_fees.tax_amount}
           onChange={(e) =>
             setFormValues({
@@ -535,6 +547,8 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
+          error={errors.processing_fees.total_amount}
+
           onFocus={(e) =>
             e.target.addEventListener(
               "wheel",
@@ -1063,6 +1077,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        required
         error={errors.description}
           label="Description"
           fullWidth

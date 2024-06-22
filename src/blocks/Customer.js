@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {pdf } from '@react-pdf/renderer';
-import { StyledTypography, pdfData } from "../components/Common";
+import { StyledTypography } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
 import { saveAs } from "file-saver";
@@ -13,7 +13,7 @@ import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fetchPdfDa
 import MyDocument from "../components/MyDocument";
 
 // Import JSON data using require()
-const jsonData = require("../mocks/customers.json");
+// const jsonData = require("../mocks/customers.json");
 
 export const Customers = () => {
  
@@ -22,7 +22,7 @@ export const Customers = () => {
   const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
 
   const { pdfDetails } = useSelector((state) => state.dashboardReducer);
-console.log(appId)
+// console.log(appId)
   
 //  console.log(pdfDetails.loan_details)
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ console.log(appId)
       dispatch(fetchPdfDataThunk({ appId, token }));
     }
   }, [appId, token]);
-  console.log(pdfDetails)
+ 
   const [page, setPage] = useState(1); // State to manage current page
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
@@ -164,14 +164,24 @@ console.log(appId)
   };
 
   const downloadPdf = async () => {
-    console.log(pdfDetails)
+    // const others_doc= pdfDetails.document_details_other;
+    // const zip=new JSZip()
+    // for(let doc of others_doc){
+    //   const response=await fetch(doc.file);
+    // const blob1 =await response.blob();
+    // const fileName='document';
+    // zip.file(fileName,blob1);
+    // }
+    // zip.generateAsync({type: 'blob'}).then((content)=>{
+    //   saveAs(content,'document.zip');
+    // })
     const fileName = "loan.pdf";
     const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
     saveAs(blob, fileName);
   };
   
   const updateStatusDataApi = async () => {
-    console.log(pdfDetails)
+  
     if (applicantData[0]?.status === "cluster") {
    
    

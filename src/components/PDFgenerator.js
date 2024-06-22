@@ -3,11 +3,13 @@ import { Button } from '@mui/material';
 import {pdf } from '@react-pdf/renderer';
 import MyDocument from "./MyDocument"; // Adjust path as necessary
 import { saveAs } from "file-saver";
-
+import JSZip from 'jszip';
 const PDFGenerator = ({ data }) => {
+
   const downloadPdf = async () => {
+   
     const fileName = "loan.pdf";
-    console.log(data)
+    // console.log(data)
     const blob = await pdf(<MyDocument data={data} />).toBlob();
     saveAs(blob, fileName);
   };
