@@ -9,11 +9,13 @@ import { StyledTypography, pdfData } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
 import { saveAs } from "file-saver";
+import { checkTokenExpired } from "../components/Common";
+import { removeStore } from "../redux/reducers/dashboard/dashboard-reducer";
 import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fetchPdfDataThunk,fileForwardedThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
 import MyDocument from "../components/MyDocument";
 
 // Import JSON data using require()
-const jsonData = require("../mocks/customers.json");
+// const jsonData = require("../mocks/customers.json");
 
 export const Customers = () => {
  
@@ -149,7 +151,21 @@ export const Customers = () => {
         fetchCustomersByApplicantIdDataThunk(payload)
       );
       // where is err and msg
-      const { results, error, message ,count} = response.payload;
+      const { code,results, error, message ,count} = response.payload;
+     
+      if(code){
+       checkTokenExpired(
+         message,
+         response,
+         setErrState,
+         dispatch,
+         removeStore,
+         navigate
+       );
+      }else if (error) {
+       return setErrState(false, message, true, "error");
+     }
+ 
       if (error) {
         return setErrState(false, message, true, "error");
       }
@@ -164,7 +180,7 @@ export const Customers = () => {
   };
 
   const downloadPdf = async () => {
-
+console.log(pdfDetails)
     const fileName = "loan.pdf";
     const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
     saveAs(blob, fileName);
@@ -225,8 +241,25 @@ export const Customers = () => {
     setErrState(true, "", false, "");
     const payload = { application_id: appId, token }; 
     try {
-      await dispatch(fetchApplicantDataThunk(payload));
-    } catch (error) {}
+     const response= await dispatch(fetchApplicantDataThunk(payload));
+     
+     const { error, message,code } = response.payload;
+     if(code){
+      checkTokenExpired(
+        message,
+        response,
+        setErrState,
+        dispatch,
+        removeStore,
+        navigate
+      );
+     }else if (error) {
+      return setErrState(false, message, true, "error");
+    }
+
+    } catch (error) {
+
+    }
   };
 
   const handleCloseToast = () => {

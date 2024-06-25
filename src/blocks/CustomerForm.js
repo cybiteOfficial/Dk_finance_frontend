@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+
 import {
   fetchCustomerByApplicantIdDataThunk,
   removeCustomer,
@@ -34,7 +35,7 @@ import {
 } from "../components/Common";
 import InputValidation from "../components/InputValidation";
 import SnackToast from "../components/Snackbar";
-
+var pincodeDirectory = require('india-pincode-lookup');
 const fieldsToExtract = [
   "title",
   "firstName",
@@ -141,11 +142,12 @@ const CustomerForm = () => {
       address_line_1: "",
       address_line_2: "",
       address_line_3: "",
+      pincode: "",
       state: "",
       district: "",
       city: "",
       tehsil_or_taluka: "",
-      pincode: "",
+    
       landmark: "",
       residence_state: "",
       residence_type: "",
@@ -156,11 +158,12 @@ const CustomerForm = () => {
       address_line_1: "",
       address_line_2: "",
       address_line_3: "",
+      pincode: "",
       state: "",
       district: "",
       city: "",
       tehsil_or_taluka: "",
-      pincode: "",
+      
       landmark: "",
       residence_state: "",
       residence_type: "",
@@ -168,10 +171,11 @@ const CustomerForm = () => {
       distance_from_branch: "",
     },
   });
+  const [page,setPage]=useState(1);
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
-
-  const [role, setRole] = useState(personInformation.role);
+    const [isApplicantDisabled, setIsApplicantDisabled] = useState(false);
+  const [role, setRole] = useState(personInformation.role || 'applicant');
 
   // State for cropped image
   const [croppedImage, setCroppedImage] = useState(
@@ -189,7 +193,36 @@ const CustomerForm = () => {
     permanent: {},
   });
 
+useEffect(()=>{
+  var vari=pincodeDirectory.lookup(addressFields.current.pincode);
+if(vari[0]){
+  setAddressFields(prevState => ({
+    ...prevState,
+    current: {
+      ...prevState.current,
+      state: vari[0].stateName,
+      district: vari[0].districtName,
+      tehsil_or_taluka:vari[0].taluk
+    }
+  }));
 
+}
+},[addressFields.current.pincode])
+useEffect(()=>{
+  var vari=pincodeDirectory.lookup(addressFields.permanent.pincode);
+if(vari[0]){
+  setAddressFields(prevState => ({
+    ...prevState,
+    permanent: {
+      ...prevState.permanent,
+      state: vari[0].stateName,
+      district: vari[0].districtName,
+      tehsil_or_taluka:vari[0].taluk
+    }
+  }));
+
+}
+},[addressFields.permanent.pincode])
   useEffect(() => {
     if (permanentAddressSameAsCurrent) {
       setAddressFields((prevState) => ({
@@ -205,11 +238,12 @@ const CustomerForm = () => {
           address_line_1: prevState.current.address_line_1,
           address_line_2: prevState.current.address_line_2,
           address_line_3: prevState.current.address_line_3,
+          pincode: prevState.current.pincode,
           state: prevState.current.state,
           district: prevState.current.district,
           city: prevState.current.city,
           tehsil_or_taluka: prevState.current.tehsil_or_taluka,
-          pincode: prevState.current.pincode,
+        
           landmark: prevState.current.landmark,
           residence_state: prevState.current.residence_state,
           residence_type: prevState.current.residence_type,
@@ -224,11 +258,12 @@ const CustomerForm = () => {
           address_line_1: "",
           address_line_2: "",
           address_line_3: "",
+          pincode: "",
           state: "",
           district: "",
           city: "",
           tehsil_or_taluka: "",
-          pincode: "",
+          
           landmark: "",
           residence_state: "",
           residence_type: "",
@@ -239,7 +274,27 @@ const CustomerForm = () => {
     {
     }
   }, [permanentAddressSameAsCurrent]);
+// useEffect(()=>{
 
+//   var vari=pincodeDirectory.lookup(addressFields.pincode);
+
+//    if (vari[0]) {
+//     setAddressFields({
+     
+//      current{ 
+//       ...current,
+//       state:vari[0].stateName,
+//       district:vari[0].districtName
+//       ,taluka:vari[0].taluk
+//     },
+//     permanent{
+//       ...permanent
+//     }
+//     })
+// }
+
+
+// },[addressFields[current].pincode])
   // Define keys to discard
   const keysToDiscard = [
     "uuid",
@@ -295,6 +350,7 @@ const CustomerForm = () => {
       const response = await dispatch(
         fetchCustomerByApplicantIdDataThunk(payload)
       );
+      console.log(response)
       const { error, message, code } = response.payload;
       if (code) {
         return setErrState(
@@ -334,9 +390,10 @@ const CustomerForm = () => {
     const addressMandatoryFields = [
       "address_line_1",
       "address_line_2",
+      "pincode",
       "state",
       "city",
-      "pincode",
+    
     ];
 
     // Check missing fields in personal information
@@ -459,7 +516,35 @@ const CustomerForm = () => {
       console.error("error: ", error);
     }
   };
+  let checkIfApplicant;
+ 
+  useEffect(() => {
+    let checkIfApplicant = false;
 
+    if (customerDetails) {
+      // Iterate through the customerDetails array
+      for (let i = 0; i < customerDetails.length; i++) {
+        // Check if the current role is 'applicant'
+        if (customerDetails[i].role === 'applicant') {
+          checkIfApplicant = true;
+          break; // Exit the loop if an applicant is found
+        }
+      }
+
+      if (checkIfApplicant) {
+        setRole('co_applicant'); // Set to 'coapplicant'
+        setIsApplicantDisabled(true); // Disable the "applicant" toggle button
+      } else {
+        setRole('applicant'); // Default to 'applicant'
+        setIsApplicantDisabled(false); // Enable the "applicant" toggle button
+      }
+    } else {
+      setRole('applicant'); // Default to 'applicant' if customerDetails is empty or undefined
+      setIsApplicantDisabled(false); // Enable the "applicant" toggle button
+    }
+
+    console.log(customerDetails); // Log the updated customerDetails to check the changes
+  }, [customerDetails]);
   const handlePermanentAddressSameAsCurrent = () => {
     setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
   };
@@ -617,19 +702,19 @@ const CustomerForm = () => {
           gap={"1rem"}
           mb={1}
         >
-          <ToggleButtonGroup
-            value={role}
-            exclusive
-            onChange={handleRoleChange}
-            aria-label="user role"
-          >
-            <ToggleButton value="applicant" aria-label="applicant">
-              Applicant
-            </ToggleButton>
-            <ToggleButton value="co_applicant" aria-label="co-applicant">
-              Co-Applicant
-            </ToggleButton>
-          </ToggleButtonGroup>
+           <ToggleButtonGroup
+      value={role}
+      exclusive
+      onChange={handleRoleChange}
+      aria-label="user role"
+    >
+      <ToggleButton value="applicant" aria-label="applicant" disabled={isApplicantDisabled}>
+        Applicant
+      </ToggleButton>
+      <ToggleButton value="co_applicant" aria-label="co-applicant">
+        Co-Applicant
+      </ToggleButton>
+    </ToggleButtonGroup>
         </Box>
         <form onSubmit={handlePersonalSubmit}>
           <Accordion style={{ marginBottom: 20 }}>

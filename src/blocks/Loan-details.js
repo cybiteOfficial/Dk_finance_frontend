@@ -18,7 +18,10 @@ import {
   fetchLoanDataThunk,
   removeLoan,
   updateLoanDataThunk,
+  fetchApplicantDataThunk ,removeStore
 } from "../redux/reducers/dashboard/dashboard-reducer";
+import { checkTokenExpired} from "../components/Common";
+
 import SnackToast from "../components/Snackbar";
 import { StyledTypography, logFormData } from "../components/Common";
 
@@ -27,6 +30,35 @@ const LoanDetails = () => {
   const { appId } = useSelector((state) => state.authReducer);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1); 
+  useEffect(() => {
+    const fetchApplicants = async () => getApplicantsApi();
+    fetchApplicants();
+   
+  }, [page]);
+  const getApplicantsApi = async (event) => {
+    setErrState(true, "", false, "");
+    const payload = {token, page}
+    
+    try {
+      const response = await dispatch(fetchApplicantDataThunk(payload));
+
+      // where is err and msg
+      const { results, count, code, message } = response.payload;
+      if (code) {
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
+        );
+      } 
+    } catch (error) {
+      console.error("error: ", error);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -211,12 +243,13 @@ const handleRoi=(e) =>{
     const errorObj = checkForErrors(formValues);
     setErrors(errorObj);
     if(hasErrors(errorObj)){
-      setIsRemarks(true);
+      // setIsRemarks(true);
       setErrState(false,"please fill all required fields",true,"warning");
+      return;
     }
   
     e.preventDefault();
-    if (isRemarks) {
+    if (isRemarks  ) {
       // Check if the comment field is filled
       if (!formValues.comment.trim()) {
         // If comment field is empty, show a warning toast
@@ -306,21 +339,25 @@ const handleRoi=(e) =>{
         total_amount: false,
       },
     };
-  
+
     for (const [key, value] of Object.entries(values)) {
       if (typeof value === 'object' && value !== null) {
-        for (const [nestedKey, nestedValue] of Object.entries(value)) {
-          if (nestedValue === "") {
-            errors[key][nestedKey] = true;
+          for (const [nestedKey, nestedValue] of Object.entries(value)) {
+              if (nestedValue === "") {
+                  errors[key][nestedKey] = true;
+              }
           }
-        }
       } else {
-        if (value === "") {
-          errors[key] = true;
-        }
+        console.log("descrip",key,value)
+          if (value === null) {
+            
+              errors[key] = true;
+          }
       }
-    }
-  
+  }
+
+
+
     return errors;
   };
   
@@ -424,6 +461,7 @@ const handleRoi=(e) =>{
         </FormControl>
       
         <TextField required
+        error={errors.applied_loan_amount}
           type="number"
           onFocus={(e) =>
             e.target.addEventListener(
@@ -446,6 +484,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField required
+        error={errors.applied_tenure}
           label="Applied tenure"
           fullWidth
           margin="normal"
@@ -455,6 +494,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        error={errors.applied_ROI}
           label="Applied ROI"
           fullWidth
           // error={error}
@@ -470,15 +510,18 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
 
         <TextField
+        error={errors.processing_fees.applicable_rate}
           value={formValues.processing_fees.applicable_rate}
           onChange={(e) =>
+            e.target.value <=100 ?
             setFormValues({
               ...formValues,
               processing_fees: {
                 ...formValues.processing_fees,
                 applicable_rate: e.target.value,
               },
-            })
+            }) :
+            setErrState(false, "value exceed 100", true, "warning")
           }
           label="Applicable rate %"
           fullWidth
@@ -486,6 +529,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
+          error={errors.processing_fees.charge_amount}
           onFocus={(e) =>
             e.target.addEventListener(
               "wheel",
@@ -505,11 +549,13 @@ const handleRoi=(e) =>{
               },
             })
           }
-          label="Change amount"
+          label="Charge amount"
           fullWidth
           margin="normal"
         />
         <TextField
+                error={errors.processing_fees.tax_amount}
+
           value={formValues.processing_fees.tax_amount}
           onChange={(e) =>
             setFormValues({
@@ -535,6 +581,8 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
+          error={errors.processing_fees.total_amount}
+
           onFocus={(e) =>
             e.target.addEventListener(
               "wheel",
@@ -571,13 +619,15 @@ const handleRoi=(e) =>{
           margin="normal"
           value={formValues.valuation_charges.applicable_rate}
           onChange={(e) =>
+            e.target.value <=100 ? 
             setFormValues({
               ...formValues,
               valuation_charges: {
                 ...formValues.valuation_charges,
                 applicable_rate: e.target.value,
               },
-            })
+            }) :
+            setErrState(false, "value exceed 100", true, "warning")
           }
         />
         <TextField
@@ -675,6 +725,7 @@ const handleRoi=(e) =>{
           margin="normal"
           value={formValues.legal_and_incidental_fee.applicable_rate}
           onChange={(e) =>
+            e.target.value<=100 ?
             setFormValues({
               ...formValues,
               legal_and_incidental_fee: {
@@ -682,6 +733,7 @@ const handleRoi=(e) =>{
                 applicable_rate: e.target.value,
               },
             })
+            : setErrState(false, "Value exceeds 100", true, "warning")
           }
         />
         <TextField
@@ -778,13 +830,16 @@ const handleRoi=(e) =>{
           margin="normal"
           value={formValues.stamp_duty_applicable_rate.applicable_rate}
           onChange={(e) =>
+            e.target.value<=100 ?
             setFormValues({
+
               ...formValues,
               stamp_duty_applicable_rate: {
                 ...formValues.stamp_duty_applicable_rate,
                 applicable_rate: e.target.value,
               },
             })
+            : setErrState(false, "Value exceeds 100", true, "warning")
           }
         />
         <TextField
@@ -881,6 +936,7 @@ const handleRoi=(e) =>{
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.applicable_rate}
           onChange={(e) =>
+            e.target.value<=100 ?
             setFormValues({
               ...formValues,
               rcu_charges_applicable_rate: {
@@ -888,6 +944,7 @@ const handleRoi=(e) =>{
                 applicable_rate: e.target.value,
               },
             })
+            : setErrState(false, "Value exceeds 100", true, "warning")
           }
         />
         <TextField
@@ -983,6 +1040,7 @@ const handleRoi=(e) =>{
           margin="normal"
           value={formValues.stamping_expenses_applicable_rate.applicable_rate}
           onChange={(e) =>
+            e.target.value<=100 ?
             setFormValues({
               ...formValues,
               stamping_expenses_applicable_rate: {
@@ -990,6 +1048,7 @@ const handleRoi=(e) =>{
                 applicable_rate: e.target.value,
               },
             })
+            : setErrState(false, "Value exceeds 100", true, "warning")
           }
         />
         <TextField
@@ -1063,6 +1122,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        required
         error={errors.description}
           label="Description"
           fullWidth

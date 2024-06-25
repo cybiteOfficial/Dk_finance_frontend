@@ -25,6 +25,11 @@ import {
   updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import { extractFileName, isImage, logFormData } from "../components/Common";
+var pincodeDirectory = require('india-pincode-lookup');
+ 
+
+ 
+
 
 const Collateral = () => {
   const token = useSelector((state) => state.authReducer.access_token);
@@ -33,8 +38,10 @@ const Collateral = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+ 
   useEffect(() => {
-
+   
+    
     async function fetchData() {
       fetchCollateralDataApi();
     }
@@ -143,7 +150,22 @@ const Collateral = () => {
       console.error("error: ", error);
     }
   };
+  
+  useEffect(()=>{
+    var vari=pincodeDirectory.lookup(collateralDetails.pincode);
 
+   if (vari[0]) {
+    setCollateralDetails({
+      ...collateralDetails,
+      state:vari[0].stateName,
+      district:vari[0].districtName
+      ,taluka:vari[0].taluk
+    })
+}
+ console.log(vari[0])
+
+    // collateralDetails.city=vari[0].taluk
+      },[collateralDetails.pincode])
   const handleSave = async (e) => {
     e.preventDefault();
     if (isRemarks) {
@@ -334,7 +356,14 @@ const Collateral = () => {
           value={collateralDetails.houseFlatShopNo}
           onChange={handleInputChange}
         />
-
+   <TextField
+          label="Pincode"
+          fullWidth
+          margin="normal"
+          name="pincode"
+          value={collateralDetails.pincode}
+          onChange={handleInputChange}
+        />
         <TextField
           label="Khasra No/Plot No"
           fullWidth
@@ -398,14 +427,7 @@ const Collateral = () => {
           onChange={handleInputChange}
         />
 
-        <TextField
-          label="Pincode"
-          fullWidth
-          margin="normal"
-          name="pincode"
-          value={collateralDetails.pincode}
-          onChange={handleInputChange}
-        />
+     
 
         <TextField
           label="Landmark"
