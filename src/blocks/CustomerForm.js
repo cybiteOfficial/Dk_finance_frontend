@@ -273,8 +273,7 @@ if(vari[0]){
           distance_from_branch: "",
         },
       }));
-    {
-    }
+   
   }, [permanentAddressSameAsCurrent]);
 // useEffect(()=>{
 
