@@ -71,8 +71,9 @@ export const LoginPage = () => {
   
       const { Error, message } = response.payload;
       if (!Error) {
-        setErrState(false, message, true, "success");
+       
         setTimeout(() => {
+          setErrState(false, message, true, "success");
           navigate("/dashboard");
         }, 500);
       }
@@ -92,174 +93,172 @@ export const LoginPage = () => {
         message={err.errMsg}
         severity={err.severity}
       />
-
-      <Grid
-        container
-        style={{
-          height: "auto", // Subtract header height
-          padding: 0,
-        }}
-      >
-        <>
-          <Grid item xs={12}>
-            <Box height={"55vh"} bgcolor={theme.palette.primary.main} />
-          </Grid>
-          <Grid item xs={12}>
-            <Box
-              height={"45vh"}
-              bgcolor={theme.palette.lightSecondaryV2.main}
-            />
-          </Grid>
-        </>
-      </Grid>
+<Grid
+  container
+  style={{
+    height: "auto",
+    padding: 0,
+  }}
+>
+  <>
+    <Grid item xs={12}>
+      <Box height={"55vh"} bgcolor={theme.palette.primary.main} />
+    </Grid>
+    <Grid item xs={12}>
+      <Box height={"45vh"} bgcolor={theme.palette.lightSecondaryV2.main} />
+    </Grid>
+  </>
+</Grid>
+<Box
+  style={{
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    backgroundColor: "white",
+    width: "80%",
+    maxWidth: "600px", // Added maxWidth for better responsiveness
+    height: "auto", // Changed from fixed height to auto
+    padding: "2rem", // Added padding for better content spacing
+    borderRadius: "40px",
+    boxShadow: theme.shadows[5],
+  }}
+>
+  <Grid
+    container
+    style={{
+      display: "flex",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Grid item xs={12} sm={6}>
       <Box
-        style={{
-          position: "absolute",
-          top: "55%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          backgroundColor: "white",
-          width: "80%",
-          height: "696px",
-          borderRadius: "40px",
-          boxShadow: theme.shadows[5],
-        }}
+        display={"flex"}
+        alignItems={"center"}
+        justifyContent={"center"}
+        flexDirection={"column"}
+        p={"1rem"}
+        gap={"2rem"}
       >
-        <Grid
-          container
-          style={{
-            display: "flex",
-            height: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+        <img src={LoginImage} style={{ width: "90%", maxWidth: "300px" }} />
+        <StyledTypography variant="h4" weight={600}>
+          Welcome Back!
+        </StyledTypography>
+        <StyledTypography
+          color={theme.palette.blackFade.main}
+          align="center"
+          variant="body2"
+          weight={400}
         >
-          <Grid item xs={12} sm={6}>
-            <Box
-              display={"flex"}
-              alignItems={"center"}
-              justifyContent={"center"}
-              flexDirection={"column"}
-              p={"1rem"}
-              gap={"2rem"}
-            >
-              {" "}
-              <img src={LoginImage} width={"90%"} />{" "}
-              <StyledTypography variant="h4" weight={600}>
-                Welcome Back !
-              </StyledTypography>
-              <StyledTypography
-                color={theme.palette.blackFade.main}
-                align="center"
-                variant="body2"
-                weight={400}
-              >
-                Log in to access your account and manage your loan details.
-              </StyledTypography>
-            </Box>
-          </Grid>
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            style={{
-              backgroundColor: theme.palette.lightSecondaryV4.main,
-              borderTopRightRadius: "40px",
-              borderBottomRightRadius: "40px",
-              display: "flex",
-              alignItems: "center",
-              height: "100%",
-              justifyContent: "center",
-            }}
-          >
-            <Box
-              display={"flex"}
-              alignItems={"center"}
-              justifyContent={"center"}
-              flexDirection={"column"}
-              p={"1rem"}
-            >
-              <StyledTypography variant="h2" weight={600}>
-                Login
-              </StyledTypography>
-              <form
-                onSubmit={navigateToDashboardPage}
-                style={{ marginTop: "1rem" }}
-              >
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Box
-                      gap={"0.5rem"}
-                      display={"flex"}
-                      flexDirection={"column"}
-                    >
-                      <StyledTypography
-                        variant="body2"
-                        color={theme.palette.primary.main}
-                        weight={500}
-                      >
-                        Username
-                      </StyledTypography>
-                      <StyledTextField
-                        variant="outlined"
-                        required
-                        fullWidth
-                        id="username"
-                        name="username"
-                        onChange={handleLoginChange}
-                      />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box
-                      gap={"0.5rem"}
-                      display={"flex"}
-                      flexDirection={"column"}
-                    >
-                      <StyledTypography
-                        variant="body2"
-                        color={theme.palette.primary.main}
-                        weight={500}
-                      >
-                        Password
-                      </StyledTypography>
-                      <StyledTextField
-                        variant="outlined"
-                        required
-                        fullWidth
-                        name="password"
-                        type="password"
-                        id="password"
-                        onChange={handleLoginChange}
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="secondary"
-                  style={{
-                    borderRadius: "8px",
-                    marginTop: "2rem",
-                    height: "48px",
-                  }}
-                  onClick={navigateToDashboardPage}
-                >
-                  <StyledTypography
-                    variant="body2"
-                    color={theme.palette.white.main}
-                    weight={500}
-                  >
-                    Login
-                  </StyledTypography>
-                </Button>
-              </form>
-            </Box>
-          </Grid>
-        </Grid>
+          Log in to access your account and manage your loan details.
+        </StyledTypography>
       </Box>
+    </Grid>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      style={{
+        backgroundColor: theme.palette.lightSecondaryV4.main,
+       borderRadius:"40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem", // Added padding for better spacing
+      }}
+    >
+      <Box
+        display={"flex"}
+        alignItems={"center"}
+        justifyContent={"center"}
+        flexDirection={"column"}
+        width={"100%"}
+      >
+        <StyledTypography variant="h2" weight={600}>
+          Login
+        </StyledTypography>
+        <form
+          onSubmit={navigateToDashboardPage}
+          style={{ width: "100%", marginTop: "1rem" }}
+        >
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Box
+                gap={"0.5rem"}
+                display={"flex"}
+                flexDirection={"column"}
+              >
+                <StyledTypography
+                  variant="body2"
+                  color={theme.palette.primary.main}
+                  weight={500}
+                >
+                  Username
+                </StyledTypography>
+                <StyledTextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  id="username"
+                  name="username"
+                  onChange={handleLoginChange}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Box
+                gap={"0.5rem"}
+                display={"flex"}
+                flexDirection={"column"}
+              >
+                <StyledTypography
+                  variant="body2"
+                  color={theme.palette.primary.main}
+                  weight={500}
+                >
+                  Password
+                </StyledTypography>
+                <StyledTextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  name="password"
+                  type="password"
+                  id="password"
+                  onChange={handleLoginChange}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="secondary"
+            disabled={err.loading}
+            style={{
+              borderRadius: "8px",
+              marginTop: "2rem",
+              height: "48px",
+            }}
+            onClick={navigateToDashboardPage}
+          >
+            <StyledTypography
+              variant="body2"
+              color={theme.palette.white.main}
+              weight={500}
+            >
+              Login
+            </StyledTypography>
+          </Button>
+        </form>
+      </Box>
+    </Grid>
+  </Grid>
+</Box>
+
     </>
   );
 };

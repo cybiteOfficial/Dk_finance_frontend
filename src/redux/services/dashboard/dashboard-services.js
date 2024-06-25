@@ -11,7 +11,8 @@ const  getLoanEndpoint = "/loan_details";
 const uploadDocument ="/upload_document";
 const getCollateral = "/collateral_details"
 const getCafDetail = "/caf_detail"
-const updateStatus = '/update_status'
+const updateStatus = '/update_status';
+const printDocument="/print_document"
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -40,11 +41,12 @@ export const formHeaders = (token)=>{
 export const dashboardAPI = {
   // Function to fetch
   fetchApplicantDataApi: async (payload) => {
-
     try {
       // Make a GET request to fetch user by ID
-      const getUrl = payload.application_id ? `${baseURL}${getAllAplicants}?application_id=${payload.application_id}`:`${baseURL}${getAllAplicants}?page=${payload.page}`;
-      const url = getUrl
+      const getUrl = payload.application_id
+        ? `${baseURL}${getAllAplicants}?application_id=${payload.application_id}`
+        : `${baseURL}${getAllAplicants}?page=${payload.page}`;
+      const url = getUrl;
       const response = await axios.get(`${url}`, simpleHeaders(payload.token));
 
       // Return the response data
@@ -59,6 +61,17 @@ export const dashboardAPI = {
     const { customer_id, token } = payload;
     try {
       const url = `${baseURL}${updateCustomer}?customer_id=${customer_id}`;
+      const response = await api.get(`${url}`, simpleHeaders(token));
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  },
+  fetchPdfDataApi: async (payload) => {
+    const { appId, token } = payload;
+    try {
+      const url = `${baseURL}${printDocument}?application_id=${appId}`;
       const response = await api.get(`${url}`, simpleHeaders(token));
 
       return response.data;
@@ -205,30 +218,73 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-    const { bodyFormData, token } = payload;
+   
+    
+const {api}=payload;
     try {
-      const response = await api.post(
-        `${baseURL}${uploadDocument}`,
-        bodyFormData,
-        formHeaders(token)
-      );
-      // Return the response data
+      if (api === "post") {
+        const { bodyFormData, token } = payload;
+        var response = await axios.post(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        return response.data;
+      } else if (api === "put") {
+        const { bodyFormData, token,query } = payload;
+         response = await axios.put(
+         `${baseURL}${uploadDocument}?document_type=${query}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+      } else {
+        return;
+      }
       return response.data;
+      // Return the response data
+    } catch (error) {
+      // If an error occurs, throw it or handle it as needed
+    }
+  },
+
+  deleteDocumentDataApi: async (payload) => {
+    const { bodyFormData, token } = payload;
+
+    try {
+      const response = await axios.delete(`${baseURL}${uploadDocument}`, {
+        data: bodyFormData,
+        headers: formHeaders(token).headers,
+      });
+
+      return response.data;
+      // Return the response data
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
     }
   },
 
   updatePhotographDataApi: async (payload) => {
-    const { bodyFormData, token } = payload;
+    const { bodyFormData, token, api } = payload;
+
     try {
-      const response = await api.post(
-        `${baseURL}${uploadDocument}`,
-        bodyFormData,
-        formHeaders(token)
-      );
-      // Return the response data
-      return response.data;
+      let response;
+      if (api === "put") {
+        response = await axios.put(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        // Return the response data
+        return response.data;
+      } else if (api === "post") {
+        response = await axios.post(
+          `${baseURL}${uploadDocument}`,
+          bodyFormData,
+          formHeaders(token)
+        );
+        // Return the response data
+        return response.data;
+      }
     } catch (error) {
       // If an error occurs, throw it or handle it as needed
     }
