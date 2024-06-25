@@ -9,11 +9,13 @@ import { StyledTypography, pdfData } from "../components/Common";
 import { theme } from "../theme";
 import SnackToast from "../components/Snackbar";
 import { saveAs } from "file-saver";
+import { checkTokenExpired } from "../components/Common";
+import { removeStore } from "../redux/reducers/dashboard/dashboard-reducer";
 import {fetchApplicantDataThunk, fetchCustomersByApplicantIdDataThunk,fetchPdfDataThunk,fileForwardedThunk,removeCustomer,setCustomer} from "../redux/reducers/dashboard/dashboard-reducer"
 import MyDocument from "../components/MyDocument";
 
 // Import JSON data using require()
-const jsonData = require("../mocks/customers.json");
+// const jsonData = require("../mocks/customers.json");
 
 export const Customers = () => {
  
@@ -22,7 +24,7 @@ export const Customers = () => {
   const { customerDetails,applicantData} = useSelector((state) => state.dashboardReducer);
 
   const { pdfDetails } = useSelector((state) => state.dashboardReducer);
-console.log(appId)
+
   
 //  console.log(pdfDetails.loan_details)
   const navigate = useNavigate();
@@ -32,7 +34,7 @@ console.log(appId)
       dispatch(fetchPdfDataThunk({ appId, token }));
     }
   }, [appId, token]);
-  console.log(pdfDetails)
+
   const [page, setPage] = useState(1); // State to manage current page
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
@@ -149,7 +151,21 @@ console.log(appId)
         fetchCustomersByApplicantIdDataThunk(payload)
       );
       // where is err and msg
-      const { results, error, message ,count} = response.payload;
+      const { code,results, error, message ,count} = response.payload;
+     
+      if(code){
+       checkTokenExpired(
+         message,
+         response,
+         setErrState,
+         dispatch,
+         removeStore,
+         navigate
+       );
+      }else if (error) {
+       return setErrState(false, message, true, "error");
+     }
+ 
       if (error) {
         return setErrState(false, message, true, "error");
       }
@@ -164,14 +180,14 @@ console.log(appId)
   };
 
   const downloadPdf = async () => {
-    console.log(pdfDetails)
+console.log(pdfDetails)
     const fileName = "loan.pdf";
     const blob = await pdf(<MyDocument data={pdfDetails} />).toBlob();
     saveAs(blob, fileName);
   };
   
   const updateStatusDataApi = async () => {
-    console.log(pdfDetails)
+
     if (applicantData[0]?.status === "cluster") {
    
    
@@ -225,8 +241,25 @@ console.log(appId)
     setErrState(true, "", false, "");
     const payload = { application_id: appId, token }; 
     try {
-      await dispatch(fetchApplicantDataThunk(payload));
-    } catch (error) {}
+     const response= await dispatch(fetchApplicantDataThunk(payload));
+     
+     const { error, message,code } = response.payload;
+     if(code){
+      checkTokenExpired(
+        message,
+        response,
+        setErrState,
+        dispatch,
+        removeStore,
+        navigate
+      );
+     }else if (error) {
+      return setErrState(false, message, true, "error");
+    }
+
+    } catch (error) {
+
+    }
   };
 
   const handleCloseToast = () => {
@@ -264,8 +297,8 @@ console.log(appId)
           {customerDetails.length > 0 && (
             <Button
               disabled={
-                applicantData[0]?.status === "sanctioned" || err.loading || process.env.REACT_APP_DISABLED === "TRUE"
-         || pdfDetails.loan_details.length ===0     }
+                applicantData[0]?.status === "sanctioned" || err.loading 
+         || pdfDetails.loan_details.length === 0     }
               onClick={updateStatusDataApi}
               variant="outlined"
               style={{ marginBottom:20, marginLeft: "auto" }}

@@ -24,7 +24,7 @@ import { CommonChip, StyledTypography, checkTokenExpired} from "../components/Co
 import DashedImg from "../assets/images/dashed.png";
 const useStyles = makeStyles((theme) => ({
   dashedImg: {
-    width: "1200px",
+    width: "100%",
     marginLeft: "3rem",
     [theme.breakpoints.down("lg")]: {
       width: "850px",
@@ -34,18 +34,22 @@ const useStyles = makeStyles((theme) => ({
   appLicantRows: {
     padding: "1rem 0 1rem 80px",
     display: "flex",
-    gap: "4rem",
+    gap: "1rem",
     alignItems: "center",
     cursor: "pointer",
+    transition: "background-color 0.3s ease", // Add a smooth transition for the hover effect
     [theme.breakpoints.down("lg")]: {
       padding: "1rem 0 1rem 40px",
+    },
+    "&:hover": {
+      backgroundColor: theme.palette.grey[300],
     },
   },
   appLicantHeader: {
     padding: "1rem 0 1rem 80px",
     backgroundColor: theme.palette.lightSecondaryV2.main,
     display: "flex",
-    gap: "4rem",
+    gap: "1rem",
     alignItems: "center",
     [theme.breakpoints.down("lg")]: {
       padding: "1rem 0 1rem 40px",
@@ -176,13 +180,13 @@ console.log(userInfo)
       <Box
         width={"90%"}
         margin={"17vh auto 0 auto"}
-        height={"800px"}
+        height={"100%"}
         backgroundColor={theme.palette.white.main}
         borderRadius={"16px"}
       >
        <Grid container>
   <Grid item xs={12}>
-    <Box p={"2rem"}>
+    <Box p={"1rem"}>
       <StyledTypography variant="subtitle1" weight={700}>
         Applications
       </StyledTypography>
@@ -203,7 +207,7 @@ console.log(userInfo)
     </Box>
   </Grid> */}
   <Grid item xs={12}>
-    <Box pl={"80px"} mt={"24px"}></Box>
+    <Box pl={"auto"} mt={"auto"}></Box>
   </Grid>
   <Grid item xs={12} sm={12}>
     <Paper
@@ -241,7 +245,7 @@ console.log(userInfo)
           </Box>
         </Grid>
       </Grid>
-      <Box style={{ overflowY: "scroll" }} height={"583px"}>
+      <Box style={{ overflowY: "scroll" }} height={"100%"}>
         {userInfo &&
           userInfo.length > 0 &&
           userInfo.map((item, index) => (
@@ -263,7 +267,7 @@ console.log(userInfo)
                 {/* Add the new data cell for RO Details */}
                 <Grid item xs={4}>
                   <StyledTypography variant="body2" weight={600}>
-                    {item.created_by.ro_name} {item.created_by.ro_name ? '-' : " "} {item.created_by.employee_id}
+                    {item.created_by.ro_name} {item.created_by.employee_id ? '-' : " "} {item.created_by.employee_id}
                   </StyledTypography>
                 </Grid>
                 <Grid
