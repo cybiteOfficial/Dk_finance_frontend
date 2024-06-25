@@ -25,7 +25,7 @@ import {
   updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import { extractFileName, isImage, logFormData } from "../components/Common";
-var pincodeDirectory = require('india-pincode-lookup');
+var query = require('india-pincode-search');
  
 
  
@@ -152,14 +152,15 @@ const Collateral = () => {
   };
   
   useEffect(()=>{
-    var vari=pincodeDirectory.lookup(collateralDetails.pincode);
+    var vari=query.search(collateralDetails.pincode);
 
    if (vari[0]) {
     setCollateralDetails({
       ...collateralDetails,
-      state:vari[0].stateName,
-      district:vari[0].districtName
-      ,taluka:vari[0].taluk
+      state:vari[0].state,
+      district:vari[0].district
+      ,village:vari[0].village,
+      city:vari[0].city
     })
 }
  console.log(vari[0])

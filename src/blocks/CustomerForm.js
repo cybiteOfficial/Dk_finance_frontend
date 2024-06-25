@@ -35,7 +35,7 @@ import {
 } from "../components/Common";
 import InputValidation from "../components/InputValidation";
 import SnackToast from "../components/Snackbar";
-var pincodeDirectory = require('india-pincode-lookup');
+var query = require('india-pincode-search');
 const fieldsToExtract = [
   "title",
   "firstName",
@@ -194,30 +194,32 @@ const CustomerForm = () => {
   });
 
 useEffect(()=>{
-  var vari=pincodeDirectory.lookup(addressFields.current.pincode);
+  var vari=query.search(addressFields.current.pincode);
 if(vari[0]){
   setAddressFields(prevState => ({
     ...prevState,
     current: {
       ...prevState.current,
-      state: vari[0].stateName,
-      district: vari[0].districtName,
-      tehsil_or_taluka:vari[0].taluk
+      state: vari[0].state,
+      district: vari[0].district,
+      tehsil_or_taluka:vari[0].village
+      ,city:vari[0].city
     }
   }));
 
 }
 },[addressFields.current.pincode])
 useEffect(()=>{
-  var vari=pincodeDirectory.lookup(addressFields.permanent.pincode);
+  var vari=query.search(addressFields.permanent.pincode);
 if(vari[0]){
   setAddressFields(prevState => ({
     ...prevState,
     permanent: {
       ...prevState.permanent,
-      state: vari[0].stateName,
-      district: vari[0].districtName,
-      tehsil_or_taluka:vari[0].taluk
+      state: vari[0].state,
+      district: vari[0].district,
+      tehsil_or_taluka:vari[0].village
+      ,city:vari[0].city
     }
   }));
 
