@@ -6,16 +6,45 @@ import { useDispatch, useSelector } from "react-redux";
 import {logFormData} from "../components/Common"
 import SnackToast from "../components/Snackbar";
 import mockCustomers from"../mocks/allcustomers.json"
-import { fetchAllCustomersByApplicantIdDataThunk, fetchCafDataThunk, updateCafDataThunk } from "../redux/reducers/dashboard/dashboard-reducer";
+import { checkTokenExpired} from "../components/Common";
+import { fetchAllCustomersByApplicantIdDataThunk, fetchCafDataThunk, updateCafDataThunk,fetchApplicantDataThunk ,removeStore} from "../redux/reducers/dashboard/dashboard-reducer";
 
 const CustomerCaf = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const [page, setPage] = useState(1); 
   const token = useSelector((state) => state.authReducer.access_token);
   const {appId} = useSelector((state) => state.authReducer);
   const dashboardReducer = useSelector((state) => state.dashboardReducer);
+  useEffect(() => {
+    const fetchApplicants = async () => getApplicantsApi();
+    fetchApplicants();
+   
+  }, [page]);
 
+  const getApplicantsApi = async (event) => {
+    setErrState(true, "", false, "");
+    const payload = {token, page}
+    
+    try {
+      const response = await dispatch(fetchApplicantDataThunk(payload));
+
+      // where is err and msg
+      const { results, count, code, message } = response.payload;
+      if (code) {
+        checkTokenExpired(
+          message,
+          response,
+          setErrState,
+          dispatch,
+          removeStore,
+          navigate
+        );
+      } 
+    } catch (error) {
+      console.error("error: ", error);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -220,6 +249,15 @@ const CustomerCaf = () => {
         <form onSubmit={handleSubmit}>
           <TextField
            type="number"
+           onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
             fullWidth
             label="Tentative Amount"
             name="tentative_amt"
@@ -273,14 +311,16 @@ const CustomerCaf = () => {
             rows={4}
             margin="normal"
           />
-
+ <Button variant="contained" type="button" onClick={addKeyValuePair}>
+            Add More
+          </Button>
           {extra_data.map((pair, index) => (
             <Grid container spacing={2} key={index}>
               <Grid item xs={6}>
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document name"
+                  label="Field Name"
                   value={pair.key}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "key")
@@ -291,7 +331,7 @@ const CustomerCaf = () => {
                 <TextField
                   margin="normal"
                   fullWidth
-                  label="Document ID"
+                  label="Value"
                   value={pair.value}
                   onChange={(e) =>
                     handleTextFieldChange(index, e.target.value, "value")
@@ -301,9 +341,7 @@ const CustomerCaf = () => {
             </Grid>
           ))}
 
-          <Button variant="contained" type="button" onClick={addKeyValuePair}>
-            Add More
-          </Button>
+         
           {isRemarks && (
             <TextField
               label="Remarks"
@@ -315,6 +353,7 @@ const CustomerCaf = () => {
             />
           )}
           <Button
+           disabled={process.env.REACT_APP_DISABLED === "TRUE"}
             style={{ marginBottom: 10, marginTop: 10, marginLeft: "auto" }}
             variant="contained"
             type="submit"

@@ -12,6 +12,7 @@ import PhotoUpload from "./blocks/Photo-upload";
 import Collateral from "./blocks/Collateral";
 import CustomerCaf from "./blocks/Customer-caf";
 import Container from '@mui/material/Container';
+import MyDocument from "./components/MyDocument";
 
 
 function App() {
@@ -32,7 +33,7 @@ function App() {
         <Route path="/applicant/photographs/uploads" element={<PhotoUpload />} />
         <Route path="/applicant/collateral" element={<Collateral />} />
         <Route path="/applicant/customer/application" element={<CustomerCaf />} />
-
+        <Route path="/pdf" element={<MyDocument/>} />
       </Routes>
       </>
     </BrowserRouter>

@@ -11,10 +11,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
 
@@ -23,7 +24,12 @@ import {
   removeCollateral,
   updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
-import { logFormData } from "../components/Common";
+import { extractFileName, isImage, logFormData } from "../components/Common";
+var query = require('india-pincode-search');
+ 
+
+ 
+
 
 const Collateral = () => {
   const token = useSelector((state) => state.authReducer.access_token);
@@ -32,7 +38,10 @@ const Collateral = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+ 
   useEffect(() => {
+   
+    
     async function fetchData() {
       fetchCollateralDataApi();
     }
@@ -99,6 +108,7 @@ const Collateral = () => {
         updatedFormValues[key] = "";
       }
     }
+   
     setCollateralDetails(updatedFormValues);
   };
 
@@ -140,7 +150,23 @@ const Collateral = () => {
       console.error("error: ", error);
     }
   };
+  
+  useEffect(()=>{
+    var vari=query.search(collateralDetails.pincode);
 
+   if (vari[0]) {
+    setCollateralDetails({
+      ...collateralDetails,
+      state:vari[0].state,
+      district:vari[0].district
+      ,village:vari[0].village,
+      city:vari[0].city
+    })
+}
+ console.log(vari[0])
+
+    // collateralDetails.city=vari[0].taluk
+      },[collateralDetails.pincode])
   const handleSave = async (e) => {
     e.preventDefault();
     if (isRemarks) {
@@ -210,14 +236,7 @@ const Collateral = () => {
 
         <Typography variant="h6">Collateral Details</Typography>
         <Divider style={{ marginBottom: 10 }} />
-        <TextField
-          label="Is existing collateral (YES/No)"
-          fullWidth
-          margin="normal"
-          name="isExisting"
-          value={collateralDetails.isExisting}
-          onChange={handleInputChange}
-        />
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Collateral Type</InputLabel>
           <Select
@@ -252,14 +271,20 @@ const Collateral = () => {
           value={collateralDetails.primarySecondary}
           onChange={handleInputChange}
         />
-        <TextField
-          label="Valuation Required (YES/No)"
-          fullWidth
-          margin="normal"
-          name="valuationRequired"
-          value={collateralDetails.valuationRequired}
-          onChange={handleInputChange}
-        />
+      
+
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Valuation Required</InputLabel>
+          <Select
+            value={collateralDetails.valuationRequired}
+            onChange={handleInputChange}
+            name="valuationRequired"
+            label="Collateral Type"
+          >
+            <MenuItem value="yes">Yes</MenuItem>
+            <MenuItem value="no">No</MenuItem>
+          </Select>
+        </FormControl>
 
         <TextField
           label="Relationship With Loan (Applicant Number)"
@@ -332,7 +357,14 @@ const Collateral = () => {
           value={collateralDetails.houseFlatShopNo}
           onChange={handleInputChange}
         />
-
+   <TextField
+          label="Pincode"
+          fullWidth
+          margin="normal"
+          name="pincode"
+          value={collateralDetails.pincode}
+          onChange={handleInputChange}
+        />
         <TextField
           label="Khasra No/Plot No"
           fullWidth
@@ -396,14 +428,7 @@ const Collateral = () => {
           onChange={handleInputChange}
         />
 
-        <TextField
-          label="Pincode"
-          fullWidth
-          margin="normal"
-          name="pincode"
-          value={collateralDetails.pincode}
-          onChange={handleInputChange}
-        />
+     
 
         <TextField
           label="Landmark"
@@ -416,6 +441,15 @@ const Collateral = () => {
 
         <TextField
           type="number"
+          onFocus={(e) =>
+            e.target.addEventListener(
+              "wheel",
+              function (e) {
+                e.preventDefault();
+              },
+              { passive: false }
+            )
+          }
           label="Estimated Property Value"
           fullWidth
           margin="normal"
@@ -428,18 +462,50 @@ const Collateral = () => {
             label="Document Name"
             margin="normal"
             name="documentName"
-            value={collateralDetails.documentName}
+            value={
+              collateralDetails.documentName ||
+              extractFileName(collateralDetails.documentUpload)
+            }
             onChange={handleInputChange}
             style={{ width: "33%" }}
           />
-          <TextField
-            label="Uploaded File"
-            margin="normal"
-            name="uploadedFile"
-            value={collateralDetails.uploadedFile}
-            onChange={handleInputChange}
-            style={{ width: "33%" }}
-          />
+
+          {typeof collateralDetails.documentUpload === "string" &&
+          isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <img
+              src={collateralDetails.documentUpload}
+              alt={"preview"}
+              style={{ width: "200px", height: "100px" }}
+            />
+          ) : typeof collateralDetails.documentUpload === "string" &&
+            !isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <div
+              style={{
+                border: "1px solid #ccc",
+                padding: "10px",
+                textAlign: "center",
+              }}
+            >
+              <p>{extractFileName(collateralDetails.documentUpload)}</p>
+              <IconButton
+                href={collateralDetails.documentUpload}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <GetAppIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <TextField
+              label="Uploaded File"
+              margin="normal"
+              name="uploadedFile"
+              value={collateralDetails.uploadedFile}
+              onChange={handleInputChange}
+              style={{ width: "33%" }}
+            />
+          )}
+
           <Box width={"33%"}>
             <Input
               type="file"
@@ -480,7 +546,12 @@ const Collateral = () => {
             onChange={handleInputChange}
           />
         )}
-        <Button variant="contained" fullWidth onClick={handleSave}>
+        <Button
+          disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+          variant="contained"
+          fullWidth
+          onClick={handleSave}
+        >
           Save
         </Button>
       </Box>
