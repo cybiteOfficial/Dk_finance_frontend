@@ -217,8 +217,7 @@ if(vari[0]){
     permanent: {
       ...prevState.permanent,
       state: vari[0].state,
-      district: vari[0].district,
-      tehsil_or_taluka:vari[0].village
+      district: vari[0].district
       ,city:vari[0].city
     }
   }));
@@ -288,7 +287,7 @@ if(vari[0]){
 //       district:vari[0].districtName
 //       ,taluka:vari[0].taluk
 //     },
-//     permanent{
+//     permanent{ vffv 
 //       ...permanent
 //     }
 //     })
