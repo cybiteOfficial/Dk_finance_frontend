@@ -15,7 +15,8 @@ const styles = StyleSheet.create({
   },
   subheading: {
     fontSize: 14,
-    marginVertical: 5,
+    marginVertical: 5,  
+    
     fontWeight: 'bold',
   },
   table: {
