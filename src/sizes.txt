@@ -1,0 +1,16 @@
+h1: Very large headings, typically the main title of a page.
+h2: Smaller than h1, used for section titles.
+h3: Smaller than h2, used for subsection titles.
+h4: Smaller than h3, used for headings within sections.
+h5: Smaller headings, used for less significant titles or subtitles.
+h6: Smallest headings, used for less significant titles or subtitles.
+For body text:
+
+body1: Standard body text size.
+body2: Smaller than body1, often used for additional information or captions.
+Other variants:
+
+subtitle1: Used for subtitles, typically larger than body text.
+subtitle2: Smaller than subtitle1, used for less significant subtitles.
+caption: Smallest size, typically used for photo captions or other small text.
+overline: Similar to caption but with a slightly different style, often used for labeling other elements.
