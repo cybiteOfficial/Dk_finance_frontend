@@ -139,42 +139,42 @@ const LoanDetails = () => {
     applied_ROI: false,
     description: false,
     comment: false,
-    processing_fees: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
-    valuation_charges: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
-    legal_and_incidental_fee: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
-    stamp_duty_applicable_rate: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
-    rcu_charges_applicable_rate: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
-    stamping_expenses_applicable_rate: {
-      applicable_rate: false,
-      charge_amount: false,
-      tax_amount: false,
-      total_amount: false,
-    },
+    // processing_fees: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
+    // valuation_charges: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
+    // legal_and_incidental_fee: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
+    // stamp_duty_applicable_rate: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
+    // rcu_charges_applicable_rate: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
+    // stamping_expenses_applicable_rate: {
+    //   applicable_rate: false,
+    //   charge_amount: false,
+    //   tax_amount: false,
+    //   total_amount: false,
+    // },
   });
   
   const handleExtractFormValues = (dataObject) => {
@@ -219,24 +219,9 @@ const LoanDetails = () => {
     }
   };
 const handleRoi=(e) =>{
-    if(e.target.value>999){
-      setErr({
-        loading: false,
-        errMsg: "Value must be less than 1000",
-        openSnack: true,
-        severity: "error",
-      })
-    }
-    else{
-      setErr({
-        loading: false,
-        errMsg: "Value must be less than 1000",
-        openSnack: false,
-        severity: "error",
-      })
-      }
+ 
     
-      setFormValues({ ...formValues, applied_ROI: e.target.value })
+     
     }
 
   const handleLoanSubmit = async (e) => {
@@ -302,58 +287,52 @@ const handleRoi=(e) =>{
       applied_ROI: false,
       description: false,
       comment: false,
-      processing_fees: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
-      valuation_charges: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
-      legal_and_incidental_fee: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
-      stamp_duty_applicable_rate: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
-      rcu_charges_applicable_rate: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
-      stamping_expenses_applicable_rate: {
-        applicable_rate: false,
-        charge_amount: false,
-        tax_amount: false,
-        total_amount: false,
-      },
+      // processing_fees: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
+      // valuation_charges: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
+      // legal_and_incidental_fee: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
+      // stamp_duty_applicable_rate: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
+      // rcu_charges_applicable_rate: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
+      // stamping_expenses_applicable_rate: {
+      //   applicable_rate: false,
+      //   charge_amount: false,
+      //   tax_amount: false,
+      //   total_amount: false,
+      // },
     };
 
     for (const [key, value] of Object.entries(values)) {
-      if (typeof value === 'object' && value !== null) {
-          for (const [nestedKey, nestedValue] of Object.entries(value)) {
-              if (nestedValue === "") {
-                  errors[key][nestedKey] = true;
-              }
-          }
-      } else {
+      
         console.log("descrip",key,value)
           if (value === null) {
             
               errors[key] = true;
           }
-      }
+      
   }
 
 
@@ -494,15 +473,26 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
-        error={errors.applied_ROI}
-          label="Applied ROI"
-          fullWidth
-          // error={error}
-          margin="normal"
-          value={formValues.applied_ROI}
-          
-          onChange={handleRoi}
-        />
+  type="number"
+  error={errors.applied_ROI}
+  label="Applied ROI"
+  fullWidth
+  margin="normal"
+  value={formValues.applied_ROI}
+  onChange={(e) => {
+  
+    if (0>=e.target.value && e.target.value <= 1000) {
+      setFormValues({ ...formValues, applied_ROI: e.target.value });
+    } else {
+      setErr({
+        loading: false,
+        errMsg: "Value must be less than 1000",
+        openSnack: true,
+        severity: "error",
+      });
+    }
+  }}
+/>
 
         <Typography variant="h6" style={{ marginTop: 20 }}>
           Charges type (Processing Fees)
@@ -510,7 +500,7 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
 
         <TextField
-        error={errors.processing_fees.applicable_rate}
+        // error={errors.processing_fees.applicable_rate}
           value={formValues.processing_fees.applicable_rate}
           onChange={(e) =>
             e.target.value <=100 ?
@@ -529,7 +519,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
-          error={errors.processing_fees.charge_amount}
+          // error={errors.processing_fees.charge_amount}
           onFocus={(e) =>
             e.target.addEventListener(
               "wheel",
@@ -554,7 +544,8 @@ const handleRoi=(e) =>{
           margin="normal"
         />
         <TextField
-                error={errors.processing_fees.tax_amount}
+        type="number"
+                // error={errors.processing_fees.tax_amount}
 
           value={formValues.processing_fees.tax_amount}
           onChange={(e) =>
@@ -581,7 +572,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           type="number"
-          error={errors.processing_fees.total_amount}
+          // error={errors.processing_fees.total_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -613,7 +604,8 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
         {/* Charges type (Valuation charges) */}
         <TextField
-        error={errors.valuation_charges.applicable_rate}
+        type="number"
+        // error={errors.valuation_charges.applicable_rate}
           label="Applicable rate"
           fullWidth
           margin="normal"
@@ -631,7 +623,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
-                error={errors.valuation_charges.charge_amount}
+                // error={errors.valuation_charges.charge_amount}
 
           label="Charge amount"
           type="number"
@@ -658,8 +650,9 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        type="number"
           label="Tax amount"
-          error={errors.valuation_charges.tax_amount}
+          // error={errors.valuation_charges.tax_amount}
 
             onFocus={(e) =>
             e.target.addEventListener(
@@ -685,7 +678,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Total amount"
-          error={errors.valuation_charges.total_amount}
+          // error={errors.valuation_charges.total_amount}
 
           type="number"
           onFocus={(e) =>
@@ -718,8 +711,9 @@ const handleRoi=(e) =>{
 
         {/* Charges type (Legal and incidental fee) */}
         <TextField
+        type="number"
           label="Applicable rate"
-          error={errors.legal_and_incidental_fee.applicable_rate}
+          // error={errors.legal_and_incidental_fee.applicable_rate}
 
           fullWidth
           margin="normal"
@@ -737,8 +731,9 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
+        
           label="Charge amount"
-          error={errors.legal_and_incidental_fee.charge_amount}
+          // error={errors.legal_and_incidental_fee.charge_amount}
 
           type="number"
           onFocus={(e) =>
@@ -765,7 +760,8 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Tax amount"
-          error={errors.legal_and_incidental_fee.tax_amount}
+          type="number"
+          // error={errors.legal_and_incidental_fee.tax_amount}
 
             onFocus={(e) =>
             e.target.addEventListener(
@@ -791,7 +787,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Total amount"
-          error={errors.legal_and_incidental_fee.total_amount}
+          // error={errors.legal_and_incidental_fee.total_amount}
 
           type="number"
           onFocus={(e) =>
@@ -823,8 +819,9 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
         {/* Charge type: Stamp Duty */}
         <TextField
+          type="number"
           label="Applicable rate"
-          error={errors.stamp_duty_applicable_rate.applicable_rate}
+          // error={errors.stamp_duty_applicable_rate.applicable_rate}
 
           fullWidth
           margin="normal"
@@ -844,7 +841,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Charge amount"
-          error={errors.stamp_duty_applicable_rate.charge_amount}
+          // error={errors.stamp_duty_applicable_rate.charge_amount}
 
           type="number"
           onFocus={(e) =>
@@ -871,7 +868,8 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Tax amount"
-          error={errors.stamp_duty_applicable_rate.tax_amount}
+            type="number"
+          // error={errors.stamp_duty_applicable_rate.tax_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -897,7 +895,7 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Total amount"
-          error={errors.stamp_duty_applicable_rate.total_amount}
+          // error={errors.stamp_duty_applicable_rate.total_amount}
 
           type="number"
           onFocus={(e) =>
@@ -930,8 +928,8 @@ const handleRoi=(e) =>{
         {/* Charge type: Rcu Charges */}
         <TextField
           label="Applicable rate"
-          error={errors.rcu_charges_applicable_rate.applicable_rate}
-
+          // error={errors.rcu_charges_applicable_rate.applicable_rate}
+  type="number"
           fullWidth
           margin="normal"
           value={formValues.rcu_charges_applicable_rate.applicable_rate}
@@ -950,7 +948,7 @@ const handleRoi=(e) =>{
         <TextField
           label="Charge amount"
           type="number"
-          error={errors.rcu_charges_applicable_rate.charge_amount}
+          // error={errors.rcu_charges_applicable_rate.charge_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -976,8 +974,8 @@ const handleRoi=(e) =>{
         />
         <TextField
           label="Tax amount"
-          error={errors.rcu_charges_applicable_rate.tax_amount}
-
+          // error={errors.rcu_charges_applicable_rate.tax_amount}
+  type="number"
           fullWidth
           onFocus={(e) =>
             e.target.addEventListener(
@@ -1003,7 +1001,7 @@ const handleRoi=(e) =>{
         <TextField
           label="Total amount"
           type="number"
-          error={errors.rcu_charges_applicable_rate.total_amount}
+          // error={errors.rcu_charges_applicable_rate.total_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -1034,7 +1032,8 @@ const handleRoi=(e) =>{
         <Divider style={{ marginBottom: 10 }} />
         {/* Charge type: Stampping expenses */}
         <TextField
-        error={errors.stamping_expenses_applicable_rate.applicable_rate}
+        // error={errors.stamping_expenses_applicable_rate.applicable_rate}
+          type="number"
           label="Applicable rate"
           fullWidth
           margin="normal"
@@ -1054,7 +1053,7 @@ const handleRoi=(e) =>{
         <TextField
           label="Charge amount"
           type="number"
-          error={errors.stamping_expenses_applicable_rate.charge_amount}
+          // error={errors.stamping_expenses_applicable_rate.charge_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -1079,7 +1078,7 @@ const handleRoi=(e) =>{
           }
         />
         <TextField
-         error={errors.stamping_expenses_applicable_rate.tax_amount}
+        //  error={errors.stamping_expenses_applicable_rate.tax_amount}
           label="Tax amount"
           fullWidth
           margin="normal"
@@ -1097,7 +1096,7 @@ const handleRoi=(e) =>{
         <TextField
           label="Total amount"
           type="number"
-          error={errors.stamping_expenses_applicable_rate.total_amount}
+          // error={errors.stamping_expenses_applicable_rate.total_amount}
 
           onFocus={(e) =>
             e.target.addEventListener(
@@ -1123,7 +1122,7 @@ const handleRoi=(e) =>{
         />
         <TextField
         required
-        error={errors.description}
+        // error={errors.description}
           label="Description"
           fullWidth
           multiline
