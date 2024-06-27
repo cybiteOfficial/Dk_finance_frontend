@@ -163,6 +163,7 @@ const LoanDetails = () => {
     //   tax_amount: false,
     //   total_amount: false,
     // },
+    
     // rcu_charges_applicable_rate: {
     //   applicable_rate: false,
     //   charge_amount: false,
