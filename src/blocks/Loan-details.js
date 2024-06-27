@@ -518,6 +518,7 @@ const handleRoi=(e) =>{
             setFormValues({
               ...formValues,
               processing_fees: {
+                
                 ...formValues.processing_fees,
                 applicable_rate: e.target.value,
               },
