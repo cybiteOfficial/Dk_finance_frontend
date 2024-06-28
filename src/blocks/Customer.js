@@ -188,9 +188,7 @@ console.log(pdfDetails)
   
   const updateStatusDataApi = async () => {
 
-    if (applicantData[0]?.status === "cluster") {
-   
-   
+    if (applicantData[0]?.status === "sanctioned") {
       const payload = { appId, token };
       try {
         setErrState(true, "", false, "");
@@ -214,7 +212,7 @@ console.log(pdfDetails)
     } else {
       const bodyFormData = new FormData();
       bodyFormData.append("applications_ids", JSON.stringify([appId]));
-      const payload = { bodyFormData, token,appId };
+      const payload = { bodyFormData, token, appId };
       try {
         setErrState(true, "", false, "");
         const response = await dispatch(fileForwardedThunk(payload));
