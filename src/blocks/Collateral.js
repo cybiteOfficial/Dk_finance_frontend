@@ -287,7 +287,6 @@ const Collateral = () => {
           value={collateralDetails.primarySecondary}
           onChange={handleInputChange}
         />
-      
 
         <FormControl fullWidth margin="normal">
           <InputLabel>Valuation Required</InputLabel>
@@ -373,13 +372,21 @@ const Collateral = () => {
           value={collateralDetails.houseFlatShopNo}
           onChange={handleInputChange}
         />
-   <TextField
+        <TextField
           label="Pincode"
           fullWidth
           margin="normal"
           name="pincode"
           value={collateralDetails.pincode}
           onChange={handleInputChange}
+          inputProps={{
+            maxLength: 6,
+          }}
+          helperText="Only 6 digits, no alphabets allowed"
+          error={
+            !/^\d*$/.test(collateralDetails.pincode) &&
+            collateralDetails.pincode !== ""
+          }
         />
         <TextField
           label="Khasra No/Plot No"
@@ -444,8 +451,6 @@ const Collateral = () => {
           onChange={handleInputChange}
         />
 
-     
-
         <TextField
           label="Landmark"
           fullWidth
@@ -473,75 +478,75 @@ const Collateral = () => {
           value={collateralDetails.estimatedPropertyValue}
           onChange={handleInputChange}
         />
-      <Box display={"flex"} gap={"1rem"} alignItems={"center"}>
-  <TextField
-    label="Document Name"
-    margin="normal"
-    name="documentName"
-    value={
-      collateralDetails.documentName ||
-      extractFileName(collateralDetails.documentUpload)
-    }
-    onChange={handleInputChange}
-    style={{ width: "33%" }}
-  />
+        <Box display={"flex"} gap={"1rem"} alignItems={"center"}>
+          <TextField
+            label="Document Name"
+            margin="normal"
+            name="documentName"
+            value={
+              collateralDetails.documentName ||
+              extractFileName(collateralDetails.documentUpload)
+            }
+            onChange={handleInputChange}
+            style={{ width: "33%" }}
+          />
 
-  {typeof collateralDetails.documentUpload === "string" &&
-  isImage(extractFileName(collateralDetails.documentUpload)) ? (
-    <img
-      src={collateralDetails.documentUpload}
-      alt={"preview"}
-      style={{ width: "200px", height: "100px" }}
-    />
-  ) : typeof collateralDetails.documentUpload === "string" &&
-    !isImage(extractFileName(collateralDetails.documentUpload)) ? (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        padding: "10px",
-        textAlign: "center",
-      }}
-    >
-      <p>{extractFileName(collateralDetails.documentUpload)}</p>
-      <IconButton
-        href={collateralDetails.documentUpload}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <GetAppIcon />
-      </IconButton>
-    </div>
-  ) : (
-    <TextField
-      label="Uploaded File"
-      margin="normal"
-      name="uploadedFile"
-      value={collateralDetails.uploadedFile}
-      onChange={handleInputChange}
-      style={{ width: "33%" }}
-    />
-  )}
+          {typeof collateralDetails.documentUpload === "string" &&
+          isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <img
+              src={collateralDetails.documentUpload}
+              alt={"preview"}
+              style={{ width: "200px", height: "100px" }}
+            />
+          ) : typeof collateralDetails.documentUpload === "string" &&
+            !isImage(extractFileName(collateralDetails.documentUpload)) ? (
+            <div
+              style={{
+                border: "1px solid #ccc",
+                padding: "10px",
+                textAlign: "center",
+              }}
+            >
+              <p>{extractFileName(collateralDetails.documentUpload)}</p>
+              <IconButton
+                href={collateralDetails.documentUpload}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <GetAppIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <TextField
+              label="Uploaded File"
+              margin="normal"
+              name="uploadedFile"
+              value={collateralDetails.uploadedFile}
+              onChange={handleInputChange}
+              style={{ width: "33%" }}
+            />
+          )}
 
-  <Box width={"33%"}>
-    <Input
-      type="file"
-      onChange={handleFileChange}
-      style={{ display: "none" }}
-      id={`file-input`}
-    />
-    <label htmlFor={`file-input`}>
-      <Button
-        fullWidth
-        style={{ margin: "16px 0 8px 0" }}
-        variant="outlined"
-        component="span"
-        startIcon={<AttachFileIcon />}
-      >
-        Choose File
-      </Button>
-    </label>
-  </Box>
-</Box>
+          <Box width={"33%"}>
+            <Input
+              type="file"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+              id={`file-input`}
+            />
+            <label htmlFor={`file-input`}>
+              <Button
+                fullWidth
+                style={{ margin: "16px 0 8px 0" }}
+                variant="outlined"
+                component="span"
+                startIcon={<AttachFileIcon />}
+              >
+                Choose File
+              </Button>
+            </label>
+          </Box>
+        </Box>
 
         <TextField
           label="Description"

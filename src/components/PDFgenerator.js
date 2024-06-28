@@ -47,7 +47,7 @@ const PDFGenerator = ({ data }) => {
         disabled={loading}
         onClick={updateStatusDataApi}
         variant="outlined"
-        style={{ marginBottom: 20, marginLeft: "auto" }}
+        style={{ marginBottom: 20, marginLeft: 1000 }}
       >
         Download PDF
       </Button>

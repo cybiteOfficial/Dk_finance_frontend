@@ -25,7 +25,12 @@ export const Customers = () => {
 
   const { pdfDetails } = useSelector((state) => state.dashboardReducer);
 
-  
+const data = applicantData.find((item) => {
+   if(item.application_id == appId){
+    return item
+   }
+  // return item
+})
 //  console.log(pdfDetails.loan_details)
   const navigate = useNavigate();
   const dispatch = useDispatch()
@@ -34,7 +39,6 @@ export const Customers = () => {
       dispatch(fetchPdfDataThunk({ appId, token }));
     }
   }, [appId, token]);
-
   const [page, setPage] = useState(1); // State to manage current page
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
@@ -188,12 +192,14 @@ console.log(pdfDetails)
   
   const updateStatusDataApi = async () => {
 
-    if (applicantData[0]?.status === "sanctioned") {
+    if (data.status === "sanctioned") {
       const payload = { appId, token };
       try {
+        console.log(response.payload);
         setErrState(true, "", false, "");
         const response = await dispatch(fetchPdfDataThunk(payload));
         const { error, message, code } = response.payload;
+
         if (code) {
           return setErrState(
             false,
@@ -265,7 +271,6 @@ console.log(pdfDetails)
   };
 
 
-
   return (
     <>
       <SnackToast
@@ -288,30 +293,32 @@ console.log(pdfDetails)
           <StyledTypography variant="subtitle1" weight={700}>
             Application ID: {appId}
           </StyledTypography>
-          {applicantData[0]?.status === "sanctioned" && (
+          {data.status === "sanctioned" && (
             <PDFGenerator data={pdfDetails} />
           )}
 
           {customerDetails.length > 0 && (
             <Button
               disabled={
-                applicantData[0]?.status === "sanctioned" || err.loading 
-         || pdfDetails.loan_details.length === 0     }
+                data.status === "sanctioned" ||
+                err.loading ||
+                pdfDetails.loan_details.length === 0
+              }
               onClick={updateStatusDataApi}
               variant="outlined"
-              style={{ marginBottom:20, marginLeft: "auto" }}
+              style={{ marginBottom: 20, marginLeft: "auto" }}
             >
-              {applicantData[0]?.status === "ro_phase"
+              {data.status === "ro_phase"
                 ? "Move to DO"
-                : applicantData[0]?.status === "do_phase"
+                : data.status === "do_phase"
                 ? "Move to Technical Officer"
-                : applicantData[0]?.status === "technicalofficer"
+                : data.status === "technicalofficer"
                 ? "Move to Branch Manager"
-                : applicantData[0]?.status === "bm_phase"
+                : data.status === "bm_phase"
                 ? "Move to Credit Manager"
-                : applicantData[0]?.status === "cluster"
+                : data.status === "cluster"
                 ? "Sanction"
-                : applicantData[0]?.status === "sanctioned"
+                : data.status === "sanctioned"
                 ? "Sanctioned"
                 : ""}
             </Button>
