@@ -68,7 +68,12 @@ const PhotoUpload = () => {
   };
 
   const handleTextFieldChange = (e) => {
-    if (e.target.files[0]) {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type === 'application/pdf') {
+        setErrState(false, "Please select an image file", true, "warning");
+        return;
+      }
       const objectURL = URL.createObjectURL(e.target.files[0]);
       setPrevFiles([...prevFiles, objectURL]);
       setFiles([...files, e.target.files[0]]);
@@ -261,7 +266,37 @@ const PhotoUpload = () => {
 
         <Typography variant="h5">Photograph Upload</Typography>
         <form onSubmit={handleSubmit}>
-          <Grid
+
+          <Grid container spacing={2}>
+      {files?.map((item, index) => (
+        <Grid item xs={12} sm={6} md={4} lg={3} key={index} style={{marginTop : 10}}>
+          <div style={{ position: 'relative', paddingTop: '75%' }}>
+            <img
+              src={typeof item.file === 'string' ? item.file : prevFiles[index]}
+              alt="preview"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover', // Ensures images maintain aspect ratio and cover the container
+              }}
+            />
+            <div style={{ position: 'absolute', top: '8px', right: '8px' }}>
+              <IconButton
+                onClick={() => handleDeleteKeyValuePair(index, item.uuid)}
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </div>
+          </div>
+        </Grid>
+      ))}
+    </Grid>
+
+    <Grid
             container
             spacing={2}
             style={{
@@ -273,7 +308,7 @@ const PhotoUpload = () => {
               <Box ml={"auto"}>
                 <Input
                   type="file"
-                  accept="image/*,application/pdf"
+                  accept="image/*"
                   onChange={handleTextFieldChange}
                   style={{ display: "none" }}
                   id="file"
@@ -293,53 +328,7 @@ const PhotoUpload = () => {
             </Grid>
           </Grid>
           {loadingStates && <CircularProgress />}
-          <Grid
-            container
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-            }}
-          >
-            {files?.map((item, index) => {
-             
-              return (
-                <Grid
-                item
-                xs={3}
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Grid item xs={10}>
-                  {typeof item.file === "string" ? (
-                    <img
-                      src={item.file}
-                      alt={"preview"}
-                      style={{ width: "200px", height: "100px" }}
-                    />
-                  ) : (
-                    <img
-                      src={prevFiles[index]}
-                      alt={"preview"}
-                      style={{ width: "200px", height: "100px" }}
-                    />
-                  )}
-                </Grid>
-                <Grid item xs={2}>
-                  <IconButton
-                    onClick={() => handleDeleteKeyValuePair(index, item.uuid)}
-                  >
-                    <DeleteIcon />
-                    
-                  </IconButton>
-                </Grid>
-              </Grid>
-              )
-            })}
-          </Grid>
+
 
           <TextField
             label="Description"

@@ -25,6 +25,11 @@ import {
   updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
 import { extractFileName, isImage, logFormData } from "../components/Common";
+var query = require('india-pincode-search');
+ 
+
+ 
+
 
 const Collateral = () => {
   const token = useSelector((state) => state.authReducer.access_token);
@@ -33,8 +38,10 @@ const Collateral = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+ 
   useEffect(() => {
-
+   
+    
     async function fetchData() {
       fetchCollateralDataApi();
     }
@@ -159,7 +166,23 @@ const Collateral = () => {
       console.error("error: ", error);
     }
   };
+  
+  useEffect(()=>{
+    var vari=query.search(collateralDetails.pincode);
 
+   if (vari[0]) {
+    setCollateralDetails({
+      ...collateralDetails,
+      state:vari[0].state,
+      district:vari[0].district
+      ,village:vari[0].village,
+      city:vari[0].city
+    })
+}
+ console.log(vari[0])
+
+    // collateralDetails.city=vari[0].taluk
+      },[collateralDetails.pincode])
   const handleSave = async (e) => {
     e.preventDefault();
     if (isRemarks) {
@@ -350,7 +373,14 @@ const Collateral = () => {
           value={collateralDetails.houseFlatShopNo}
           onChange={handleInputChange}
         />
-
+   <TextField
+          label="Pincode"
+          fullWidth
+          margin="normal"
+          name="pincode"
+          value={collateralDetails.pincode}
+          onChange={handleInputChange}
+        />
         <TextField
           label="Khasra No/Plot No"
           fullWidth
@@ -414,14 +444,7 @@ const Collateral = () => {
           onChange={handleInputChange}
         />
 
-        <TextField
-          label="Pincode"
-          fullWidth
-          margin="normal"
-          name="pincode"
-          value={collateralDetails.pincode}
-          onChange={handleInputChange}
-        />
+     
 
         <TextField
           label="Landmark"
@@ -450,7 +473,7 @@ const Collateral = () => {
           value={collateralDetails.estimatedPropertyValue}
           onChange={handleInputChange}
         />
-        <Box display={"flex"} gap={"1rem"} alignItems={"center"}>
+      <Box display={"flex"} gap={"1rem"} alignItems={"center"}>
   <TextField
     label="Document Name"
     margin="normal"
@@ -480,12 +503,13 @@ const Collateral = () => {
       }}
     >
       <p>{extractFileName(collateralDetails.documentUpload)}</p>
-      <img
+      <IconButton
         href={collateralDetails.documentUpload}
-    
+        target="_blank"
         rel="noopener noreferrer"
-      />
-      
+      >
+        <GetAppIcon />
+      </IconButton>
     </div>
   ) : (
     <TextField
@@ -517,7 +541,9 @@ const Collateral = () => {
       </Button>
     </label>
   </Box>
-</Box>        <TextField
+</Box>
+
+        <TextField
           label="Description"
           fullWidth
           multiline
