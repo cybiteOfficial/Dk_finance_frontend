@@ -120,18 +120,25 @@ const Collateral = () => {
 	const handleFileChange = (e) => {
 		const file = e.target.files[0];
 		if (file) {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				setPreview(reader.result);
-			};
-			reader.readAsDataURL(file);
-			setCollateralDetails({
-				...collateralDetails,
-				documentUpload: file,
-				uploadedFile: file.name,
-			});
+		  const reader = new FileReader();
+		  reader.onloadend = () => {
+			setPreview(reader.result);
+		  };
+		  reader.readAsDataURL(file);
+	  
+		  // Determine if the file is new
+		  const isNewFile = !collateralDetails.uploadedFile || file.name !== collateralDetails.uploadedFile;
+	  
+		  setCollateralDetails({
+			...collateralDetails,
+			documentUpload: file,
+			uploadedFile: file.name,
+			isNewFile, // Set isNewFile flag
+			preview: file.type.startsWith('image/') ? reader.result : file.name, // Set preview accordingly
+		  });
 		}
-	};
+	  };
+	  
 
 	const fetchCollateralDataApi = async () => {
 		const payload = { application_id: appId, token };

@@ -92,6 +92,7 @@ const DocumentUpload = () => {
 		  updatedPairs[index].document_id = value;
 		} else if (key === "file") {
 		  updatedPairs[index].fileName = value?.name;
+		  updatedPairs[index].isNewFile = true; // Mark as a new file
 		  updatedFiles[index] = value;
 	  
 		  // Handle image preview using createObjectURL
@@ -131,6 +132,7 @@ const DocumentUpload = () => {
 		setFiles(updatedFiles);
 		setUpdateItem(updatedUpdateItems);
 	  };
+	  
 	  
 	const addKeyValuePair = () => {
 		setKeyValuePairs([
@@ -435,8 +437,8 @@ const DocumentUpload = () => {
   }}
 >
   {pair.filePreview ? (
-    typeof pair.filePreview === "string" ? (
-      // Display image preview if filePreview is a string (URL)
+    /\.(jpeg|jpg|gif|png)$/.test(pair.filePreview) || pair.filePreview.startsWith('blob:') ? (
+      // Display image preview if filePreview is a string (URL) and matches image formats
       <img
         src={pair.filePreview}
         alt="preview"
@@ -469,16 +471,18 @@ const DocumentUpload = () => {
           }}
         >
           <p style={{ flex: "1 0 auto", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {extractFileName(pair.filePreview)} {/* Display PDF file name */}
+            {pair.filePreview} {/* Display PDF file name */}
           </p>
-          <IconButton
-            style={{ flex: "0 0 auto" }}
-            href={pair.filePreview}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <GetAppIcon /> {/* Download button */}
-          </IconButton>
+          {!pair.isNewFile && (
+            <IconButton
+              style={{ flex: "0 0 auto" }}
+              href={pair.filePreview}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <GetAppIcon /> {/* Download button */}
+            </IconButton>
+          )}
         </div>
       </div>
     )
@@ -512,14 +516,16 @@ const DocumentUpload = () => {
           <p style={{ flex: "1 0 auto", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {pair.fileName} {/* Display file name */}
           </p>
-          <IconButton
-            style={{ flex: "0 0 auto" }}
-            href={pair.file}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <GetAppIcon /> {/* Download button */}
-          </IconButton>
+          {!pair.isNewFile && (
+            <IconButton
+              style={{ flex: "0 0 auto" }}
+              href={pair.file}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <GetAppIcon /> {/* Download button */}
+            </IconButton>
+          )}
         </div>
       ) : (
         <p>No file chosen</p>
@@ -527,6 +533,9 @@ const DocumentUpload = () => {
     </div>
   )}
 </Grid>
+
+
+
 
 
 
