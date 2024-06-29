@@ -432,11 +432,12 @@ const CustomerForm = () => {
 			return; // Stop further processing
 		}
 
-		// // Clear error for mandatory fields
-		// setErrObject((prevState) => ({
-		//   ...prevState,
-		//   ...missingFields.reduce((acc, field) => ({ ...acc, [field]: false }), {}),
-		// }));
+		delete addressFields.current.is_current;
+		delete addressFields.current.is_permanent;
+		delete addressFields.permanent.is_current;
+		delete addressFields.permanent.is_permanent;
+		delete addressFields.current.customer;
+		delete addressFields.permanent.customer;
 
 		if (!selectedCustomer?.cif_id) {
 			delete personInformation.created_at;
@@ -449,11 +450,12 @@ const CustomerForm = () => {
 			delete personInformation.permanent_address;
 			delete personInformation.uuid;
 
+			delete addressFields.current.is_current;
+			delete addressFields.current.is_permanent;
 			delete addressFields.current.created_at;
 			delete addressFields.current.updated_at;
 			delete addressFields.current.uuid;
-			delete addressFields.current.is_current;
-			delete addressFields.current.is_permanent;
+
 			delete addressFields.current.customer;
 
 			delete addressFields.permanent.created_at;

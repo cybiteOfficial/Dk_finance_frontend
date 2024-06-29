@@ -286,22 +286,30 @@ console.log(pdfDetails)
           GO BACK
         </Button>
 
-        <Box display={"flex"}>
-          <StyledTypography variant="subtitle1" weight={700}>
-            Application ID: {appId}
-          </StyledTypography>
-          {applicantData[0]?.status === "sanctioned" && (
+        <Grid container alignItems="center" spacing={2}>
+      <Grid item xs={12} sm={6}>
+        <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
+          Application ID: {appId}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} sm={6} container justifyContent="flex-end" spacing={1}>
+        {applicantData[0]?.status === "sanctioned" && (
+          <Grid item>
             <PDFGenerator data={pdfDetails} />
-          )}
+          </Grid>
+        )}
 
-          {customerDetails.length > 0 && (
+        {customerDetails.length > 0 && (
+          <Grid item>
             <Button
               disabled={
-                applicantData[0]?.status === "sanctioned" || err.loading 
-         || pdfDetails.loan_details.length === 0     }
+                applicantData[0]?.status === "sanctioned" ||
+                err.loading ||
+                pdfDetails.loan_details.length === 0
+              }
               onClick={updateStatusDataApi}
               variant="outlined"
-              style={{ marginBottom:20, marginLeft: "auto" }}
+              style={{ marginBottom: 20 }}
             >
               {applicantData[0]?.status === "ro_phase"
                 ? "Move to DO"
@@ -317,8 +325,10 @@ console.log(pdfDetails)
                 ? "Sanctioned"
                 : ""}
             </Button>
-          )}
-        </Box>
+          </Grid>
+        )}
+      </Grid>
+    </Grid>
 
         <Box>
           <div
