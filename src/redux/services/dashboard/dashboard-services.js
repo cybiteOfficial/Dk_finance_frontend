@@ -4,39 +4,38 @@
 import axios from "axios";
 import mockCustomers from "../../../mocks/customers.json";
 // Define your base API URL
-const baseURL = "http://13.232.141.127/api/v1";
+const baseURL = "http://3.6.37.0/api/v1";
 const getAllAplicants = "/applicants/";
-const updateCustomer = "/customers";  
-const  getLoanEndpoint = "/loan_details";
-const uploadDocument ="/upload_document";
-const getCollateral = "/collateral_details"
-const getCafDetail = "/caf_detail"
-const updateStatus = '/update_status';
-const printDocument="/print_document"
+const updateCustomer = "/customers";
+const getLoanEndpoint = "/loan_details";
+const uploadDocument = "/upload_document";
+const getCollateral = "/collateral_details";
+const getCafDetail = "/caf_detail";
+const updateStatus = "/update_status";
+const printDocument = "/print_document";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
   baseURL,
 });
 
-export const simpleHeaders = (token)=>{
+export const simpleHeaders = (token) => {
   return {
     headers: {
       "Content-type": "application/json; charset=UTF-8",
-      "Authorization":`Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   };
-}
+};
 
-
-export const formHeaders = (token)=>{
+export const formHeaders = (token) => {
   return {
     headers: {
       "Content-Type": "multipart/form-data",
-      "Authorization":`Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
   };
-}
+};
 // Define functions to interact with the user-related endpoints
 export const dashboardAPI = {
   // Function to fetch
@@ -218,9 +217,7 @@ export const dashboardAPI = {
   },
 
   updateDocumentDataApi: async (payload) => {
-   
-    
-const {api}=payload;
+    const { api } = payload;
     try {
       if (api === "post") {
         const { bodyFormData, token } = payload;
@@ -231,9 +228,9 @@ const {api}=payload;
         );
         return response.data;
       } else if (api === "put") {
-        const { bodyFormData, token,query } = payload;
-         response = await axios.put(
-         `${baseURL}${uploadDocument}?document_type=${query}`,
+        const { bodyFormData, token, query } = payload;
+        response = await axios.put(
+          `${baseURL}${uploadDocument}?document_type=${query}`,
           bodyFormData,
           formHeaders(token)
         );
@@ -319,4 +316,3 @@ const {api}=payload;
     }
   },
 };
-
