@@ -201,7 +201,7 @@ const MyDocument = ({ data: pdfDetails }) => {
 									<View style={styles.tableCol}>
 										<Text
 											style={styles.tableCell}
-										>{`${guarantor.details.firstName} ${guarantor.details.lastName}`}</Text>
+										>{`${guarantor.details.firstName} ${guarantor.details.lastName}` || "NA"}</Text>
 									</View>
 								</View>
 
