@@ -315,7 +315,7 @@ console.log(pdfDetails)
               style={{ marginBottom: 20 }}
             >
               {data.status === "ro_phase"
-                ? "Move to DO"
+                ? "Move to DEO"
                 : data.status === "do_phase"
                 ? "Move to Technical Officer"
                 : data.status === "technicalofficer"
@@ -455,14 +455,14 @@ console.log(pdfDetails)
             alignItems: "center",
           }}
         >
-          <Grid item xs={2}>
+          <Grid item xs={2} textAlign={"center"}>
             <Typography variant="subtitle1">Customer Id</Typography>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={2} textAlign={"center"}>
             <Typography variant="subtitle1">Name</Typography>
           </Grid>
-          <Grid item xs={2}>
-            <Typography variant="subtitle1">Role</Typography>
+          <Grid item xs={2} textAlign={"center"}>
+            <Typography variant="subtitle1">Customer Type</Typography>
           </Grid>
         </Grid>
         <div>
@@ -479,6 +479,7 @@ console.log(pdfDetails)
                   justifyContent: "space-around",
                   alignItems: "center",
                   cursor: "pointer",
+                  textAlign: "center",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.backgroundColor = "#f0f0f0")
@@ -502,7 +503,10 @@ console.log(pdfDetails)
                     variant="subtitle1"
                     style={{ textTransform: "capitalize" }}
                   >
-                    {item.role}
+                    {item.role === "co_applicant" ? "Co Applicant" : 
+                    item.role === "applicant" ? "Applicant" :
+                    item.role === "guarantor" ? "Guarantor" : 
+                    item.role}
                   </Typography>
                 </Grid>
               </Grid>

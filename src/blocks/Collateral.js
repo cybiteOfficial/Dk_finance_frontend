@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { ArrowBack } from "@mui/icons-material";
-
 import {
 	Button,
 	TextField,
@@ -15,16 +14,14 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
-
 import {
 	fetchCollateralDataThunk,
 	removeCollateral,
 	updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
-import { logFormData } from "../components/Common";
+import { logFormData, extractFileName } from "../components/Common";
 var query = require("india-pincode-search");
 
 const Collateral = () => {
@@ -71,7 +68,7 @@ const Collateral = () => {
 		estimatedPropertyValue: "",
 		documentName: "",
 		documentUpload: null,
-		uploadedFile: "",
+		documentUrl: "", // New field for the document URL
 		description: "",
 		comment: "",
 	});
@@ -120,25 +117,19 @@ const Collateral = () => {
 	const handleFileChange = (e) => {
 		const file = e.target.files[0];
 		if (file) {
-		  const reader = new FileReader();
-		  reader.onloadend = () => {
-			setPreview(reader.result);
-		  };
-		  reader.readAsDataURL(file);
-	  
-		  // Determine if the file is new
-		  const isNewFile = !collateralDetails.uploadedFile || file.name !== collateralDetails.uploadedFile;
-	  
-		  setCollateralDetails({
-			...collateralDetails,
-			documentUpload: file,
-			uploadedFile: file.name,
-			isNewFile, // Set isNewFile flag
-			preview: file.type.startsWith('image/') ? reader.result : file.name, // Set preview accordingly
-		  });
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				setPreview(reader.result);
+			};
+			reader.readAsDataURL(file);
+
+			setCollateralDetails((prevState) => ({
+				...prevState,
+				documentUpload: file,
+				documentUrl: "", // Clear the URL when a new file is uploaded
+			}));
 		}
-	  };
-	  
+	};
 
 	const fetchCollateralDataApi = async () => {
 		const payload = { application_id: appId, token };
@@ -151,7 +142,12 @@ const Collateral = () => {
 			}
 
 			if (data && data.length > 0) {
-				handleExtractFormValues(data[0]);
+				const collateralData = data[0];
+				handleExtractFormValues(collateralData);
+				setCollateralDetails((prevState) => ({
+					...prevState,
+					documentUrl: collateralData.documentUpload || "", // Set the document URL
+				}));
 				setErrState(false, "Fetched successfully", true, "success");
 			}
 		} catch (error) {
@@ -164,13 +160,13 @@ const Collateral = () => {
 		var vari = query.search(collateralDetails.pincode);
 
 		if (vari[0]) {
-			setCollateralDetails({
-				...collateralDetails,
+			setCollateralDetails((prevState) => ({
+				...prevState,
 				state: vari[0].state,
 				district: vari[0].district,
 				village: vari[0].village,
 				city: vari[0].city,
-			});
+			}));
 		}
 		console.log(vari[0]);
 	}, [collateralDetails.pincode]);
@@ -181,12 +177,12 @@ const Collateral = () => {
 			if (!collateralDetails.comment.trim()) {
 				setErrState(false, "Please add a remark", true, "warning");
 			} else {
-				delete collateralDetails.uploadedFile;
-				delete collateralDetails.id;
-				delete collateralDetails.applicant;
 				const bodyFormData = new FormData();
 				for (const key in collateralDetails) {
-					bodyFormData.append(key, collateralDetails[key]);
+					if (key !== "documentUrl") {
+						// Exclude documentUrl from the payload
+						bodyFormData.append(key, collateralDetails[key]);
+					}
 				}
 
 				bodyFormData.append("applicant_id", appId);
@@ -201,9 +197,7 @@ const Collateral = () => {
 				logFormData(bodyFormData);
 				const payload = { bodyFormData, token };
 				try {
-					const response = await dispatch(
-						updateCollateralDataThunk(payload)
-					);
+					const response = await dispatch(updateCollateralDataThunk(payload));
 					const { error, message, data } = response.payload;
 					if (error) {
 						return setErrState(false, message, true, "error");
@@ -295,32 +289,29 @@ const Collateral = () => {
 					onChange={handleInputChange}
 				/>
 				<TextField
-					label="Valuation Required (YES/No)"
+					label="Valuation Required"
 					fullWidth
 					margin="normal"
 					name="valuationRequired"
 					value={collateralDetails.valuationRequired}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
-					label="Relationship With Loan (Applicant Number)"
+					label="Relationship with Loan Applicant"
 					fullWidth
 					margin="normal"
 					name="relationshipWithLoan"
 					value={collateralDetails.relationshipWithLoan}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
-					label="Property Owner"
+					label="Owner of Property"
 					fullWidth
 					margin="normal"
 					name="propertyOwner"
 					value={collateralDetails.propertyOwner}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Property Category"
 					fullWidth
@@ -329,16 +320,14 @@ const Collateral = () => {
 					value={collateralDetails.propertyCategory}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
-					label="Type of Property"
+					label="Property Type"
 					fullWidth
 					margin="normal"
 					name="propertyType"
 					value={collateralDetails.propertyType}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Occupation Status"
 					fullWidth
@@ -347,7 +336,6 @@ const Collateral = () => {
 					value={collateralDetails.occupationStatus}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Property Status"
 					fullWidth
@@ -356,7 +344,6 @@ const Collateral = () => {
 					value={collateralDetails.propertyStatus}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Property Title"
 					fullWidth
@@ -366,39 +353,21 @@ const Collateral = () => {
 					onChange={handleInputChange}
 				/>
 				<TextField
-					label="Pincode"
-					fullWidth
-					margin="normal"
-					name="pincode"
-					value={collateralDetails.pincode}
-					onChange={handleInputChange}
-					inputProps={{
-						maxLength: 6,
-					}}
-					helperText="Only 6 digits, no alphabets allowed"
-					error={
-						!/^\d*$/.test(collateralDetails.pincode) &&
-						collateralDetails.pincode !== ""
-					}
-				/>
-				<TextField
-					label="House No/Flat No/Shop No"
+					label="House/Flat/Shop No."
 					fullWidth
 					margin="normal"
 					name="houseFlatShopNo"
 					value={collateralDetails.houseFlatShopNo}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
-					label="Khasra No/Plot No"
+					label="Khasra/Plot No."
 					fullWidth
 					margin="normal"
 					name="khasraPlotNo"
 					value={collateralDetails.khasraPlotNo}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Locality"
 					fullWidth
@@ -407,7 +376,14 @@ const Collateral = () => {
 					value={collateralDetails.locality}
 					onChange={handleInputChange}
 				/>
-
+				<TextField
+					label="Pincode"
+					fullWidth
+					margin="normal"
+					name="pincode"
+					value={collateralDetails.pincode}
+					onChange={handleInputChange}
+				/>
 				<TextField
 					label="Village"
 					fullWidth
@@ -416,7 +392,6 @@ const Collateral = () => {
 					value={collateralDetails.village}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="State"
 					fullWidth
@@ -425,7 +400,6 @@ const Collateral = () => {
 					value={collateralDetails.state}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="District"
 					fullWidth
@@ -434,7 +408,6 @@ const Collateral = () => {
 					value={collateralDetails.district}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="City"
 					fullWidth
@@ -443,7 +416,6 @@ const Collateral = () => {
 					value={collateralDetails.city}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
 					label="Taluka"
 					fullWidth
@@ -461,9 +433,7 @@ const Collateral = () => {
 					value={collateralDetails.landmark}
 					onChange={handleInputChange}
 				/>
-
 				<TextField
-					type="number"
 					label="Estimated Property Value"
 					fullWidth
 					margin="normal"
@@ -471,94 +441,89 @@ const Collateral = () => {
 					value={collateralDetails.estimatedPropertyValue}
 					onChange={handleInputChange}
 				/>
+				<TextField
+					label="Document Name"
+					fullWidth
+					margin="normal"
+					name="documentName"
+					value={collateralDetails.documentName}
+					onChange={handleInputChange}
+				/>
 
-				<Box display="flex" gap="1rem" alignItems="center">
-					<TextField
-						label="Document Name"
-						margin="normal"
-						name="documentName"
-						value={collateralDetails.documentName}
-						onChange={handleInputChange}
-						style={{ width: "33%" }}
-					/>
-					{preview && collateralDetails.documentUpload?.type.startsWith('image/') ? (
-						<img
-							src={preview}
-							alt="Uploaded Collateral Preview"
-							style={{
-								maxWidth: "200px",
-								height: "auto",
-								maxHeight: "100px",
-								margin: "0.5rem 0",
-							}}
-						/>
-					) : collateralDetails.documentUpload ? (
-						collateralDetails.documentUpload?.type === 'application/pdf' ? (
-							<Box
-								margin="normal"
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
-								style={{
-									width: "33%",
-									height: "100px",
-									border: "1px solid #ccc",
-									margin: "0.5rem 0",
-								}}
-							>
-								{collateralDetails.uploadedFile}
-							</Box>
-						) : (
-							<TextField
-								label="Uploaded File"
-								margin="normal"
-								name="uploadedFile"
-								value={collateralDetails.uploadedFile}
-								onChange={handleInputChange}
-								style={{ width: "33%" }}
+				{/* File upload section */}
+				<Box
+					display="flex"
+					flexDirection="column"
+					alignItems="flex-start"
+					marginTop="16px"
+				>
+					<Box display="flex" alignItems="center">
+						<Button
+							variant="contained"
+							component="label"
+							startIcon={<AttachFileIcon />}
+							style={{ marginBottom: "16px" }}
+						>
+							Upload File
+							<Input
+								type="file"
+								style={{ display: "none" }}
+								onChange={handleFileChange}
 							/>
-						)
-					) : (
-						<TextField
-							label="Uploaded File"
-							margin="normal"
-							name="uploadedFile"
-							value={collateralDetails.uploadedFile}
-							onChange={handleInputChange}
-							style={{ width: "33%" }}
-						/>
-					)}
-					<Box width="33%">
-						<Input
-							type="file"
-							onChange={handleFileChange}
-							style={{ display: "none" }}
-							id="file-input"
-						/>
-						<label htmlFor="file-input">
-							<Button
-								fullWidth
-								style={{ margin: "16px 0 8px 0" }}
-								variant="outlined"
-								component="span"
-								startIcon={<AttachFileIcon />}
-							>
-								Choose File
-							</Button>
-						</label>
+						</Button>
+						{collateralDetails.documentUrl && (
+							<Typography marginLeft="16px">
+								<a
+									href={collateralDetails.documentUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									{collateralDetails.documentUrl.endsWith(".pdf") ? (
+										collateralDetails.documentUrl.split("/").pop()
+									) : (
+										<img
+											src={collateralDetails.documentUrl}
+											alt="Existing Document"
+											style={{ maxWidth: "100px", maxHeight: "100px" }}
+										/>
+									)}
+								</a>
+							</Typography>
+						)}
 					</Box>
+					{preview && (
+						<Box
+							display="flex"
+							justifyContent="center"
+							alignItems="center"
+							border="1px solid #ccc"
+							padding="16px"
+							borderRadius="4px"
+							marginTop="16px"
+							width="100%"
+						>
+							{collateralDetails.documentUpload.type === "application/pdf" ? (
+								<Typography>{collateralDetails.documentUpload.name}</Typography>
+							) : (
+								<img
+									src={preview}
+									alt="Document Preview"
+									style={{ maxWidth: "100%", maxHeight: "200px" }}
+								/>
+							)}
+						</Box>
+					)}
 				</Box>
 
 				<TextField
 					label="Description"
 					fullWidth
-					multiline
-					rows={4}
 					margin="normal"
 					name="description"
 					value={collateralDetails.description}
 					onChange={handleInputChange}
 				/>
+
 				{isRemarks && (
 					<TextField
 						label="Remarks"
@@ -569,11 +534,12 @@ const Collateral = () => {
 						onChange={handleInputChange}
 					/>
 				)}
+
 				<Button
-					disabled={process.env.REACT_APP_DISABLED === "TRUE"}
 					variant="contained"
-					fullWidth
+					color="primary"
 					onClick={handleSave}
+					style={{ marginTop: 20 }}
 				>
 					Save
 				</Button>
