@@ -540,49 +540,56 @@ const CustomerForm = () => {
         }
       }
 
-      if(checkIfApplicant && personInformation.role === ""){
-        setRole("co_applicant");
+      // if an applicant is found, disable the applicant role
+      if (checkIfApplicant) {
+
         setIsApplicantDisabled(true);
-        setIsCoApplicantDisabled(false);
-        setIsGurarantorDisabled(false);
-      }
+        setRole("co_applicant");
 
-      else if(checkIfApplicant && personInformation.role === "applicant"){
-        setRole("applicant"); // Set to 'coapplicant'
-        setIsApplicantDisabled(false);
-        setIsCoApplicantDisabled(true);
-        setIsGurarantorDisabled(true);
-      }
+        if(personInformation.role === "applicant"){
+          setRole("applicant");
+          setIsGurarantorDisabled(true); // Disable the guarantor role
+        }
 
-      else if (checkIfApplicant && personInformation.role !== "applicant") {
-        if(personInformation.role === "co_applicant"){
-          setRole("co_applicant"); // Set to 'coapplicant'
-          setIsApplicantDisabled(true); // Disable the "applicant" toggle button
-          setIsGurarantorDisabled(false); // Disable the "guarantor" toggle button
+        else if(personInformation.role === "co_applicant"){
+          setRole("co_applicant");
+          setIsGurarantorDisabled(true); // Disable the guarantor role
         }
 
         else if(personInformation.role === "guarantor"){
-          setRole("guarantor"); // Set to 'guarantor'
-          setIsApplicantDisabled(true); // Disable the "applicant" toggle button
-          setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
+          setRole("guarantor");
+          setIsApplicantDisabled(true); // Disable the applicant role
+          setIsCoApplicantDisabled(true); // Disable the co-applicant role
         }
 
-      } else {
-        setRole("applicant"); // Default to 'applicant'
-        setIsApplicantDisabled(false); // Enable the "applicant" toggle button
-        setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
-        setIsGurarantorDisabled(true); // Disable the "guarantor" toggle button
+      }
+
+      else{
+
+        setIsApplicantDisabled(false);
+        setRole("applicant");
+
+        if(personInformation.role === "applicant"){
+          setRole("applicant");
+          setIsGurarantorDisabled(true); // Disable the guarantor role
+        }
+
+        else if(personInformation.role === "co_applicant"){
+          setRole("co_applicant");
+          setIsGurarantorDisabled(true); // Enable the guarantor role
+        }
+
+        else if(personInformation.role === "guarantor"){
+          setRole("guarantor");
+          setIsApplicantDisabled(true); // Disable the applicant role
+          setIsCoApplicantDisabled(true); // Disable the co-applicant role
 
       }
-    } else {
-      setRole("applicant"); // Default to 'applicant' if customerDetails is empty or undefined
-      setIsApplicantDisabled(false); // Enable the "applicant" toggle button
-      setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
-      setIsGurarantorDisabled(true); // Disable the "guarantor" toggle button
-    }
 
+    }
     console.log(customerDetails); // Log the updated customerDetails to check the changes
-  }, [customerDetails]);
+
+}}, [customerDetails]);
   const handlePermanentAddressSameAsCurrent = () => {
     setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
   };
