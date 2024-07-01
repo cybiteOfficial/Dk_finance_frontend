@@ -45,4 +45,5 @@ export const authAPI = {
     }
   },
   // Add more functions for other user-related operations if needed
+  
 };
