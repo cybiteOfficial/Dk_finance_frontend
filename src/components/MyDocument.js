@@ -9,57 +9,57 @@ import {
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
-    page: {
-        padding: 30,
-        fontSize: 12,
-        fontFamily: "Helvetica",
-    },
-    heading: {
-        fontSize: 20,
-        marginBottom: 20,
-        fontWeight: "bold",
-        textAlign: "center",
-        color: "#2E3A59",
-    },
-    subheading: {
-        fontSize: 16,
-        marginVertical: 10,
-        fontWeight: "bold",
-        color: "#2E3A59",
-    },
-    text: {
-        marginBottom: 5,
-        fontSize: 12,
-    },
-    table: {
-        display: "table",
-        width: "auto",
-        marginBottom: 20,
-    },
-    tableRow: {
-        flexDirection: "row",
-        borderBottomWidth: 1,
-        borderBottomColor: "#E0E0E0",
-        borderBottomStyle: "solid",
-        paddingVertical: 5,
-    },
-    tableColHeader: {
-        width: "35%",
-        padding: 5,
-        backgroundColor: "#F0F0F0",
-    },
-    tableCol: {
-        width: "65%",
-        padding: 5,
-    },
-    tableCell: {
-        fontSize: 12,
-    },
-    paragraph: {
-        margin: 5,
-        lineHeight: 1.5,
-        textAlign: "justify",
-    },
+	page: {
+		padding: 30,
+		fontSize: 12,
+		fontFamily: "Helvetica",
+	},
+	heading: {
+		fontSize: 20,
+		marginBottom: 20,
+		fontWeight: "bold",
+		textAlign: "center",
+		color: "#2E3A59",
+	},
+	subheading: {
+		fontSize: 16,
+		marginVertical: 10,
+		fontWeight: "bold",
+		color: "#2E3A59",
+	},
+	text: {
+		marginBottom: 5,
+		fontSize: 12,
+	},
+	table: {
+		display: "table",
+		width: "auto",
+		marginBottom: 20,
+	},
+	tableRow: {
+		flexDirection: "row",
+		borderBottomWidth: 1,
+		borderBottomColor: "#E0E0E0",
+		borderBottomStyle: "solid",
+		paddingVertical: 5,
+	},
+	tableColHeader: {
+		width: "35%",
+		padding: 5,
+		backgroundColor: "#F0F0F0",
+	},
+	tableCol: {
+		width: "65%",
+		padding: 5,
+	},
+	tableCell: {
+		fontSize: 12,
+	},
+	paragraph: {
+		margin: 5,
+		lineHeight: 1.5,
+		textAlign: "justify",
+	},
 	lastPara: {
 		margin: 5,
 		fontSize: 7,
@@ -92,6 +92,13 @@ const MyDocument = ({ data: pdfDetails }) => {
 	const findCoApplicants = (customers) => {
 		return customers.filter(
 			(customer) => customer.details.role === "co_applicant"
+		);
+	};
+
+	// create an array of guarantors
+	const findGuarantors = (customers) => {
+		return customers.filter(
+			(customer) => customer.details.role === "guarantor"
 		);
 	};
 
@@ -182,22 +189,38 @@ const MyDocument = ({ data: pdfDetails }) => {
 						)
 					)}
 
-					<View style={styles.tableRow}>
-						<View style={styles.tableColHeader}>
-							<Text style={styles.tableCell}>Guarantor’s Name </Text>
-						</View>
-						<View style={styles.tableCol}>
-							<Text style={styles.tableCell}>NA</Text>
-						</View>
-					</View>
-					<View style={styles.tableRow}>
-						<View style={styles.tableColHeader}>
-							<Text style={styles.tableCell}>Guarantor's Address </Text>
-						</View>
-						<View style={styles.tableCol}>
-							<Text style={styles.tableCell}>NA</Text>
-						</View>
-					</View>
+					{findGuarantors(pdfDetails?.customer_details).map(
+						(guarantor, index) => (
+							<View key={index}>
+								<View style={styles.tableRow}>
+									<View style={styles.tableColHeader}>
+										<Text style={styles.tableCell}>
+											Guarantor {index + 1} Name
+										</Text>
+									</View>
+									<View style={styles.tableCol}>
+										<Text
+											style={styles.tableCell}
+										>{`${guarantor.details.firstName} ${guarantor.details.lastName}`}</Text>
+									</View>
+								</View>
+
+								<View style={styles.tableRow}>
+									<View style={styles.tableColHeader}>
+										<Text style={styles.tableCell}>
+											Guarantor {index + 1} Address
+										</Text>
+									</View>
+									<View style={styles.tableCol}>
+										<Text style={styles.tableCell}>
+											{formatAddress(guarantor.current_address) || "NA"}
+										</Text>
+									</View>
+								</View>
+							</View>
+						)
+					)}
+
 					<View style={styles.tableRow}>
 						<View style={styles.tableColHeader}>
 							<Text style={styles.tableCell}>Mortgagor's Name </Text>
@@ -242,8 +265,8 @@ const MyDocument = ({ data: pdfDetails }) => {
 						Dear Sir/Madam,
 					</Text>
 					<Text style={styles.paragraph}>
-						We, Dev Kripa Finserv (herein after also referred to as the Bank) are
-						delighted to inform {applicantName} (herein after referred to as
+						We, Dev Kripa Finserv (herein after also referred to as the Bank)
+						are delighted to inform {applicantName} (herein after referred to as
 						Borrower) that your application for sanction of SBL Business Funding
 						loan has been accepted by us. The grant of the loan -
 					</Text>
@@ -728,8 +751,8 @@ const MyDocument = ({ data: pdfDetails }) => {
 						All other charges to be borne by the Borrower as per schedule of
 						charges of the Bank mentioned on the Bank's website,{"\n"}
 						1. The sanctioned loan will be disbursed only after the scrutiny and
-						clearance of proposed property by Dev Kripa Finserv Limited and as per
-						the rules of Dev Kripa Finserv Limited.{"\n"}
+						clearance of proposed property by Dev Kripa Finserv Limited and as
+						per the rules of Dev Kripa Finserv Limited.{"\n"}
 						2. (a) Pre-EMI interest at the rate, at which the EMI has been
 						calculated, shall be charged from the respective date(s) of
 						disbursements to the date of commencement of EMI in respect of the
@@ -757,9 +780,9 @@ const MyDocument = ({ data: pdfDetails }) => {
 						liable for acceptance of risk. Insurance cover is subject to
 						satisfaction of the Insurance Company and submission of requisite
 						documents, details and conduct of medical examinations at the
-						instance of the Insurance Company and Dev Kripa F Bank.
-						Insurance cover shall commence after risk under the application is
-						accepted in writing by respective Insurance Company and such writing
+						instance of the Insurance Company and Dev Kripa F Bank. Insurance
+						cover shall commence after risk under the application is accepted in
+						writing by respective Insurance Company and such writing
 						communicated to the insured. Insurance Cover will be issued/extended
 						by the respective insurance Company, and Dev Kripa Finserv acts only
 						as an intermediary.{"\n"}
@@ -784,18 +807,19 @@ const MyDocument = ({ data: pdfDetails }) => {
 						is, in principle sanctioned.{"\n"}
 						(b) any material fact concerning income, or ability to repay or any
 						other relevant aspect of the proposal or application for loan is
-						withheld, suppressed, concealed or not made known to Dev Kripa Finserv
-						Limited.{"\n"}
+						withheld, suppressed, concealed or not made known to Dev Kripa
+						Finserv Limited.{"\n"}
 						(c) Any statement made in the loan application is found to be
 						incorrect or untrue.{"\n"}
 						11. All stamp duty and registration charges, if any, as per State
-						Stamp Act of any document executed by you in favour of Dev Kripa Finserv Limited shall be payable by you in full.{"\n"}
+						Stamp Act of any document executed by you in favour of Dev Kripa
+						Finserv Limited shall be payable by you in full.{"\n"}
 						12. In the event of any non-compliance of legal and technical
 						formalities required by Dev Kripa Finserv Limited, all the fees paid
 						to Dev Kripa Finserv Limited will be non-refundable.{"\n"}
 						13. The issuance of this sanction letter does not give/confer any
-						legal rights and Dev Kripa Finserv Limited will be at full liberty to
-						revoke this sanction letter, due to any of the reasons mentioned
+						legal rights and Dev Kripa Finserv Limited will be at full liberty
+						to revoke this sanction letter, due to any of the reasons mentioned
 						above or otherwise.{"\n"}
 						14. Due to changes in the rate of interest, the number of EMIs is
 						liable to vary, from time to time.{"\n"}

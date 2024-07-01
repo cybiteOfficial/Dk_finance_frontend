@@ -381,7 +381,7 @@ const DocumentUpload = () => {
 								container
 								spacing={2}
 								key={indexer}
-								style={{ display: "flex", alignItems: "center" }}
+								style={{ display: "flex", alignItems: "center" , marginLeft : "3px"}}
 							>
 								<Grid
 									container

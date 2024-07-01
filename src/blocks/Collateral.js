@@ -472,20 +472,31 @@ const Collateral = () => {
 							/>
 						</Button>
 						{collateralDetails.documentUrl && (
-							<Typography marginLeft="16px">
+							<Typography marginLeft="16px" display={"flex"}>
 								<a
 									href={collateralDetails.documentUrl}
 									target="_blank"
 									rel="noopener noreferrer"
+									style={{ textDecoration: "none", textDecorationLine: "none" }}
 								>
-									{collateralDetails.documentUrl.endsWith(".pdf") ? (
-										collateralDetails.documentUrl.split("/").pop()
+									{collateralDetails.documentUrl.includes(".pdf") ? (
+										<div style={{ border: "2px" }}>
+											<p style={{ color: "black" }}>
+												{extractFileName(collateralDetails.documentUrl)}
+											</p>
+										</div>
 									) : (
-										<img
-											src={collateralDetails.documentUrl}
-											alt="Existing Document"
-											style={{ maxWidth: "100px", maxHeight: "100px" }}
-										/>
+										<div style={{ border: "2px" }}>
+											<img
+												style={{
+													maxWidth: "100px",
+													maxHeight: "100px",
+													marginBottom: "20px",
+												}}
+												src={collateralDetails.documentUrl}
+												alt="Document Preview"
+											/>
+										</div>
 									)}
 								</a>
 							</Typography>
@@ -505,11 +516,13 @@ const Collateral = () => {
 							{collateralDetails.documentUpload.type === "application/pdf" ? (
 								<Typography>{collateralDetails.documentUpload.name}</Typography>
 							) : (
-								<img
-									src={preview}
-									alt="Document Preview"
-									style={{ maxWidth: "100%", maxHeight: "200px" }}
-								/>
+								<>
+									<img
+										src={preview}
+										alt="Document Preview"
+										style={{ maxWidth: "100%", maxHeight: "200px" }}
+									/>
+								</>
 							)}
 						</Box>
 					)}
@@ -538,10 +551,12 @@ const Collateral = () => {
 				<Button
 					variant="contained"
 					color="primary"
+					type="submit"
+					fullWidth
 					onClick={handleSave}
-					style={{ marginTop: 20 }}
+					style={{ marginTop: 20, marginBottom: 20 }}
 				>
-					Save
+					SUBMIT
 				</Button>
 			</Box>
 		</>
