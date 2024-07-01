@@ -1,553 +1,585 @@
 import React, { useState, useEffect } from "react";
 import { ArrowBack } from "@mui/icons-material";
+
 import {
-  Button,
-  TextField,
-  Typography,
-  Divider,
-  Box,
-  Input,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  IconButton,
+	Button,
+	TextField,
+	Typography,
+	Divider,
+	Box,
+	Input,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from "@mui/material";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import SnackToast from "../components/Snackbar";
 
 import {
-  fetchCollateralDataThunk,
-  removeCollateral,
-  updateCollateralDataThunk,
+	fetchCollateralDataThunk,
+	removeCollateral,
+	updateCollateralDataThunk,
 } from "../redux/reducers/dashboard/dashboard-reducer";
-import { extractFileName, isImage, logFormData } from "../components/Common";
+import { logFormData } from "../components/Common";
+var query = require("india-pincode-search");
 
 const Collateral = () => {
-  const token = useSelector((state) => state.authReducer.access_token);
-  const { appId } = useSelector((state) => state.authReducer);
-  const dashboardReducer = useSelector((state) => state.dashboardReducer);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+	const token = useSelector((state) => state.authReducer.access_token);
+	const { appId } = useSelector((state) => state.authReducer);
+	const dashboardReducer = useSelector((state) => state.dashboardReducer);
+	const navigate = useNavigate();
+	const dispatch = useDispatch();
 
-  useEffect(() => {
+	useEffect(() => {
+		async function fetchData() {
+			fetchCollateralDataApi();
+		}
+		fetchData();
+		return () => {
+			dispatch(removeCollateral({ payload: {}, type: "removeCollateral" }));
+		};
+	}, []);
 
-    async function fetchData() {
-      fetchCollateralDataApi();
-    }
-    fetchData();
-    return ()=>{
-      dispatch(removeCollateral({payload:{},type:"removeCollateral"}))
-    }
-  }, []);
+	const [preview, setPreview] = useState(null);
+	const [collateralDetails, setCollateralDetails] = useState({
+		isExisting: "",
+		collateralType: "",
+		collateralName: "",
+		primarySecondary: "",
+		valuationRequired: "",
+		relationshipWithLoan: "",
+		propertyOwner: "",
+		propertyCategory: "",
+		propertyType: "",
+		occupationStatus: "",
+		propertyStatus: "",
+		propertyTitle: "",
+		houseFlatShopNo: "",
+		khasraPlotNo: "",
+		locality: "",
+		village: "",
+		state: "",
+		district: "",
+		city: "",
+		taluka: "",
+		pincode: "",
+		landmark: "",
+		estimatedPropertyValue: "",
+		documentName: "",
+		documentUpload: null,
+		uploadedFile: "",
+		description: "",
+		comment: "",
+	});
 
-  const [collateralDetails, setCollateralDetails] = useState({
-    isExisting: "",
-    collateralType: "",
-    collateralName: "",
-    primarySecondary: "",
-    valuationRequired: "",
-    relationshipWithLoan: "",
-    propertyOwner: "",
-    propertyCategory: "",
-    propertyType: "",
-    occupationStatus: "",
-    propertyStatus: "",
-    propertyTitle: "",
-    houseFlatShopNo: "",
-    khasraPlotNo: "",
-    locality: "",
-    village: "",
-    state: "",
-    district: "",
-    city: "",
-    taluka: "",
-    pincode: "",
-    landmark: "",
-    estimatedPropertyValue: "",
-    documentName: "",
-    documentUpload: "",
-    uploadedFile: "",
-    description: "",
-    comment: "",
-  });
+	const [isRemarks, setIsRemarks] = useState(false);
+	const [err, setErr] = useState({
+		loading: false,
+		errMsg: "",
+		openSnack: false,
+		severity: "",
+	});
 
-  const [isRemarks, setIsRemarks] = useState(false);
-  const [err, setErr] = useState({
-    loading: false,
-    errMsg: "",
-    openSnack: false,
-    severity: "",
-  });
+	const setErrState = (loading, errMsg, openSnack, severity) => {
+		setErr({
+			loading,
+			errMsg,
+			openSnack,
+			severity,
+		});
+	};
 
-  const setErrState = (loading, errMsg, openSnack, severity) => {
-    setErr({
-      loading,
-      errMsg,
-      openSnack,
-      severity,
-    });
-  };
+	const handleExtractFormValues = (dataObject) => {
+		const updatedFormValues = { ...collateralDetails };
+		for (const key in dataObject) {
+			if (dataObject[key]) {
+				updatedFormValues[key] = dataObject[key];
+			} else {
+				updatedFormValues[key] = "";
+			}
+		}
+		setCollateralDetails(updatedFormValues);
+	};
 
-  const handleExtractFormValues = (dataObject) => {
-    const updatedFormValues = { ...collateralDetails };
-    for (const key in dataObject) {
-      if (dataObject[key]) {
-        updatedFormValues[key] = dataObject[key];
-      } else {
-        updatedFormValues[key] = "";
-      }
-    }
-   
-    setCollateralDetails(updatedFormValues);
-  };
+	const handleGoBack = () => {
+		navigate("/applicant/customers");
+	};
 
-  const handleGoBack = () => {
-    navigate("/applicant/customers");
-  };
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		setCollateralDetails((prevState) => ({
+			...prevState,
+			[name]: value,
+		}));
+	};
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCollateralDetails({ ...collateralDetails, [name]: value });
-  };
-  
-  const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-  
-      setCollateralDetails({
-        ...collateralDetails,
-        documentUpload: url,
-        uploadedFile: file.name,
-      });
-    }
-  };
-  
-  const extractFileName = (url) => {
-    try {
-      return new URL(url).pathname.split('/').pop();
-    } catch (error) {
-      console.error("Invalid URL", error);
-      return url;
-    }
-  };
-  
-  const isImage = (filename) => {
-    return /\.(jpg|jpeg|png|gif)$/i.test(filename);
-  };
+	const handleFileChange = (e) => {
+		const file = e.target.files[0];
+		if (file) {
+		  const reader = new FileReader();
+		  reader.onloadend = () => {
+			setPreview(reader.result);
+		  };
+		  reader.readAsDataURL(file);
+	  
+		  // Determine if the file is new
+		  const isNewFile = !collateralDetails.uploadedFile || file.name !== collateralDetails.uploadedFile;
+	  
+		  setCollateralDetails({
+			...collateralDetails,
+			documentUpload: file,
+			uploadedFile: file.name,
+			isNewFile, // Set isNewFile flag
+			preview: file.type.startsWith('image/') ? reader.result : file.name, // Set preview accordingly
+		  });
+		}
+	  };
+	  
 
-  const fetchCollateralDataApi = async () => {
-    const payload = { application_id: appId, token };
-    try {
-      setErrState(true, "", false, "");
-      const response = await dispatch(fetchCollateralDataThunk(payload));
-      const { data, error, message } = response.payload;
-      if (error) {
-        return setErrState(false, message, true, "error");
-      }
+	const fetchCollateralDataApi = async () => {
+		const payload = { application_id: appId, token };
+		try {
+			setErrState(true, "", false, "");
+			const response = await dispatch(fetchCollateralDataThunk(payload));
+			const { data, error, message } = response.payload;
+			if (error) {
+				return setErrState(false, message, true, "error");
+			}
 
-      if (data && data.length > 0) {
-        handleExtractFormValues(data[0]);
-        setErrState(false, "Fetched successfully", true, "success");
-      }
-    } catch (error) {
-      setErrState(false, "", false, "");
-      console.error("error: ", error);
-    }
-  };
+			if (data && data.length > 0) {
+				handleExtractFormValues(data[0]);
+				setErrState(false, "Fetched successfully", true, "success");
+			}
+		} catch (error) {
+			setErrState(false, "", false, "");
+			console.error("error: ", error);
+		}
+	};
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (isRemarks) {
-      // Check if the comment field is filled
-     
-      if (!collateralDetails.comment.trim()) {
-        setErrState(false, "Please add a remark", true, "warning");
-      } else {
-        delete collateralDetails.uploadedFile;
-        delete collateralDetails.id;
-        delete collateralDetails.applicant;
-        const bodyFormData = new FormData();
-        for (const key in collateralDetails) {
-          bodyFormData.append(key, collateralDetails[key]);
-        }
+	useEffect(() => {
+		var vari = query.search(collateralDetails.pincode);
 
-        bodyFormData.append("applicant_id", appId);
+		if (vari[0]) {
+			setCollateralDetails({
+				...collateralDetails,
+				state: vari[0].state,
+				district: vari[0].district,
+				village: vari[0].village,
+				city: vari[0].city,
+			});
+		}
+		console.log(vari[0]);
+	}, [collateralDetails.pincode]);
 
-        logFormData(bodyFormData);
-        const payload = { bodyFormData, token };
-        try {
-          const response = await dispatch(updateCollateralDataThunk(payload));
-          const { error, message, data } = response.payload;
-          if (error) {
-            return setErrState(false, message, true, "error");
-          }
-          setIsRemarks(false);
-          setErrState(false, "Updated successfully", true, "success");
-          setTimeout(() => {
-            navigate("/applicant/customers");
-          }, 500);
-        } catch (error) {
-          setIsRemarks(false);
-          setErrState(false, "", false, "error");
-          console.error("error: ", error);
-        }
-      }
-    } else {
-      // If remarks are not shown, show them and return
-      setErrState(false, "Please add a remark", true, "warning");
-      setIsRemarks(true);
-    }
-  };
-  const handleCloseToast = () => {
-    setErrState(false, "", false, ""); // Resetting the error state to close the toast
-  };
-  return (
-    <>
-      <SnackToast
-        onClose={handleCloseToast}
-        openSnack={err.openSnack}
-        message={err.errMsg}
-        severity={err.severity}
-      />
-      <Box width={"90%"} margin={"13vh auto 0 auto"}>
-        <Button
-          onClick={handleGoBack}
-          startIcon={<ArrowBack />}
-          variant="contained"
-          style={{ marginBottom: 20 }}
-        >
-          GO BACK
-        </Button>
-        <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
-          Application ID: {appId}
-        </Typography>
+	const handleSave = async (e) => {
+		e.preventDefault();
+		if (isRemarks) {
+			if (!collateralDetails.comment.trim()) {
+				setErrState(false, "Please add a remark", true, "warning");
+			} else {
+				delete collateralDetails.uploadedFile;
+				delete collateralDetails.id;
+				delete collateralDetails.applicant;
+				const bodyFormData = new FormData();
+				for (const key in collateralDetails) {
+					bodyFormData.append(key, collateralDetails[key]);
+				}
 
-        <Typography variant="h6">Collateral Details</Typography>
-        <Divider style={{ marginBottom: 10 }} />
+				bodyFormData.append("applicant_id", appId);
 
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Collateral Type</InputLabel>
-          <Select
-            value={collateralDetails.collateralType}
-            onChange={handleInputChange}
-            name="collateralType"
-            label="Collateral Type"
-          >
-            <MenuItem value="">Select</MenuItem>
-            <MenuItem value="property">Property</MenuItem>
-            <MenuItem value="automobile">Automobile</MenuItem>
-            <MenuItem value="deposite">Deposite</MenuItem>
-            <MenuItem value="financialSecurity">Financial Security</MenuItem>
-            <MenuItem value="plantAndMachinery">Plant And Machinery</MenuItem>
-            <MenuItem value="insurance">Insurance</MenuItem>
-            <MenuItem value="gold">Gold</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          label="Collateral name"
-          fullWidth
-          margin="normal"
-          name="collateralName"
-          value={collateralDetails.collateralName}
-          onChange={handleInputChange}
-        />
-        <TextField
-          label="Primary/Secondary Collateral"
-          fullWidth
-          margin="normal"
-          name="primarySecondary"
-          value={collateralDetails.primarySecondary}
-          onChange={handleInputChange}
-        />
-      
+				if (collateralDetails.documentUpload) {
+					bodyFormData.append(
+						"documentUpload",
+						collateralDetails.documentUpload
+					);
+				}
 
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Valuation Required</InputLabel>
-          <Select
-            value={collateralDetails.valuationRequired}
-            onChange={handleInputChange}
-            name="valuationRequired"
-            label="Collateral Type"
-          >
-            <MenuItem value="yes">Yes</MenuItem>
-            <MenuItem value="no">No</MenuItem>
-          </Select>
-        </FormControl>
+				logFormData(bodyFormData);
+				const payload = { bodyFormData, token };
+				try {
+					const response = await dispatch(
+						updateCollateralDataThunk(payload)
+					);
+					const { error, message, data } = response.payload;
+					if (error) {
+						return setErrState(false, message, true, "error");
+					}
+					setIsRemarks(false);
+					setErrState(false, "Updated successfully", true, "success");
+					setTimeout(() => {
+						navigate("/applicant/customers");
+					}, 500);
+				} catch (error) {
+					setIsRemarks(false);
+					setErrState(false, "", false, "error");
+					console.error("error: ", error);
+				}
+			}
+		} else {
+			setErrState(false, "Please add a remark", true, "warning");
+			setIsRemarks(true);
+		}
+	};
 
-        <TextField
-          label="Relationship With Loan (Applicant Number)"
-          fullWidth
-          margin="normal"
-          name="relationshipWithLoan"
-          value={collateralDetails.relationshipWithLoan}
-          onChange={handleInputChange}
-        />
+	const handleCloseToast = () => {
+		setErrState(false, "", false, ""); // Resetting the error state to close the toast
+	};
 
-        <TextField
-          label="Property Owner"
-          fullWidth
-          margin="normal"
-          name="propertyOwner"
-          value={collateralDetails.propertyOwner}
-          onChange={handleInputChange}
-        />
+	return (
+		<>
+			<SnackToast
+				onClose={handleCloseToast}
+				openSnack={err.openSnack}
+				message={err.errMsg}
+				severity={err.severity}
+			/>
+			<Box width={"90%"} margin={"13vh auto 0 auto"}>
+				<Button
+					onClick={handleGoBack}
+					startIcon={<ArrowBack />}
+					variant="contained"
+					style={{ marginBottom: 20 }}
+				>
+					GO BACK
+				</Button>
+				<Typography variant="subtitle1" style={{ fontWeight: 700 }}>
+					Application ID: {appId}
+				</Typography>
 
-        <TextField
-          label="Property Category"
-          fullWidth
-          margin="normal"
-          name="propertyCategory"
-          value={collateralDetails.propertyCategory}
-          onChange={handleInputChange}
-        />
+				<Typography variant="h6">Collateral Details</Typography>
+				<Divider style={{ marginBottom: 10 }} />
+				<TextField
+					label="Is existing collateral (YES/No)"
+					fullWidth
+					margin="normal"
+					name="isExisting"
+					value={collateralDetails.isExisting}
+					onChange={handleInputChange}
+				/>
+				<FormControl fullWidth margin="normal">
+					<InputLabel>Collateral Type</InputLabel>
+					<Select
+						value={collateralDetails.collateralType}
+						onChange={handleInputChange}
+						name="collateralType"
+						label="Collateral Type"
+					>
+						<MenuItem value="">Select</MenuItem>
+						<MenuItem value="property">Property</MenuItem>
+						<MenuItem value="automobile">Automobile</MenuItem>
+						<MenuItem value="deposite">Deposite</MenuItem>
+						<MenuItem value="financialSecurity">Financial Security</MenuItem>
+						<MenuItem value="plantAndMachinery">Plant And Machinery</MenuItem>
+						<MenuItem value="insurance">Insurance</MenuItem>
+						<MenuItem value="gold">Gold</MenuItem>
+					</Select>
+				</FormControl>
+				<TextField
+					label="Collateral name"
+					fullWidth
+					margin="normal"
+					name="collateralName"
+					value={collateralDetails.collateralName}
+					onChange={handleInputChange}
+				/>
+				<TextField
+					label="Primary/Secondary Collateral"
+					fullWidth
+					margin="normal"
+					name="primarySecondary"
+					value={collateralDetails.primarySecondary}
+					onChange={handleInputChange}
+				/>
+				<TextField
+					label="Valuation Required (YES/No)"
+					fullWidth
+					margin="normal"
+					name="valuationRequired"
+					value={collateralDetails.valuationRequired}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Type of Property"
-          fullWidth
-          margin="normal"
-          name="propertyType"
-          value={collateralDetails.propertyType}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Relationship With Loan (Applicant Number)"
+					fullWidth
+					margin="normal"
+					name="relationshipWithLoan"
+					value={collateralDetails.relationshipWithLoan}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Occupation Status"
-          fullWidth
-          margin="normal"
-          name="occupationStatus"
-          value={collateralDetails.occupationStatus}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Property Owner"
+					fullWidth
+					margin="normal"
+					name="propertyOwner"
+					value={collateralDetails.propertyOwner}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Property Status"
-          fullWidth
-          margin="normal"
-          name="propertyStatus"
-          value={collateralDetails.propertyStatus}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Property Category"
+					fullWidth
+					margin="normal"
+					name="propertyCategory"
+					value={collateralDetails.propertyCategory}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Property Title"
-          fullWidth
-          margin="normal"
-          name="propertyTitle"
-          value={collateralDetails.propertyTitle}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Type of Property"
+					fullWidth
+					margin="normal"
+					name="propertyType"
+					value={collateralDetails.propertyType}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="House No/Flat No/Shop No"
-          fullWidth
-          margin="normal"
-          name="houseFlatShopNo"
-          value={collateralDetails.houseFlatShopNo}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Occupation Status"
+					fullWidth
+					margin="normal"
+					name="occupationStatus"
+					value={collateralDetails.occupationStatus}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Khasra No/Plot No"
-          fullWidth
-          margin="normal"
-          name="khasraPlotNo"
-          value={collateralDetails.khasraPlotNo}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Property Status"
+					fullWidth
+					margin="normal"
+					name="propertyStatus"
+					value={collateralDetails.propertyStatus}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Locality"
-          fullWidth
-          margin="normal"
-          name="locality"
-          value={collateralDetails.locality}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Property Title"
+					fullWidth
+					margin="normal"
+					name="propertyTitle"
+					value={collateralDetails.propertyTitle}
+					onChange={handleInputChange}
+				/>
+				<TextField
+					label="Pincode"
+					fullWidth
+					margin="normal"
+					name="pincode"
+					value={collateralDetails.pincode}
+					onChange={handleInputChange}
+					inputProps={{
+						maxLength: 6,
+					}}
+					helperText="Only 6 digits, no alphabets allowed"
+					error={
+						!/^\d*$/.test(collateralDetails.pincode) &&
+						collateralDetails.pincode !== ""
+					}
+				/>
+				<TextField
+					label="House No/Flat No/Shop No"
+					fullWidth
+					margin="normal"
+					name="houseFlatShopNo"
+					value={collateralDetails.houseFlatShopNo}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Village"
-          fullWidth
-          margin="normal"
-          name="village"
-          value={collateralDetails.village}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Khasra No/Plot No"
+					fullWidth
+					margin="normal"
+					name="khasraPlotNo"
+					value={collateralDetails.khasraPlotNo}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="State"
-          fullWidth
-          margin="normal"
-          name="state"
-          value={collateralDetails.state}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Locality"
+					fullWidth
+					margin="normal"
+					name="locality"
+					value={collateralDetails.locality}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="District"
-          fullWidth
-          margin="normal"
-          name="district"
-          value={collateralDetails.district}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Village"
+					fullWidth
+					margin="normal"
+					name="village"
+					value={collateralDetails.village}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="City"
-          fullWidth
-          margin="normal"
-          name="city"
-          value={collateralDetails.city}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="State"
+					fullWidth
+					margin="normal"
+					name="state"
+					value={collateralDetails.state}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Taluka"
-          fullWidth
-          margin="normal"
-          name="taluka"
-          value={collateralDetails.taluka}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="District"
+					fullWidth
+					margin="normal"
+					name="district"
+					value={collateralDetails.district}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Pincode"
-          fullWidth
-          margin="normal"
-          name="pincode"
-          value={collateralDetails.pincode}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="City"
+					fullWidth
+					margin="normal"
+					name="city"
+					value={collateralDetails.city}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          label="Landmark"
-          fullWidth
-          margin="normal"
-          name="landmark"
-          value={collateralDetails.landmark}
-          onChange={handleInputChange}
-        />
+				<TextField
+					label="Taluka"
+					fullWidth
+					margin="normal"
+					name="taluka"
+					value={collateralDetails.taluka}
+					onChange={handleInputChange}
+				/>
 
-        <TextField
-          type="number"
-          onFocus={(e) =>
-            e.target.addEventListener(
-              "wheel",
-              function (e) {
-                e.preventDefault();
-              },
-              { passive: false }
-            )
-          }
-          label="Estimated Property Value"
-          fullWidth
-          margin="normal"
-          name="estimatedPropertyValue"
-          value={collateralDetails.estimatedPropertyValue}
-          onChange={handleInputChange}
-        />
-        <Box display={"flex"} gap={"1rem"} alignItems={"center"}>
-  <TextField
-    label="Document Name"
-    margin="normal"
-    name="documentName"
-    value={
-      collateralDetails.documentName ||
-      extractFileName(collateralDetails.documentUpload)
-    }
-    onChange={handleInputChange}
-    style={{ width: "33%" }}
-  />
+				<TextField
+					label="Landmark"
+					fullWidth
+					margin="normal"
+					name="landmark"
+					value={collateralDetails.landmark}
+					onChange={handleInputChange}
+				/>
 
-  {typeof collateralDetails.documentUpload === "string" &&
-  isImage(extractFileName(collateralDetails.documentUpload)) ? (
-    <img
-      src={collateralDetails.documentUpload}
-      alt={"preview"}
-      style={{ width: "200px", height: "100px" }}
-    />
-  ) : typeof collateralDetails.documentUpload === "string" &&
-    !isImage(extractFileName(collateralDetails.documentUpload)) ? (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        padding: "10px",
-        textAlign: "center",
-      }}
-    >
-      <p>{extractFileName(collateralDetails.documentUpload)}</p>
-      <img
-        href={collateralDetails.documentUpload}
-    
-        rel="noopener noreferrer"
-      />
-      
-    </div>
-  ) : (
-    <TextField
-      label="Uploaded File"
-      margin="normal"
-      name="uploadedFile"
-      value={collateralDetails.uploadedFile}
-      onChange={handleInputChange}
-      style={{ width: "33%" }}
-    />
-  )}
+				<TextField
+					type="number"
+					label="Estimated Property Value"
+					fullWidth
+					margin="normal"
+					name="estimatedPropertyValue"
+					value={collateralDetails.estimatedPropertyValue}
+					onChange={handleInputChange}
+				/>
 
-  <Box width={"33%"}>
-    <Input
-      type="file"
-      onChange={handleFileChange}
-      style={{ display: "none" }}
-      id={`file-input`}
-    />
-    <label htmlFor={`file-input`}>
-      <Button
-        fullWidth
-        style={{ margin: "16px 0 8px 0" }}
-        variant="outlined"
-        component="span"
-        startIcon={<AttachFileIcon />}
-      >
-        Choose File
-      </Button>
-    </label>
-  </Box>
-</Box>        <TextField
-          label="Description"
-          fullWidth
-          multiline
-          rows={4}
-          margin="normal"
-          name="description"
-          value={collateralDetails.description}
-          onChange={handleInputChange}
-        />
-        {isRemarks && (
-          <TextField
-            label="Remarks"
-            fullWidth
-            margin="normal"
-            name="comment"
-            value={collateralDetails.comment}
-            onChange={handleInputChange}
-          />
-        )}
-        <Button
-          disabled={process.env.REACT_APP_DISABLED === "TRUE"}
-          variant="contained"
-          fullWidth
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </Box>
-    </>
-  );
+				<Box display="flex" gap="1rem" alignItems="center">
+					<TextField
+						label="Document Name"
+						margin="normal"
+						name="documentName"
+						value={collateralDetails.documentName}
+						onChange={handleInputChange}
+						style={{ width: "33%" }}
+					/>
+					{preview && collateralDetails.documentUpload?.type.startsWith('image/') ? (
+						<img
+							src={preview}
+							alt="Uploaded Collateral Preview"
+							style={{
+								maxWidth: "200px",
+								height: "auto",
+								maxHeight: "100px",
+								margin: "0.5rem 0",
+							}}
+						/>
+					) : collateralDetails.documentUpload ? (
+						collateralDetails.documentUpload?.type === 'application/pdf' ? (
+							<Box
+								margin="normal"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+								style={{
+									width: "33%",
+									height: "100px",
+									border: "1px solid #ccc",
+									margin: "0.5rem 0",
+								}}
+							>
+								{collateralDetails.uploadedFile}
+							</Box>
+						) : (
+							<TextField
+								label="Uploaded File"
+								margin="normal"
+								name="uploadedFile"
+								value={collateralDetails.uploadedFile}
+								onChange={handleInputChange}
+								style={{ width: "33%" }}
+							/>
+						)
+					) : (
+						<TextField
+							label="Uploaded File"
+							margin="normal"
+							name="uploadedFile"
+							value={collateralDetails.uploadedFile}
+							onChange={handleInputChange}
+							style={{ width: "33%" }}
+						/>
+					)}
+					<Box width="33%">
+						<Input
+							type="file"
+							onChange={handleFileChange}
+							style={{ display: "none" }}
+							id="file-input"
+						/>
+						<label htmlFor="file-input">
+							<Button
+								fullWidth
+								style={{ margin: "16px 0 8px 0" }}
+								variant="outlined"
+								component="span"
+								startIcon={<AttachFileIcon />}
+							>
+								Choose File
+							</Button>
+						</label>
+					</Box>
+				</Box>
+
+				<TextField
+					label="Description"
+					fullWidth
+					multiline
+					rows={4}
+					margin="normal"
+					name="description"
+					value={collateralDetails.description}
+					onChange={handleInputChange}
+				/>
+				{isRemarks && (
+					<TextField
+						label="Remarks"
+						fullWidth
+						margin="normal"
+						name="comment"
+						value={collateralDetails.comment}
+						onChange={handleInputChange}
+					/>
+				)}
+				<Button
+					disabled={process.env.REACT_APP_DISABLED === "TRUE"}
+					variant="contained"
+					fullWidth
+					onClick={handleSave}
+				>
+					Save
+				</Button>
+			</Box>
+		</>
+	);
 };
 
 export default Collateral;

@@ -82,65 +82,58 @@ const DocumentUpload = () => {
 
 	const handleTextFieldChange = (index, value, key) => {
 		const updatedPairs = [...keyValuePairs];
-		const attachMents = [...files];
+		const updatedFiles = [...files];
 		const uuid = updatedPairs[index].uuid; // Get the UUID from keyValuePairs
-
-		// Find the updateItem entry for the given UUID
-		let updateItems = [...updateItem];
-		let updateItemIndex = updateItems.findIndex((item) => item.uuid === uuid);
-		if (updateItemIndex === -1) {
-			updateItems.push({ uuid });
-			updateItemIndex = updateItems.length - 1;
-		}
-
+	  
 		// Update keyValuePairs and track changes
 		if (key === "document_name") {
-			updatedPairs[index].document_name = value;
-			if (prevkeyValuePairs[index]?.document_name !== value) {
-				updateItems[updateItemIndex].document_name = value;
-				updateItems[updateItemIndex].file_updated = "false";
-			} else {
-				delete updateItems[updateItemIndex].document_name;
-			}
+		  updatedPairs[index].document_name = value;
 		} else if (key === "document_id") {
-			updatedPairs[index].document_id = value;
-			if (prevkeyValuePairs[index]?.document_id !== value) {
-				updateItems[updateItemIndex].document_id = value;
-				updateItems[updateItemIndex].file_updated = "false";
-			} else {
-				delete updateItems[updateItemIndex].document_id;
-			}
+		  updatedPairs[index].document_id = value;
 		} else if (key === "file") {
-			updatedPairs[index].fileName = value?.name;
-			attachMents[index] = value;
-
-			// Check if the file selection is the same as the previous one
-			if (value?.name === prevkeyValuePairs[index]?.fileName) {
-				updateItems[updateItemIndex].file_updated = "false";
-			} else {
-				updatedPairs[index].fileName = value?.name; // Update fileName in keyValuePairs
-				attachMents[index] = value; // Update attachments
-				updateItems[updateItemIndex].file_updated = "true";
-			}
-			// Handle image preview using createObjectURL
-			if (value && value.type.startsWith("image/")) {
-				const objectURL = URL.createObjectURL(value);
-				updatedPairs[index].filePreview = objectURL;
-			} else {
-				updatedPairs[index].filePreview = "";
-			}
+		  updatedPairs[index].fileName = value?.name;
+		  updatedPairs[index].isNewFile = true; // Mark as a new file
+		  updatedFiles[index] = value;
+	  
+		  // Handle image preview using createObjectURL
+		  if (value && value.type.startsWith("image/")) {
+			const objectURL = URL.createObjectURL(value);
+			updatedPairs[index].filePreview = objectURL;
+		  } else if (value && value.name.endsWith(".pdf")) {
+			updatedPairs[index].filePreview = value.name;
+		  }
 		}
-
-		// Remove the updateItem if it only contains the uuid and no changes
-		if (Object.keys(updateItems[updateItemIndex]).length === 1) {
-			updateItems.splice(updateItemIndex, 1);
+	  
+		// Update updateItem based on changes
+		let updatedUpdateItems = [...updateItem];
+		let updateItemIndex = updatedUpdateItems.findIndex((item) => item.uuid === uuid);
+		if (updateItemIndex === -1) {
+		  updatedUpdateItems.push({ uuid });
+		  updateItemIndex = updatedUpdateItems.length - 1;
 		}
-
+	  
+		if (key === "document_name" || key === "document_id") {
+		  updatedUpdateItems[updateItemIndex][key] = value;
+		  updatedUpdateItems[updateItemIndex].file_updated = "false";
+		} else if (key === "file") {
+		  if (value?.name === prevkeyValuePairs[index]?.fileName) {
+			updatedUpdateItems[updateItemIndex].file_updated = "false";
+		  } else {
+			updatedUpdateItems[updateItemIndex].file_updated = "true";
+		  }
+		}
+	  
+		// Remove updateItem if no actual changes
+		if (Object.keys(updatedUpdateItems[updateItemIndex]).length === 1) {
+		  updatedUpdateItems.splice(updateItemIndex, 1);
+		}
+	  
 		setKeyValuePairs(updatedPairs);
-		setFiles(attachMents);
-		setUpdateItem(updateItems);
-	};
-
+		setFiles(updatedFiles);
+		setUpdateItem(updatedUpdateItems);
+	  };
+	  
+	  
 	const addKeyValuePair = () => {
 		setKeyValuePairs([
 			...keyValuePairs,
@@ -271,6 +264,7 @@ const DocumentUpload = () => {
 			var api =
 				updateItem.length > 0 && isNew === false ? "put" : isNew && "post";
 			console.log("files", files);
+			console.log("updateItem", updateItem);
 			let filteredData;
 			if (api === "post") {
 				filteredData = updateItem.map(({ file_updated, ...rest }) => rest);
@@ -430,20 +424,70 @@ const DocumentUpload = () => {
 										}
 									/>
 								</Grid>
+
 								<Grid
   item
   xs={12}
   sm={6}
   md={3}
-  style={{ textAlign: "center", maxHeight: "100px", overflow: "hidden" }}
+  style={{
+    textAlign: "center",
+    maxHeight: "100px",
+    overflow: "hidden",
+  }}
 >
   {pair.filePreview ? (
-    <img
-      src={pair.filePreview}
-      alt="preview"
-      style={{ maxWidth: "100%", height: "auto" }}
-    />
+    /\.(jpeg|jpg|gif|png)$/.test(pair.filePreview) || pair.filePreview.startsWith('blob:') ? (
+      // Display image preview if filePreview is a string (URL) and matches image formats
+      <img
+        src={pair.filePreview}
+        alt="preview"
+        style={{ maxWidth: "100%", height: "auto" }}
+      />
+    ) : (
+      // Display PDF preview with file name and download button
+      <div
+        style={{
+          border: "1px solid #ccc",
+          padding: "2px",
+          textAlign: "center",
+          maxHeight: "100px",
+          maxWidth: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1rem",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <p style={{ flex: "1 0 auto", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {pair.filePreview} {/* Display PDF file name */}
+          </p>
+          {!pair.isNewFile && (
+            <IconButton
+              style={{ flex: "0 0 auto" }}
+              href={pair.filePreview}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <GetAppIcon /> {/* Download button */}
+            </IconButton>
+          )}
+        </div>
+      </div>
+    )
   ) : (
+    // If no filePreview, show file name or "No file chosen"
     <div
       style={{
         border: "1px solid #ccc",
@@ -460,41 +504,40 @@ const DocumentUpload = () => {
         whiteSpace: "nowrap",
       }}
     >
-      {pair.file && typeof pair.file === "string" ? (
-        isImage(extractFileName(pair.file)) ? (
-          <img
-            src={pair.file}
-            alt="preview"
-            style={{ maxWidth: "100%", height: "auto"}}
-          />
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%"
-            }}
-          >
-            <p style={{ flex: "1 0 auto" }}>
-              {extractFileName(pair.file)}
-            </p>
+      {pair.fileName ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <p style={{ flex: "1 0 auto", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {pair.fileName} {/* Display file name */}
+          </p>
+          {!pair.isNewFile && (
             <IconButton
               style={{ flex: "0 0 auto" }}
               href={pair.file}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <GetAppIcon />
+              <GetAppIcon /> {/* Download button */}
             </IconButton>
-          </div>
-        )
+          )}
+        </div>
       ) : (
         <p>No file chosen</p>
       )}
     </div>
   )}
 </Grid>
+
+
+
+
+
 
 
 

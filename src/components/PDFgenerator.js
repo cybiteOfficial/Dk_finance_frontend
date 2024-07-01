@@ -43,14 +43,14 @@ const PDFGenerator = ({ data }) => {
 
   return (
     <>
-      <Button
-        disabled={loading}
-        onClick={updateStatusDataApi}
-        variant="outlined"
-        style={{ marginBottom: 20, marginLeft: "auto" }}
-      >
-        Download PDF
-      </Button>
+    <Button
+      disabled={loading}
+      onClick={updateStatusDataApi}
+      variant="outlined"
+      style={{ marginBottom: 20 }}
+    >
+      Download PDF
+    </Button>
     </>
   );
 };

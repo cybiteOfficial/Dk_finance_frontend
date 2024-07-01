@@ -92,6 +92,25 @@ console.log(userInfo)
   const itemsPerPage = 20; // Assuming 20 items per page
   const [totalPages ,setTotalPages]=useState(0);
 
+  const formatDate = (isoDate) => {
+    const date = new Date(isoDate);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatTime = (isoDate) => {
+    const date = new Date(isoDate);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const strTime = `${hours}:${minutes} ${ampm}`;
+    return strTime;
+  };
+
   const [err, setErr] = useState({
     loading: false,
     errMsg: "",
@@ -184,7 +203,8 @@ console.log(userInfo)
         backgroundColor={theme.palette.white.main}
         borderRadius={"16px"}
       >
-       <Grid container>
+
+<Grid container>
   <Grid item xs={12}>
     <Box p={"1rem"}>
       <StyledTypography variant="subtitle1" weight={700}>
@@ -192,23 +212,7 @@ console.log(userInfo)
       </StyledTypography>
     </Box>
   </Grid>
-  {/* <Grid item xs={12}>
-    <Box pl={"80px"}>
-      <StyledTextField
-        placeholder="Search"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-      />
-    </Box>
-  </Grid> */}
-  <Grid item xs={12}>
-    <Box pl={"auto"} mt={"auto"}></Box>
-  </Grid>
+
   <Grid item xs={12} sm={12}>
     <Paper
       style={{
@@ -219,33 +223,36 @@ console.log(userInfo)
       }}
     >
       <Grid container className={classes.appLicantHeader}>
-        <Grid item xs={4}>
+        <Grid item xs={2}>
           <StyledTypography variant="body2" weight={600}>
             Application ID
           </StyledTypography>
         </Grid>
-        {/* Add the new column header for RO Details */}
-        <Grid item xs={4}>
+        {/* New column header for RO Details */}
+        <Grid item xs={2}>
+          <StyledTypography variant="body2" weight={600}>
+            Lead
+          </StyledTypography>
+        </Grid>
+        {/* New column header for RO Details */}
+        <Grid item xs={2}>
           <StyledTypography variant="body2" weight={600}>
             RO Details
           </StyledTypography>
         </Grid>
-        <Grid
-          item
-          xs={2}
-          style={{
-            display: "flex",
-            marginLeft: "auto",
-          }}
-        >
-          <Box>
-            <StyledTypography variant="body2" weight={600}>
-              Status
-            </StyledTypography>
-          </Box>
+        {/* New column header for Created At */}
+        <Grid item xs={2} textAlign={"center"}>
+          <StyledTypography variant="body2" weight={600}>
+            Created At
+          </StyledTypography>
+        </Grid>
+        <Grid item xs={2} textAlign={"right"} >
+          <StyledTypography variant="body2" weight={600}>
+            Status
+          </StyledTypography>
         </Grid>
       </Grid>
-      <Box style={{ overflowY: "scroll" }} height={"100%"}>
+      <Box style={{ overflowY: "scroll", overflowX: "hidden", height: "100%" }}>
         {userInfo &&
           userInfo.length > 0 &&
           userInfo.map((item, index) => (
@@ -255,7 +262,7 @@ console.log(userInfo)
                 className={classes.appLicantRows}
                 onClick={() => showCustomer(item)}
               >
-                <Grid item xs={4}>
+                <Grid item xs={2}>
                   <StyledTypography
                     variant="body2"
                     capitalize="capitalize"
@@ -264,10 +271,25 @@ console.log(userInfo)
                     #{item.application_id}
                   </StyledTypography>
                 </Grid>
-                {/* Add the new data cell for RO Details */}
-                <Grid item xs={4}>
+                {/* Display Lead */}
+                <Grid item xs={2}>
                   <StyledTypography variant="body2" weight={600}>
-                    {item.created_by.ro_name} {item.created_by.employee_id ? '-' : " "} {item.created_by.employee_id}
+                    {item.lead || "N/A"}
+                  </StyledTypography>
+                </Grid>
+                {/* Display RO Details */}
+                <Grid item xs={2}>
+                  <StyledTypography variant="body2" weight={600}>
+                    {item.created_by.ro_name}{" "}
+                    {item.created_by.employee_id ? "-" : " "}{" "}
+                    {item.created_by.employee_id}
+                  </StyledTypography>
+                </Grid>
+                {/* Display Created At */}
+                <Grid item xs={2}>
+                  <StyledTypography variant="body2" weight={600}>
+                    {formatTime(item.created_at)} -
+                    {" " + formatDate(item.created_at)} {/* Assuming item.created_at holds the creation time */}
                   </StyledTypography>
                 </Grid>
                 <Grid
@@ -276,7 +298,8 @@ console.log(userInfo)
                   style={{
                     display: "flex",
                     marginLeft: "auto",
-                    marginRight: "52px",
+                    marginRight: "45px",
+                    alignItems: "center",
                   }}
                 >
                   <Box>
@@ -287,9 +310,13 @@ console.log(userInfo)
                       propWidth={"160px"}
                       propHeight={"40px"}
                       propBorderRadius={"8px"}
-                      propBackgroundColor={theme.palette.lightSecondaryV3.main}
+                      propBackgroundColor={
+                        theme.palette.lightSecondaryV3.main
+                      }
                       textTransform={"capitalize"}
-                      label={item.status === "cluster" ? "Approved" : item.status}
+                      label={
+                        item.status === "cluster" ? "Approved" : item.status
+                      }
                     />
                   </Box>
                 </Grid>
@@ -301,6 +328,8 @@ console.log(userInfo)
     </Paper>
   </Grid>
 </Grid>
+
+ 
 
 <Box>
   <Stack spacing={2}>

@@ -18,7 +18,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { logout } from "../redux/reducers/auth/auth-reducer";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/images/dk_finance_logo.png";
+import Logo from "../assets/images/logo_dk.jpg";
 
 import { removeStore } from "../redux/reducers/dashboard/dashboard-reducer";
 import { theme } from "../theme";

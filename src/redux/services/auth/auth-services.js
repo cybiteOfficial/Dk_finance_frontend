@@ -2,7 +2,7 @@ import axios from "axios";
 import mockData from "../../../mocks/data.json";
 
 // Define your base API URL
-export const baseURL = "http://13.232.141.127";
+export const baseURL = "http://43.205.242.176";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
