@@ -286,7 +286,7 @@ console.log(userInfo)
                   </StyledTypography>
                 </Grid>
                 {/* Display Created At */}
-                <Grid item xs={2}>
+                <Grid item xs={2} textAlign={"center"}>
                   <StyledTypography variant="body2" weight={600}>
                     {formatTime(item.created_at)} -
                     {" " + formatDate(item.created_at)} {/* Assuming item.created_at holds the creation time */}

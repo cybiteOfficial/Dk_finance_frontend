@@ -15,6 +15,9 @@ import {
   ToggleButton,
 } from "@mui/material";
 
+import { styled } from '@mui/material/styles';
+
+
 import { ArrowBack, ExpandLess, ExpandMore, Star } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -98,6 +101,15 @@ const residenceTypeOptions = [
   { value: "kuchaHouse", label: "Kucha House" },
   { value: "others", label: "Others (Specify)" },
 ];
+
+const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
+  '&.Mui-selected': {
+    backgroundColor: 'rgb(122, 48, 108)',
+    color: 'rgb(255, 255, 255)',
+  },
+}));
+
+
 const CustomerForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -526,7 +538,7 @@ const CustomerForm = () => {
         }
       }
 
-      if (checkIfApplicant) {
+      if (checkIfApplicant && personInformation.role !== "applicant") {
         setRole("co_applicant"); // Set to 'coapplicant'
         setIsApplicantDisabled(true); // Disable the "applicant" toggle button
       } else {
@@ -697,23 +709,28 @@ const CustomerForm = () => {
           gap={"1rem"}
           mb={1}
         >
-          <ToggleButtonGroup
-            value={role}
-            exclusive
-            onChange={handleRoleChange}
-            aria-label="user role"
-          >
-            <ToggleButton
-              value="applicant"
-              aria-label="applicant"
-              disabled={isApplicantDisabled}
-            >
-              Applicant
-            </ToggleButton>
-            <ToggleButton value="co_applicant" aria-label="co-applicant">
-              Co-Applicant
-            </ToggleButton>
-          </ToggleButtonGroup>
+   <ToggleButtonGroup
+      value={role}
+      exclusive
+      onChange={handleRoleChange}
+      aria-label="user role"
+    >
+      <CustomToggleButton
+        value="applicant"
+        aria-label="applicant"
+        disabled={isApplicantDisabled}
+      >
+        Applicant
+      </CustomToggleButton>
+
+      <CustomToggleButton value="co_applicant" aria-label="co-applicant">
+        Co-Applicant
+      </CustomToggleButton>
+
+      <CustomToggleButton value="guarantor" aria-label="guarantor" disabled>
+        Guarantor
+      </CustomToggleButton>
+    </ToggleButtonGroup>
         </Box>
         <form onSubmit={handlePersonalSubmit}>
           <Accordion style={{ marginBottom: 20 }}>
