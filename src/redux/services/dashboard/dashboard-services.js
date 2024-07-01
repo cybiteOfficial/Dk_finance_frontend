@@ -5,6 +5,7 @@ import axios from "axios";
 import mockCustomers from "../../../mocks/customers.json";
 // Define your base API URL
 const baseURL = "http://43.205.242.176/api/v1";
+// const baseURL = "http://3.6.37.0/api/v1";
 const getAllAplicants = "/applicants/";
 const updateCustomer = "/customers";  
 const  getLoanEndpoint = "/loan_details";

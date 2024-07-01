@@ -3,6 +3,7 @@ import mockData from "../../../mocks/data.json";
 
 // Define your base API URL
 export const baseURL = "http://43.205.242.176";
+// export const baseURL = "http://3.6.37.0";
 
 // Create an instance of axios with the base URL set
 const api = axios.create({
@@ -44,4 +45,5 @@ export const authAPI = {
     }
   },
   // Add more functions for other user-related operations if needed
+  
 };
