@@ -537,6 +537,7 @@ const CustomerForm = () => {
 		setPermanentAddressSameAsCurrent(!permanentAddressSameAsCurrent);
 	};
 
+  
 	const handleRoleChange = (event, newRole) => {
 		event.preventDefault();
 		if (newRole !== null) {
