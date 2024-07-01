@@ -187,6 +187,8 @@ const CustomerForm = () => {
   const [permanentAddressSameAsCurrent, setPermanentAddressSameAsCurrent] =
     useState(false);
   const [isApplicantDisabled, setIsApplicantDisabled] = useState(false);
+  const [isCoApplicantDisabled, setIsCoApplicantDisabled] = useState(false);
+  const [isGurarantorDisabled, setIsGurarantorDisabled] = useState(false);
   const [role, setRole] = useState(personInformation.role || "applicant");
 
   // State for cropped image
@@ -538,16 +540,45 @@ const CustomerForm = () => {
         }
       }
 
-      if (checkIfApplicant && personInformation.role !== "applicant") {
-        setRole("co_applicant"); // Set to 'coapplicant'
-        setIsApplicantDisabled(true); // Disable the "applicant" toggle button
+      if(checkIfApplicant && personInformation.role === ""){
+        setRole("co_applicant");
+        setIsApplicantDisabled(true);
+        setIsCoApplicantDisabled(false);
+        setIsGurarantorDisabled(false);
+      }
+
+      else if(checkIfApplicant && personInformation.role === "applicant"){
+        setRole("applicant"); // Set to 'coapplicant'
+        setIsApplicantDisabled(false);
+        setIsCoApplicantDisabled(true);
+        setIsGurarantorDisabled(true);
+      }
+
+      else if (checkIfApplicant && personInformation.role !== "applicant") {
+        if(personInformation.role === "co_applicant"){
+          setRole("co_applicant"); // Set to 'coapplicant'
+          setIsApplicantDisabled(true); // Disable the "applicant" toggle button
+          setIsGurarantorDisabled(false); // Disable the "guarantor" toggle button
+        }
+
+        else if(personInformation.role === "guarantor"){
+          setRole("guarantor"); // Set to 'guarantor'
+          setIsApplicantDisabled(true); // Disable the "applicant" toggle button
+          setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
+        }
+
       } else {
         setRole("applicant"); // Default to 'applicant'
         setIsApplicantDisabled(false); // Enable the "applicant" toggle button
+        setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
+        setIsGurarantorDisabled(true); // Disable the "guarantor" toggle button
+
       }
     } else {
       setRole("applicant"); // Default to 'applicant' if customerDetails is empty or undefined
       setIsApplicantDisabled(false); // Enable the "applicant" toggle button
+      setIsCoApplicantDisabled(true); // Disable the "coapplicant" toggle button
+      setIsGurarantorDisabled(true); // Disable the "guarantor" toggle button
     }
 
     console.log(customerDetails); // Log the updated customerDetails to check the changes
@@ -723,11 +754,11 @@ const CustomerForm = () => {
         Applicant
       </CustomToggleButton>
 
-      <CustomToggleButton value="co_applicant" aria-label="co-applicant">
+      <CustomToggleButton value="co_applicant" aria-label="co-applicant" disabled = {isCoApplicantDisabled}>
         Co-Applicant
       </CustomToggleButton>
 
-      <CustomToggleButton value="guarantor" aria-label="guarantor" disabled>
+      <CustomToggleButton value="guarantor" aria-label="guarantor" disabled = {isGurarantorDisabled}>
         Guarantor
       </CustomToggleButton>
     </ToggleButtonGroup>
